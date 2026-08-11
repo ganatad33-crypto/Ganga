@@ -1,0 +1,101 @@
+/* פנים ומזל — עיצוב */
+:root {
+  --bg: #14121f;
+  --card: #1e1b2e;
+  --card2: #262238;
+  --text: #efeaff;
+  --muted: #a49bc4;
+  --accent: #d4af6a;
+  --accent2: #8e6ad4;
+  --good: #6ad48e;
+  --warn: #d4796a;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Arial Hebrew", Arial, sans-serif;
+  background: radial-gradient(ellipse at top, #221d38 0%, var(--bg) 60%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.app-header { text-align: center; padding: 24px 16px 8px; }
+.app-header h1 { margin: 0; font-size: 2.2rem; letter-spacing: 1px; }
+.subtitle { color: var(--accent); margin: 6px 0 12px; }
+.disclaimer {
+  max-width: 720px; margin: 0 auto; font-size: 0.85rem; color: var(--muted);
+  background: rgba(212, 175, 106, 0.08); border: 1px solid rgba(212, 175, 106, 0.3);
+  border-radius: var(--radius); padding: 10px 14px; line-height: 1.6;
+}
+
+.tabs { display: flex; justify-content: center; gap: 8px; margin: 20px 0 0; flex-wrap: wrap; }
+.tab-btn {
+  background: var(--card); color: var(--muted); border: 1px solid #383153;
+  padding: 10px 22px; border-radius: 999px; font-size: 1rem; cursor: pointer;
+}
+.tab-btn.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+
+main { max-width: 860px; margin: 0 auto; padding: 16px; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+.card {
+  background: var(--card); border: 1px solid #332d4d; border-radius: var(--radius);
+  padding: 20px; margin: 16px 0;
+}
+.card h2 { margin-top: 0; color: var(--accent); }
+.card h3 { color: var(--accent2); margin-bottom: 8px; }
+
+label { display: block; margin: 10px 0; font-size: 0.95rem; }
+input[type="text"], input[type="date"], input[type="time"], input[type="number"], select {
+  width: 100%; max-width: 320px; padding: 9px 12px; margin-top: 4px;
+  background: var(--card2); color: var(--text); border: 1px solid #443c63; border-radius: 8px;
+  font-size: 1rem; display: block;
+}
+input[type="file"] { margin: 8px 0; color: var(--muted); }
+.dst-label { display: flex; align-items: center; gap: 6px; }
+.dst-label input { width: auto; }
+
+.latlon-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.latlon-row label { flex: 1; min-width: 120px; }
+
+button.primary {
+  background: linear-gradient(135deg, var(--accent2), #6a4ad4); color: #fff;
+  border: none; padding: 12px 32px; border-radius: 999px; font-size: 1.1rem;
+  cursor: pointer; margin-top: 14px; box-shadow: 0 4px 14px rgba(110, 74, 212, 0.4);
+}
+button.primary:hover { filter: brightness(1.15); }
+button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.photo-preview-wrap { margin: 8px 0; }
+.photo-canvas { border-radius: var(--radius); border: 2px solid #443c63; max-width: 100%; }
+.muted { color: var(--muted); font-size: 0.88rem; }
+.face-status.ok { color: var(--good); }
+.face-status.err { color: var(--warn); }
+
+.manual-face { margin-top: 10px; background: var(--card2); border-radius: 10px; padding: 10px 14px; }
+.manual-face summary { cursor: pointer; color: var(--accent); }
+.manual-face-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 16px; margin-top: 8px; }
+
+.results h3 { border-bottom: 1px solid #3a3357; padding-bottom: 6px; }
+.results p, .results li { line-height: 1.7; }
+.trait-item { margin: 10px 0; padding: 10px 14px; background: var(--card2); border-radius: 10px; }
+.trait-item b { color: var(--accent); }
+
+.badge {
+  display: inline-block; background: rgba(142, 106, 212, 0.2); border: 1px solid var(--accent2);
+  color: var(--text); border-radius: 999px; padding: 3px 14px; margin: 3px 4px 3px 0; font-size: 0.9rem;
+}
+
+.score-row { margin: 14px 0; }
+.score-label { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.score-bar { background: var(--card2); border-radius: 999px; height: 14px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width 0.8s ease; }
+.score-num { font-weight: bold; color: var(--accent); }
+
+.match-verdict { text-align: center; font-size: 1.3rem; margin: 16px 0; }
+
+.app-footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 24px 12px; }

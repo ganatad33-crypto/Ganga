@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>פנים ומזל — ניתוח אופי משולב</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>✨ פנים ומזל</h1>
+  <p class="subtitle">ניתוח אופי משולב: תורת הפנים · אסטרולוגיה · נומרולוגיה</p>
+  <p class="disclaimer">
+    ⚠️ האפליקציה מבוססת על מסורות עתיקות (חכמת הפרצוף, אסטרולוגיה ונומרולוגיה) ומיועדת
+    <strong>להעשרה, השראה ובידור בלבד</strong> — היא אינה כלי מדעי, פסיכולוגי או אבחוני.
+    <br>
+    🔒 כל העיבוד נעשה במכשיר שלך בלבד — תמונות ונתונים אינם נשלחים לשום שרת.
+    אם מעלים תמונה של אדם אחר — ודאו שקיבלתם את הסכמתו.
+  </p>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="personA">🧑 אדם א'</button>
+  <button class="tab-btn" data-tab="personB">🧑 אדם ב'</button>
+  <button class="tab-btn" data-tab="match">💞 התאמה ביניהם</button>
+</nav>
+
+<main>
+  <!-- panel template is cloned by app.js for person A and B -->
+  <template id="person-panel-template">
+    <section class="person-panel">
+      <div class="card">
+        <h2 class="panel-title"></h2>
+
+        <label>שם (בעברית — משמש גם לגימטריה):
+          <input type="text" class="inp-name" placeholder="לדוגמה: דנה כהן">
+        </label>
+
+        <div class="photo-block">
+          <h3>📷 תמונת פורטרט (פנים בלבד, מבט קדימה)</h3>
+          <input type="file" class="inp-photo" accept="image/*">
+          <div class="photo-preview-wrap">
+            <canvas class="photo-canvas" width="320" height="320" hidden></canvas>
+          </div>
+          <p class="face-status muted"></p>
+
+          <details class="manual-face">
+            <summary>✍️ הזנה ידנית של תווי הפנים (אם הזיהוי האוטומטי לא זמין, או לדיוק)</summary>
+            <div class="manual-face-grid"></div>
+          </details>
+        </div>
+
+        <div class="birth-block">
+          <h3>🌟 נתוני לידה</h3>
+          <label>תאריך לידה: <input type="date" class="inp-date"></label>
+          <label>שעת לידה (לא חובה — נדרשת למזל ירח מדויק ולאופק):
+            <input type="time" class="inp-time"></label>
+          <label>מקום לידה:
+            <select class="inp-city"></select>
+          </label>
+          <div class="latlon-row" hidden>
+            <label>קו רוחב: <input type="number" class="inp-lat" step="0.01" value="32.08"></label>
+            <label>קו אורך: <input type="number" class="inp-lon" step="0.01" value="34.78"></label>
+            <label>אזור זמן (UTC±): <input type="number" class="inp-tz" step="0.5" value="2"></label>
+          </div>
+          <label class="dst-label"><input type="checkbox" class="inp-dst"> שעון קיץ בזמן הלידה (+1)</label>
+        </div>
+
+        <button class="btn-analyze primary">🔮 נתח אופי</button>
+      </div>
+
+      <div class="results card" hidden></div>
+    </section>
+  </template>
+
+  <div id="personA" class="tab-pane active"></div>
+  <div id="personB" class="tab-pane"></div>
+
+  <div id="match" class="tab-pane">
+    <div class="card">
+      <h2>💞 התאמה בין אדם א' לאדם ב'</h2>
+      <p class="muted">יש לנתח קודם את שני האנשים בלשוניות שלהם, ואז לחשב את ההתאמה בכל תחומי החיים.</p>
+      <button id="btn-match" class="primary">💘 חשב התאמה</button>
+      <div id="match-results" hidden></div>
+    </div>
+  </div>
+</main>
+
+<footer class="app-footer">
+  <p>נבנה באהבה · הידע מבוסס על מקורות מסורתיים בלבד · אין לראות בתוצאות המלצה או קביעה לגבי אדם כלשהו</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/astro.js"></script>
+<script src="js/numerology.js"></script>
+<script src="js/face.js"></script>
+<script src="js/compat.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

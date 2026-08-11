@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ניהול מלאי — מעטפות ודפי נושא</title>
+<meta name="theme-color" content="#1B2A4A">
+<meta name="description" content="ניהול מלאי מחסן: מעטפות חלון ודפי נושא — תא העמסה ומדף שוטף">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-48.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-row">
+    <div class="app-title">
+      <img src="icons/icon-192.png" alt="" class="app-logo">
+      <div>
+        <h1>ניהול מלאי</h1>
+        <div class="subtitle" id="subtitle">מעטפות ודפי נושא</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-delivery" title="קליטת תעודת משלוח" aria-label="קליטת תעודת משלוח">📦</button>
+      <button class="icon-btn" id="btn-log" title="יומן תנועות" aria-label="יומן תנועות">📋</button>
+      <button class="icon-btn" id="btn-menu" title="תפריט" aria-label="תפריט">☰</button>
+    </div>
+  </div>
+  <div class="testmode-banner hidden" id="test-banner">🧪 מצב טסט — הנתונים כאן נפרדים לגמרי ממצב העבודה</div>
+  <div class="search-row">
+    <input type="search" id="search" placeholder="חיפוש פריט…" autocomplete="off">
+  </div>
+  <div class="filter-row" id="filters">
+    <button class="chip active" data-filter="all">הכול</button>
+    <button class="chip" data-filter="env">מעטפות</button>
+    <button class="chip" data-filter="page">דפים</button>
+    <button class="chip" data-filter="short">רק חוסרים</button>
+  </div>
+</header>
+
+<main id="list" class="list" aria-live="polite"></main>
+
+<div class="empty hidden" id="empty">לא נמצאו פריטים</div>
+
+<button class="install-fab hidden" id="btn-install">⬇️ התקנת האפליקציה למסך הבית</button>
+
+<!-- ===== חלונית פעולות לפריט ===== -->
+<div class="sheet-backdrop hidden" id="sheet-item">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-handle"></div>
+    <h2 id="item-title"></h2>
+    <div class="item-summary" id="item-summary"></div>
+    <div class="action-tabs" id="action-tabs">
+      <button class="tab active" data-act="pull">משיכה לשוטף</button>
+      <button class="tab" data-act="count">ספירת מדף</button>
+      <button class="tab" data-act="receive">קליטת הזמנה</button>
+      <button class="tab" data-act="fix">תיקון ספירה</button>
+    </div>
+    <div class="action-body">
+      <p class="action-hint" id="action-hint"></p>
+      <div class="qty-row">
+        <button class="qty-btn" id="qty-minus">−</button>
+        <input type="number" id="qty-input" inputmode="numeric" min="0">
+        <button class="qty-btn" id="qty-plus">+</button>
+      </div>
+      <div class="qty-unit" id="qty-unit"></div>
+      <button class="primary-btn" id="btn-do-action">אישור</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== קליטת תעודת משלוח ===== -->
+<div class="sheet-backdrop hidden" id="sheet-delivery">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-handle"></div>
+    <h2>📦 קליטת תעודת משלוח</h2>
+    <p class="action-hint">בחרו פריט וכמות ארגזים לכל שורה. הכול ייקלט לתא ההעמסה בבת אחת.</p>
+    <div id="delivery-rows"></div>
+    <button class="secondary-btn" id="btn-add-row">+ הוספת שורה</button>
+    <button class="primary-btn" id="btn-save-delivery">קליטת הכול</button>
+  </div>
+</div>
+
+<!-- ===== יומן תנועות ===== -->
+<div class="screen hidden" id="screen-log">
+  <div class="screen-header">
+    <button class="icon-btn" data-close>→</button>
+    <h2>📋 יומן תנועות</h2>
+  </div>
+  <div class="screen-body" id="log-body"></div>
+</div>
+
+<!-- ===== תפריט / הגדרות ===== -->
+<div class="screen hidden" id="screen-menu">
+  <div class="screen-header">
+    <button class="icon-btn" data-close>→</button>
+    <h2>☰ תפריט</h2>
+  </div>
+  <div class="screen-body menu-body">
+    <section class="menu-section">
+      <h3>דוחות וגיבוי</h3>
+      <button class="menu-item" id="btn-export-xlsx">📊 ייצוא דוח XLSX (מלאי + יומן)</button>
+      <button class="menu-item" id="btn-export-json">💾 גיבוי כל הנתונים (קובץ JSON)</button>
+      <button class="menu-item" id="btn-import-json">📥 שחזור מגיבוי (קובץ JSON)</button>
+      <input type="file" id="file-import" accept=".json,application/json" class="hidden">
+    </section>
+    <section class="menu-section">
+      <h3>מצב עבודה</h3>
+      <div class="mode-toggle">
+        <button class="mode-btn" id="mode-work">🏭 מצב עבודה</button>
+        <button class="mode-btn" id="mode-test">🧪 מצב טסט</button>
+      </div>
+      <button class="menu-item danger" id="btn-reset">♻️ איפוס לספירה המקורית (11/08/2026)</button>
+    </section>
+    <section class="menu-section">
+      <h3>אפליקציה</h3>
+      <button class="menu-item hidden" id="menu-install">⬇️ התקנה למסך הבית</button>
+      <button class="menu-item" id="btn-help">❓ עזרה — איך עובדים עם האפליקציה</button>
+      <div class="about" id="about"></div>
+    </section>
+  </div>
+</div>
+
+<!-- ===== עזרה ===== -->
+<div class="screen hidden" id="screen-help">
+  <div class="screen-header">
+    <button class="icon-btn" data-close>→</button>
+    <h2>❓ עזרה</h2>
+  </div>
+  <div class="screen-body help-body">
+    <section>
+      <h3>מה האפליקציה עושה?</h3>
+      <p>עוקבת אחרי המלאי בשני מקומות לכל פריט:</p>
+      <ul>
+        <li><b>תא העמסה</b> — מחסן האחסון. נספר ב<b>ארגזים</b>.</li>
+        <li><b>מדף שוטף</b> — חדר המכונות. נספר ב<b>יחידות</b> (מעטפות/דפים).</li>
+      </ul>
+    </section>
+    <section>
+      <h3>4 הפעולות</h3>
+      <ul>
+        <li><b>משיכה לשוטף</b> — לקחתם ארגזים מתא ההעמסה למדף: תא יורד, מדף עולה.</li>
+        <li><b>ספירת מדף</b> — ראיתם כמה נשאר על המדף? הזינו את המספר. ירידה מהספירה הקודמת נחשבת שימוש של המכונות.</li>
+        <li><b>קליטת הזמנה</b> — הגיעה סחורה מהספק: ארגזים נוספים לתא ההעמסה. לקליטה של כמה פריטים בבת אחת — כפתור 📦 למעלה.</li>
+        <li><b>תיקון ספירה</b> — ספרתם פיזית את הארגזים בתא? הזינו את המספר הנכון והוא יקבע.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>סטטוסים ותחזית</h3>
+      <ul>
+        <li>🔴 <b>אזל</b> — אין מלאי בכלל.</li>
+        <li>🟠 <b>חוסר</b> — המלאי קטן מהצריכה החודשית.</li>
+        <li>🟡 <b>גבולי</b> — המלאי קטן מ־120% מהצריכה החודשית.</li>
+        <li>🟢 <b>תקין</b> — יש מספיק.</li>
+      </ul>
+      <p>"יספיק ל־X ימים": אם יש לפחות שתי ספירות מדף, החישוב לפי השימוש בפועל של המכונות. אחרת — לפי קצב המשיכות. אדום = פחות מ־7 ימים, צהוב = פחות מ־14.</p>
+    </section>
+    <section>
+      <h3>מצב טסט</h3>
+      <p>בתפריט אפשר לעבור ל"מצב טסט" — סביבה נפרדת לגמרי לניסויים. שום דבר שם לא נוגע בנתוני האמת. "איפוס לספירה המקורית" מחזיר את המצב הנוכחי לספירה של 11/08/2026.</p>
+    </section>
+    <section>
+      <h3>גיבוי</h3>
+      <p>מומלץ אחת לשבוע: תפריט ← "גיבוי כל הנתונים" — נשמר קובץ JSON. אפשר לשחזר ממנו הכול בכל מכשיר.</p>
+    </section>
+    <section>
+      <h3>התקנה למסך הבית</h3>
+      <p>אם מופיע כפתור "התקנת האפליקציה" — לחצו עליו ואשרו. אחרי ההתקנה האפליקציה עובדת גם בלי אינטרנט.</p>
+    </section>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="js/catalog.js"></script>
+<script src="js/db.js"></script>
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

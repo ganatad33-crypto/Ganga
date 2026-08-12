@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>פורטפוליו צילום</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="hero" id="top">
+  <nav class="navbar">
+    <span class="logo" data-cfg="name"></span>
+    <div class="nav-links">
+      <a href="#gallery">גלריה</a>
+      <a href="#about">אודות</a>
+      <a href="#services">שירותים</a>
+      <a href="#contact">צור קשר</a>
+    </div>
+  </nav>
+  <div class="hero-content">
+    <h1 data-cfg="name"></h1>
+    <p class="tagline" data-cfg="tagline"></p>
+    <a href="#gallery" class="btn-cta">לצפייה בעבודות ↓</a>
+  </div>
+</header>
+
+<section id="gallery" class="section">
+  <h2>הגלריה</h2>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section id="about" class="section alt">
+  <h2>אודות</h2>
+  <p class="about-text" data-cfg="about"></p>
+</section>
+
+<section id="services" class="section">
+  <h2>שירותים</h2>
+  <div class="services" id="services-grid"></div>
+</section>
+
+<section id="contact" class="section alt">
+  <h2>צור קשר</h2>
+  <p class="contact-lead">אשמח לשמוע על הפרויקט הבא שלך</p>
+  <div class="contact-buttons" id="contact-buttons"></div>
+</section>
+
+<footer>
+  <p><span data-cfg="name"></span> © כל הזכויות שמורות · אין להעתיק או להשתמש בתמונות ללא אישור</p>
+  <a href="#top" class="back-top">↑ חזרה למעלה</a>
+</footer>
+
+<!-- לייטבוקס לצפייה בתמונה מוגדלת -->
+<div id="lightbox" class="lightbox" hidden>
+  <button class="lb-close" aria-label="סגירה">✕</button>
+  <button class="lb-prev" aria-label="הקודמת">‹</button>
+  <div class="lb-stage"></div>
+  <button class="lb-next" aria-label="הבאה">›</button>
+  <p class="lb-caption"></p>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

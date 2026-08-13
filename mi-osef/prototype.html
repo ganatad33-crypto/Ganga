@@ -238,6 +238,22 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
 .toast.on{opacity:1;transform:translateY(0)}
 .toast b{font-weight:700}
 
+.duty{background:color-mix(in srgb,var(--p-dad) 10%,var(--card));border:1px solid color-mix(in srgb,var(--p-dad) 30%,transparent);border-radius:14px;padding:12px 13px}
+.duty > span{font-size:11.5px;color:var(--ink-2);display:block}
+.duty > b{font-family:'Rubik',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;display:block;margin-top:2px;color:var(--p-dad)}
+.dutykids{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.pickrow .txt .who-kid{font-size:12px;color:var(--ink);margin-top:2px}
+.pickrow .txt .who-kid b{font-weight:700;color:var(--p-dad)}
+.pushset{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.pushrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}
+.pushrow:first-child{border-top:0}
+.pushrow .txt{flex:1;min-width:0}
+.pushrow .txt b{font-size:12.5px;font-weight:700;display:block}
+.pushrow .txt span{font-size:10.5px;color:var(--ink-3)}
+.sw{width:42px;height:25px;border-radius:99px;background:var(--line-2);position:relative;flex:none;transition:background .18s ease}
+.sw::after{content:'';position:absolute;top:3px;inset-inline-start:3px;width:19px;height:19px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .18s ease}
+.sw[aria-pressed="true"]{background:var(--ok)}
+.sw[aria-pressed="true"]::after{transform:translateX(-17px)}
 .remind{display:flex;align-items:center;gap:8px;margin-top:9px;background:color-mix(in srgb,var(--p-dad) 8%,var(--card));border:1px solid color-mix(in srgb,var(--p-dad) 26%,transparent);border-radius:11px;padding:7px 10px;font-size:11.5px;color:var(--ink-2)}
 .remind > span{font-size:13px;flex:none}
 .remind > div{flex:1;min-width:0;line-height:1.45}
@@ -457,6 +473,14 @@ function kidtag(k){
   return '<span class="kid" style="--c:'+d.c+'"><i></i>'+esc(d.n)+'</span>'; }
 function dayName(i){ return 'יום '+DAYS[i].n; }
 
+var PUSH=[
+  {n:'שיבצו אותך לאיסוף',        d:'מישהו רשם אותך — צריך שתדע מיד',            on:true},
+  {n:'תזכורת לפני האיסוף שלך',   d:'לפי מה שבחרת: שעתיים / שעה / ערב קודם',     on:true},
+  {n:'תחנה נשארה בלי אחראי',     d:'ההתראה הכי חשובה — ילד בלי איסוף',          on:true},
+  {n:'שינוי בלוז של הילדים שלך', d:'שעה שהוזזה, אחראי שהתחלף',                  on:true},
+  {n:'הסדר שממתין לאישור שלך',   d:'הורה אחר הקליד הסדר שנוגע אליך',            on:true},
+  {n:'בקשת איסוף חדשה בכיתה',    d:'לא דחוף — בלי צלצול, רק בפעמון',            on:false}
+];
 var ME='daniel';
 var REMIND=120;                    /* דקות לפני האיסוף — ניתן לשינוי */
 function minus(t,m){
@@ -729,16 +753,30 @@ function sheetAssign(kid,day){
 }
 
 /* ---- "היום התורנות שלך" — קופץ בכניסה לאפליקציה ביום שאתה אחראי ---- */
+function kidName(k){ return KIDS[k]?KIDS[k].n:k; }
+function andList(a){
+  if(a.length<2) return a[0]||'';
+  return a.slice(0,-1).join(', ')+' ו'+a[a.length-1];
+}
 function sheetDuty(){
   var mine=myLegs();
   if(!mine.length){ toast('היום אתה לא בתורנות. '+esc(P.ruti.n)+' ו'+esc(P.michal.n)+' מכסות את היום.'); return; }
+  var all=[];
+  mine.forEach(function(l){ l.kids.forEach(function(k){
+    var n=kidName(k); if(all.indexOf(n)<0) all.push(n); }); });
+
   openSheet('היום התורנות שלך', esc(dayName(TODAY))+' '+DAYS[TODAY].d+' · '+mine.length+
     (mine.length>1?' תחנות עליך':' תחנה עליך'),
+    '<div class="duty"><span>אתה אוסף היום את</span><b>'+esc(andList(all))+'</b>'+
+    '<div class="dutykids">'+mine.reduce(function(acc,l){
+      return acc.concat(l.kids); },[]).filter(function(v,i,a2){ return a2.indexOf(v)===i; })
+      .map(kidtag).join('')+'</div></div>'+
     mine.map(function(l){
       return '<div class="pickrow" style="--c:'+P[ME].c+'">'+
         '<span class="av l" style="--c:'+P[ME].c+'">'+esc(l.t.split(':')[0])+'</span>'+
-        '<span class="txt"><b>'+esc(l.t)+' · '+esc(l.what)+'</b><span>'+esc(l.where)+' · '+
-        l.kids.map(function(k){ return KIDS[k]?KIDS[k].n:k; }).join(', ')+'</span></span></div>';
+        '<span class="txt"><b>'+esc(l.t)+' · '+esc(l.what)+'</b>'+
+        '<span class="who-kid">אתה אוסף את <b>'+esc(andList(l.kids.map(kidName)))+'</b></span>'+
+        '<span>'+esc(l.where)+'</span></span></div>';
     }).join('')+
     '<div class="field"><label>מתי להזכיר לך</label><div class="chipset">'+
       [[30,'חצי שעה'],[60,'שעה'],[120,'שעתיים'],[1440,'ערב קודם']].map(function(o){
@@ -807,8 +845,13 @@ function sheetFeed(){
       return '<div class="feedrow'+(f.unread?' unread':'')+'">'+av(f.who,'l')+
         '<div class="txt"><p>'+f.txt+'</p><span>'+esc(f.ago)+'</span></div></div>';
     }).join('')+'</div>'+
-    '<p class="sheetnote">גם כשהאפליקציה סגורה מגיעה התראה לנעילת המסך. אפשר לכבות התראות '+
-    'לכל סוג עדכון בנפרד — למשל לקבל רק על שינויים שנוגעים לילדים שלכם.</p>');
+    '<div class="eyebrow" style="margin-top:8px">מה יגיע לנעילת המסך גם כשהאפליקציה סגורה</div>'+
+    '<div class="pushset">'+PUSH.map(function(o,i){
+      return '<div class="pushrow"><div class="txt"><b>'+esc(o.n)+'</b><span>'+esc(o.d)+'</span></div>'+
+        '<button class="sw" data-act="push" data-i="'+i+'" aria-pressed="'+o.on+'" '+
+        'aria-label="'+esc(o.n)+'"></button></div>'; }).join('')+'</div>'+
+    '<p class="sheetnote">מה שכבוי עדיין מופיע כאן ברשימה ובפעמון — הוא פשוט לא מצלצל. '+
+    'באייפון פוש עובד רק אם האפליקציה מותקנת למסך הבית.</p>');
   FEED.forEach(function(f){ f.unread=false; });
   renderBell();
 }
@@ -1015,6 +1058,12 @@ var ACT={
     toast('<b>קישור הזמנה הועתק.</b> שלחו אותו בקבוצת הוואטסאפ של הכיתה — ההצטרפות בלי סיסמה.');
   },
   feed:function(){ sheetFeed(); },
+  push:function(d,btn){
+    var o=PUSH[+d.i]; o.on=!o.on;
+    btn.setAttribute('aria-pressed', o.on?'true':'false');
+    toast(o.on ? '<b>'+esc(o.n)+'</b> — יגיע גם כשהאפליקציה סגורה.'
+               : '<b>'+esc(o.n)+'</b> — יופיע רק בפעמון, בלי צלצול.');
+  },
   duty:function(){ sheetDuty(); },
   remindset:function(){ sheetDuty(); },
   setremind:function(d,btn){

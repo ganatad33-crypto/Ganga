@@ -1,0 +1,50 @@
+name: פרסום לאתר
+
+# מעלה את שתי האפליקציות לכתובת קבועה ב־HTTPS:
+#   /          — ניהול מלאי
+#   /mi-osef/  — מי אוסף
+# HTTPS הוא תנאי: בלעדיו אין התקנה למסך הבית ואין התראות.
+#
+# הפעלה חד־פעמית ב־GitHub: Settings → Pages → Source: GitHub Actions.
+
+on:
+  push:
+    branches:
+      - claude/family-schedule-app-srs6qg
+      - claude/new-session-8i9yy6
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: הרכבת האתר
+        run: |
+          mkdir -p _site
+          rsync -a --exclude '.git' --exclude '.github' --exclude '.claude' \
+                   --exclude '_site' --exclude 'mi-osef/dist' \
+                   --exclude 'mi-osef/supabase' --exclude 'mi-osef/build.js' \
+                   ./ _site/
+          echo "פורסם: $(date -u +%FT%TZ)" > _site/BUILD.txt
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

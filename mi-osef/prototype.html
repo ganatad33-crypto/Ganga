@@ -238,6 +238,12 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
 .toast.on{opacity:1;transform:translateY(0)}
 .toast b{font-weight:700}
 
+.remind{display:flex;align-items:center;gap:8px;margin-top:9px;background:color-mix(in srgb,var(--p-dad) 8%,var(--card));border:1px solid color-mix(in srgb,var(--p-dad) 26%,transparent);border-radius:11px;padding:7px 10px;font-size:11.5px;color:var(--ink-2)}
+.remind > span{font-size:13px;flex:none}
+.remind > div{flex:1;min-width:0;line-height:1.45}
+.remind b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.remind em{font-style:normal;color:var(--ink-3);display:block;font-size:10.5px}
+
 /* ============ פעמון עדכונים ============ */
 .chrome-acts{display:flex;align-items:center;gap:7px;flex:none}
 .bell{position:relative;width:30px;height:30px;border-radius:10px;border:1px solid rgba(255,255,255,.16);display:grid;place-items:center;font-size:14px;color:var(--chrome-ink)}
@@ -323,14 +329,22 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
       <div class="nrow"><div class="n">04</div><div><b>תורים ואירועים חד־פעמיים</b>
         <p>תור לרופא שיניים, יום הולדת, אספת הורים. <em>לחצו על ה־+ ואז ״תור או אירוע״</em> — נכנס ללוז,
         ליומן, ומי שאמור לקחת מקבל תזכורת.</p></div></div>
-      <div class="nrow"><div class="n">05</div><div><b>הכיתה והסבים</b>
-        <p>מי ההורים, של מי הם, ומתי הם בדרך כלל פנויים. האפליקציה גם מזהה התאמות: מי כבר אוסף
-        מאותו שער באותה שעה, כדי לצרף ילד במקום לנסוע פעמיים.</p></div></div>
-      <div class="nrow"><div class="n">06</div><div><b>עדכון חי מכל המכשירים</b>
+      <div class="nrow"><div class="n">05</div><div><b>תזכורת ויום תורנות</b>
+        <p>מי שמשובץ מקבל התראה שעתיים לפני (או חצי שעה / ערב קודם — לבחירתו), וביום שהוא בתורנות
+        קופצת לו תזכורת ברגע שהוא נכנס לאפליקציה. <em>נסו: התזכורת קופצת מיד עם הפתיחה</em>, ובכל
+        תחנה שהיא עליכם רשומה שעת ההתראה המדויקת.</p></div></div>
+      <div class="nrow"><div class="n">06</div><div><b>בלי מאגר מרכזי של ילדים</b>
+        <p>אין רשימת כיתה שמישהו מנהל. כל הורה מזין את הילדים שלו, מתחבר להורה אחר בקישור, ובוחר
+        מה לשתף. הסדר איסוף נוצר בשני צעדים: צד אחד מקליד, הצד השני מאשר — ורק אז זה נכנס ללוז.
+        <em>נסו את ״הסדרים הדדיים״ בלשונית הבקשות</em>.</p></div></div>
+      <div class="nrow"><div class="n">07</div><div><b>המשפחה וההורים המחוברים</b>
+        <p>מי יכול לעזור ומתי הוא בדרך כלל פנוי. האפליקציה גם מזהה התאמות: מי כבר אוסף מאותו שער
+        באותה שעה, כדי לצרף ילד במקום לנסוע פעמיים.</p></div></div>
+      <div class="nrow"><div class="n">08</div><div><b>עדכון חי מכל המכשירים</b>
         <p>סבתא משבצת את עצמה בטלפון שלה — וזה מופיע אצלכם תוך שנייה, בלי לרענן, עם התראה.
         <em>חכו כ־7 שניות מפתיחת האב־טיפוס</em> ותראו עדכון שנכנס מבחוץ: התחנה נסגרת, נדלק באדום
         מספר על הפעמון, והשינוי מהבהב בסגול. הפעמון פותח את יומן העדכונים — מי שינה, מה, ומאיזה מכשיר.</p></div></div>
-      <div class="nrow"><div class="n">07</div><div><b>סנכרון ליומן</b>
+      <div class="nrow"><div class="n">09</div><div><b>סנכרון ליומן</b>
         <p>כל שיבוץ נכתב ליומן Google של האחראי בלבד — עם כתובת, שעה ותזכורת. בלי לפתוח את
         האפליקציה, ההתראה עדיין מגיעה.</p></div></div>
     </div>
@@ -398,6 +412,22 @@ var S = {
   ]
 };
 
+/* חיבורים בין הורים — אין מאגר מרכזי. כל הורה מזין את הילדים שלו,
+   וחיבור נוצר רק בהזמנה אישית. מה שרואים מהילדים של הצד השני — רק מה שהוא שיתף. */
+var LINKS={
+  yossi:{via:'התחברתם בקישור בוואטסאפ · 12/11', kids:[{id:'noam',  n:'נעם',  cls:'כיתה ג׳2'}]},
+  vered:{via:'התחברתם במספר טלפון · 3/11',      kids:[{id:'tamar', n:'תמר',  cls:'כיתה ג׳2'}]}
+};
+/* הסדרי איסוף הדדיים: צד אחד מקליד, הצד השני מאשר — ורק אז זה נכנס ללוז */
+var PACTS=[
+  {id:'p1', by:'yossi', driver:'daniel', owner:'yossi', kids:['נעם'],
+   day:0, t:'13:20', place:'שער ראשי, בי״ס רמון', st:'pending-me'},
+  {id:'p2', by:'daniel', driver:'vered', owner:'daniel', kids:['אבי'],
+   day:4, t:'13:20', place:'שער ראשי, בי״ס רמון', st:'pending-them'},
+  {id:'p3', by:'yossi', driver:'yossi', owner:'daniel', kids:['אבי'],
+   day:4, t:'12:45', place:'שער ראשי, בי״ס רמון', st:'active'}
+];
+
 /* יומן עדכונים — מה נכנס מהמכשירים האחרים ומה עשית אתה */
 var FEED=[
   {who:'yossi',  txt:'<b>יוסי</b> עדכן שהאיסוף ביום חמישי יהיה ב־12:55 במקום 12:45',
@@ -420,9 +450,24 @@ function av(k,cls){ var p=P[k];
 function whotag(k,note){ var p=P[k];
   return '<span class="whotag" style="--c:'+p.c+'">'+av(k,'s')+'<b>'+esc(p.n)+'</b>'+
     (note?'<em>'+esc(note)+'</em>':'<em>'+esc(p.r.split(' · ')[0])+'</em>')+'</span>'; }
-function kidtag(k){ var d=KIDS[k];
+function kidtag(k){
+  var d=KIDS[k];
+  if(!d) return '<span class="kid" style="--c:var(--p-none)"><i></i>'+esc(k)+
+    ' <em style="font-style:normal;color:var(--ink-3)">· לא שלי</em></span>';
   return '<span class="kid" style="--c:'+d.c+'"><i></i>'+esc(d.n)+'</span>'; }
 function dayName(i){ return 'יום '+DAYS[i].n; }
+
+var ME='daniel';
+var REMIND=120;                    /* דקות לפני האיסוף — ניתן לשינוי */
+function minus(t,m){
+  var p=String(t).split(':'), x=(+p[0])*60+(+p[1])-m;
+  if(x<0) x+=1440;
+  return ('0'+Math.floor(x/60)).slice(-2)+':'+('0'+(x%60)).slice(-2);
+}
+function remindLabel(){
+  return REMIND>=1440 ? 'ערב קודם' : REMIND>=60 ? (REMIND/60)+' שעות לפני' : REMIND+' דק׳ לפני';
+}
+function myLegs(){ return S.legs.filter(function(l){ return l.who===ME; }); }
 
 var toastT;
 function toast(html){
@@ -459,6 +504,11 @@ function viewToday(){
       '<div class="who">'+ l.kids.map(kidtag).join('') +
       (l.who ? whotag(l.who) + '<span class="pill ok">אושר</span>'
              : '<span class="pill open">אין מי שאוסף</span>') + '</div>';
+    if(l.who===ME){
+      body += '<div class="remind"><span>🔔</span><div>תזכורת אליך ב־<b>'+esc(minus(l.t,REMIND))+
+        '</b> · '+esc(remindLabel())+'<em>גם אם האפליקציה סגורה</em></div>'+
+        '<button class="btn ghost" data-act="remindset" style="padding:5px 9px;font-size:11px">שינוי</button></div>';
+    }
     if(!l.who){
       body += '<div class="gapbox"><p><strong>מי אוסף?</strong> '+
         'הודעה נשלחה למשפחה. אם אף אחד לא ירשם עד 16:30, נציע את זה להורי הכיתה.</p>'+
@@ -567,13 +617,26 @@ function viewReqs(){
   h+='<div class="eyebrow" style="margin-top:4px">הבקשות שלי</div>';
   h+=S.reqs.filter(function(r){ return r.mine; }).map(reqCard).join('');
   h+='<button class="btn pri" data-act="newreq" style="padding:12px">פרסם בקשת איסוף חדשה</button>';
+
+  h+='<div class="eyebrow" style="margin-top:6px">הסדרים הדדיים · צד אחד מקליד, השני מאשר</div>';
+  h+=PACTS.map(pactCard).join('');
+  h+='<button class="btn" data-act="pact" style="padding:12px">הסדר חדש עם הורה</button>';
   return h;
 }
 
 /* ===================== מסך: הכיתה ===================== */
 function viewClass(){
-  var h='<div class="viewhead"><div><h2>הכיתה והמשפחה</h2>'+
-    '<p>מי יכול לעזור, ומתי הוא בדרך כלל פנוי</p></div></div>';
+  var h='<div class="viewhead"><div><h2>מי מחובר אליך</h2>'+
+    '<p>אין מאגר מרכזי — כל הורה מזין את הילדים שלו בעצמו</p></div></div>';
+
+  h+='<div class="card" style="padding:12px 13px"><b style="font-size:13px">הילדים שלי</b>'+
+     '<p style="font-size:11.5px;color:var(--ink-3);margin-top:2px">אתה הזנת אותם, ואתה מחליט מי רואה אותם.</p>'+
+     Object.keys(KIDS).map(function(k){
+       return '<div class="prow" style="padding:9px 0 0"><span class="av l" style="--c:'+KIDS[k].c+'">'+
+         esc(KIDS[k].n.charAt(0))+'</span><div class="txt"><b>'+esc(KIDS[k].n)+' · בן '+KIDS[k].age+
+         '</b><span>'+esc(KIDS[k].cls)+' · משותף עם מיכל, רותי, אליהו ויוסי</span></div>'+
+         '<div class="acts"><button class="iconbtn" data-act="share" data-kid="'+k+
+         '" aria-label="שיתוף '+esc(KIDS[k].n)+'">👁</button></div></div>'; }).join('')+'</div>';
 
   h+='<div class="card match"><h4>התאמה שנמצאה'+
      '<span class="pill ok" style="margin-inline-start:auto">חוסך נסיעה</span></h4>'+
@@ -583,11 +646,20 @@ function viewClass(){
 
   h+='<div class="eyebrow">המשפחה</div><div class="ntable">'+
     FAMILY.map(function(k){ return prow(k); }).join('')+'</div>';
-  h+='<div class="eyebrow" style="margin-top:4px">הורים בכיתה ג׳2</div><div class="ntable">'+
-    CLASSP.map(function(k){ return prow(k); }).join('')+
+  h+='<div class="eyebrow" style="margin-top:4px">הורים שהתחברת אליהם</div><div class="ntable">'+
+    CLASSP.map(function(k){
+      var L=LINKS[k]||{via:'',kids:[]};
+      return '<div class="prow">'+av(k,'l')+'<div class="txt"><b>'+esc(P[k].n)+'</b>'+
+        '<span>'+esc(L.via)+'</span>'+
+        '<span>שיתף איתך: '+L.kids.map(function(c){ return esc(c.n)+' · '+esc(c.cls); }).join(', ')+
+        '</span></div><div class="acts">'+
+        '<button class="iconbtn" data-act="pact" aria-label="הסדר עם '+esc(P[k].n)+'">🤝</button>'+
+        '<button class="iconbtn" data-act="call" data-who="'+k+'" aria-label="התקשר">☎</button>'+
+        '</div></div>'; }).join('')+
     '<div class="prow"><span class="av l" style="--c:var(--p-none)">+</span>'+
-    '<div class="txt"><b>הזמן הורים נוספים</b><span>11 משפחות בכיתה עדיין לא באפליקציה</span></div>'+
-    '<div class="acts"><button class="btn" data-act="invite">הזמנה</button></div></div></div>';
+    '<div class="txt"><b>הזמן הורה</b><span>שולחים קישור בוואטסאפ — הוא מזין את הילדים שלו בעצמו, '+
+    'ובוחר מה לשתף איתך</span></div>'+
+    '<div class="acts"><button class="btn" data-act="invite">קישור</button></div></div></div>';
   return h;
 }
 function prow(k){
@@ -656,6 +728,79 @@ function sheetAssign(kid,day){
     '<p class="sheetnote">מי שנבחר מקבל התראה ואירוע ביומן. אם הוא דוחה, התא חוזר להיות ריק והלוז יסמן אותו באדום.</p>');
 }
 
+/* ---- "היום התורנות שלך" — קופץ בכניסה לאפליקציה ביום שאתה אחראי ---- */
+function sheetDuty(){
+  var mine=myLegs();
+  if(!mine.length){ toast('היום אתה לא בתורנות. '+esc(P.ruti.n)+' ו'+esc(P.michal.n)+' מכסות את היום.'); return; }
+  openSheet('היום התורנות שלך', esc(dayName(TODAY))+' '+DAYS[TODAY].d+' · '+mine.length+
+    (mine.length>1?' תחנות עליך':' תחנה עליך'),
+    mine.map(function(l){
+      return '<div class="pickrow" style="--c:'+P[ME].c+'">'+
+        '<span class="av l" style="--c:'+P[ME].c+'">'+esc(l.t.split(':')[0])+'</span>'+
+        '<span class="txt"><b>'+esc(l.t)+' · '+esc(l.what)+'</b><span>'+esc(l.where)+' · '+
+        l.kids.map(function(k){ return KIDS[k]?KIDS[k].n:k; }).join(', ')+'</span></span></div>';
+    }).join('')+
+    '<div class="field"><label>מתי להזכיר לך</label><div class="chipset">'+
+      [[30,'חצי שעה'],[60,'שעה'],[120,'שעתיים'],[1440,'ערב קודם']].map(function(o){
+        return '<button class="tog" data-act="setremind" data-m="'+o[0]+'" aria-pressed="'+
+          (REMIND===o[0])+'" style="--c:'+P[ME].c+'">'+o[1]+'</button>'; }).join('')+
+      '</div></div>'+
+    '<p class="sheetnote">התזכורת הראשונה שלך היום תישלח ב־<b>'+esc(minus(mine[0].t,REMIND))+'</b>. '+
+    'ההודעה הזאת קופצת בכניסה לאפליקציה רק בימים שאתה בתורנות — ופעם אחת ביום.</p>'+
+    '<button class="btn pri" data-act="closesheet" style="padding:12px">הבנתי, אני על זה</button>');
+}
+
+/* ---- הסדר איסוף הדדי בין שני הורים ---- */
+function pactCard(p){
+  var other = p.driver===ME ? p.owner : p.driver;
+  var txt = p.driver===ME
+    ? '<b>אתה</b> אוסף את '+esc(p.kids.join(' ו'))+' — הילדים של '+esc(P[p.owner].n)
+    : '<b>'+esc(P[p.driver].n)+'</b> אוסף'+(p.driver==='vered'?'ת':'')+' את '+esc(p.kids.join(' ו'));
+  var h='<div class="card req" style="--c:'+P[other].c+'"><div class="reqtop">'+av(other,'l')+
+    '<div class="txt"><h4>'+esc(P[p.by].n===P[ME].n?'רשמת אתה':P[p.by].n+' רשם'+(p.by==='vered'?'ה':''))+
+    ' את ההסדר</h4><p>'+txt+'</p></div>'+
+    (p.st==='pending-me'   ? '<span class="pill wait">דרוש אישורך</span>':'')+
+    (p.st==='pending-them' ? '<span class="pill wait">ממתין לאישור</span>':'')+
+    (p.st==='active'       ? '<span class="pill ok">פעיל</span>':'')+'</div>'+
+    '<div class="meta"><b>כל '+esc(dayName(p.day))+'</b><span>·</span><b>'+esc(p.t)+
+    '</b><span>·</span><span>'+esc(p.place)+'</span></div>';
+
+  if(p.st==='pending-me'){
+    h+='<p style="font-size:11.5px;color:var(--ink-3);line-height:1.5">'+esc(P[p.by].n)+
+       ' הקליד את זה אצלו בטלפון. עד שתאשר, זה לא נכנס ללוז שלך ולא נשלחת עליו תזכורת.</p>'+
+       '<div class="btnrow"><button class="btn pri wide" data-act="pactok" data-id="'+p.id+'">מאשר את ההסדר</button>'+
+       '<button class="btn" data-act="pactno" data-id="'+p.id+'">לא מתאים</button></div>';
+  } else if(p.st==='pending-them'){
+    h+='<div class="btnrow" style="align-items:center">'+
+       '<span class="seen"><i><b style="--c:'+P[p.driver].c+'"></b></i>נשלח למכשיר של '+
+       esc(P[p.driver].n)+'</span>'+
+       '<button class="btn ghost" data-act="pactno" data-id="'+p.id+'" style="margin-inline-start:auto">בטל</button></div>';
+  } else {
+    h+='<div class="btnrow" style="align-items:center">'+
+       whotag(p.driver, 'שני הצדדים אישרו')+'<span class="pill ok">ביומן של שניכם</span></div>';
+  }
+  return h+'</div>';
+}
+function sheetPact(){
+  var others=Object.keys(LINKS);
+  openSheet('הסדר איסוף עם הורה','בוחרים הורה מהחיבורים שלכם — אין רשימת הורים מרכזית באפליקציה',
+    '<div class="field"><label for="pcWho">עם מי ההסדר</label><select class="inp" id="pcWho">'+
+      others.map(function(k){ return '<option value="'+k+'">'+esc(P[k].n)+' · '+
+        esc(P[k].r.split(' · ')[0])+'</option>'; }).join('')+'</select></div>'+
+    '<div class="field"><label for="pcDir">מי אוסף</label><select class="inp" id="pcDir">'+
+      '<option value="me">אני אוסף את הילדים שלו</option>'+
+      '<option value="them">הוא אוסף את הילדים שלי</option></select></div>'+
+    '<div class="field"><label for="pcKids">את מי אוספים</label>'+
+      '<input class="inp" id="pcKids" value="נעם" placeholder="שמות הילדים, מופרדים בפסיק"></div>'+
+    '<div class="field"><label for="pcDay">יום קבוע</label>'+daySelect('pcDay',0)+'</div>'+
+    '<div class="field"><label for="pcT">שעה</label><input class="inp" id="pcT" type="time" value="13:20"></div>'+
+    '<div class="field"><label for="pcPl">מאיפה</label>'+
+      '<input class="inp" id="pcPl" value="שער ראשי, בי״ס רמון"></div>'+
+    '<button class="btn pri" data-act="savepact" style="padding:12px">שלח לאישור</button>'+
+    '<p class="sheetnote">מספיק שצד אחד מקליד. אצל הצד השני זה מופיע כבקשת אישור — ורק אחרי '+
+    'שהוא מאשר זה נכנס ללוז ולתזכורות של שניכם.</p>');
+}
+
 function sheetFeed(){
   openSheet('עדכונים','כל שינוי שמישהו עשה במכשיר שלו — לפי הסדר שבו הגיע',
     '<div>'+FEED.map(function(f){
@@ -703,6 +848,9 @@ function sheetAdd(){
     '<button class="pickrow" data-act="addev" style="--c:var(--p-vered)">'+
     '<span class="av l" style="--c:var(--p-vered)">🦷</span><span class="txt"><b>תור או אירוע</b>'+
     '<span>רופא שיניים, יום הולדת, אספת הורים</span></span></button>'+
+    '<button class="pickrow" data-act="pact" style="--c:var(--p-dad)">'+
+    '<span class="av l" style="--c:var(--p-dad)">🤝</span><span class="txt"><b>הסדר עם הורה אחר</b>'+
+    '<span>איסוף הדדי קבוע — נכנס ללוז אחרי שהצד השני מאשר</span></span></button>'+
     '<button class="pickrow" data-act="addact" style="--c:var(--p-gma)">'+
     '<span class="av l" style="--c:var(--p-gma)">⚽</span><span class="txt"><b>חוג קבוע</b>'+
     '<span>נכנס ללוז בכל שבוע, עם איסוף אחריו</span></span></button>');
@@ -859,10 +1007,61 @@ var ACT={
     toast('<b>בקשה אישית נשלחה ל'+esc(P[d.who].n)+'.</b> אם אין תשובה עד שעתיים לפני, נציע לכיתה.');
   },
   call:function(d){ toast('מתקשר ל'+esc(P[d.who].n)+'…'); },
+  share:function(d){
+    toast('<b>מי רואה את '+esc(KIDS[d.kid].n)+'?</b> המשפחה רואה הכול; הורה שהתחברת אליו רואה '+
+      'רק שם, בית ספר ושעת איסוף — בלי כתובת בית ובלי טלפון.');
+  },
   invite:function(){
     toast('<b>קישור הזמנה הועתק.</b> שלחו אותו בקבוצת הוואטסאפ של הכיתה — ההצטרפות בלי סיסמה.');
   },
   feed:function(){ sheetFeed(); },
+  duty:function(){ sheetDuty(); },
+  remindset:function(){ sheetDuty(); },
+  setremind:function(d,btn){
+    REMIND=+d.m;
+    [].slice.call(document.querySelectorAll('[data-act="setremind"]')).forEach(function(b2){
+      b2.setAttribute('aria-pressed', b2===btn ? 'true':'false'); });
+    var mine=myLegs();
+    render(true);
+    toast('<b>התזכורת עודכנה.</b> '+esc(remindLabel())+
+      (mine.length? ' — היום תקבל התראה ב־'+esc(minus(mine[0].t,REMIND))+'.':'.'));
+  },
+  pact:function(){ sheetPact(); },
+  pactok:function(d){
+    var p=PACTS.filter(function(x){ return x.id===d.id; })[0];
+    if(!p){ toast('ההסדר כבר לא פעיל.'); return; }
+    p.st='active';
+    if(p.driver===ME && p.day===TODAY){
+      S.legs.push({t:p.t, what:'איסוף לפי הסדר עם '+P[p.owner].n, where:p.place,
+        kids:p.kids.slice(), who:ME, st:'ok'});
+      S.legs.sort(function(a2,b2){ return a2.t<b2.t?-1:1; });
+    }
+    logAct(ME,'<b>אתה</b> אישרת את ההסדר עם '+P[p.by].n);
+    render();
+    toast('<b>ההסדר אושר.</b> הוא נכנס ללוז של שניכם, ותקבל תזכורת '+esc(remindLabel())+
+      ' בכל '+esc(dayName(p.day))+'.');
+  },
+  pactno:function(d){
+    var p=PACTS.filter(function(x){ return x.id===d.id; })[0];
+    PACTS=PACTS.filter(function(x){ return x.id!==d.id; });
+    render();
+    toast(p&&p.st==='pending-them' ? 'ההסדר בוטל לפני שאושר.' :
+      'ההסדר נדחה. '+(p?esc(P[p.by].n):'הצד השני')+' יקבל על כך הודעה.');
+  },
+  savepact:function(){
+    var who=val('pcWho')||'yossi', dir=val('pcDir')||'me', day=+val('pcDay'),
+        t=val('pcT')||'13:20', pl=val('pcPl')||'—',
+        kids=(val('pcKids')||'נעם').split(',').map(function(s){ return s.trim(); })
+             .filter(function(s){ return s; });
+    PACTS.unshift({id:'n'+Date.now(), by:ME,
+      driver: dir==='me' ? ME : who,
+      owner:  dir==='me' ? who : ME,
+      kids:kids, day:day, t:t, place:pl, st:'pending-them'});
+    logAct(ME,'<b>אתה</b> רשמת הסדר עם '+P[who].n+' ל'+dayName(day));
+    S.tab='reqs'; closeSheet(); render();
+    toast('<b>נשלח ל'+esc(P[who].n)+'.</b> זה מופיע אצלו עכשיו כבקשת אישור — '+
+      'ברגע שיאשר, ההסדר נכנס ללוז ולתזכורות של שניכם.');
+  },
   tog:function(d,btn){
     btn.setAttribute('aria-pressed', btn.getAttribute('aria-pressed')==='true' ? 'false':'true');
   },
@@ -889,5 +1088,6 @@ document.addEventListener('click',function(e){
 document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSheet(); });
 
 renderChrome(); render();
+if(myLegs().length) setTimeout(sheetDuty,700);   /* קופץ רק ביום שאתה בתורנות */
 })();
 </script>

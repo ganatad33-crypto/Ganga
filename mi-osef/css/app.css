@@ -352,3 +352,14 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
 .gate .sent{background:color-mix(in srgb,var(--p-dad) 10%,var(--card));border:1px solid color-mix(in srgb,var(--p-dad) 30%,transparent);border-radius:14px;padding:13px 14px}
 .gate .sent b{font-size:14.5px;display:block}
 .gate .sent p{font-size:12.5px;color:var(--ink-2);line-height:1.55;margin-top:5px}
+
+/* הדפסה / שמירה כ־PDF — ראו ACT.printweek. מסתירים את כל מסגרת האפליקציה
+   ומשאירים רק את תוכן השבוע, בשחור-לבן ברור לנייר */
+@media print{
+  .demo,.offline,.chrome,.linestrip,.fab,.tabbar,.scrim,.sheet,.toast,
+  .installbar,.gate,.hlprow,.btnrow{ display:none!important }
+  body,.app{ position:static!important; background:#fff!important; color:#000!important; overflow:visible!important }
+  .view{ overflow:visible!important; padding:0!important }
+  .grid{ box-shadow:none!important; border-color:#999!important }
+  .cellchip{ color:#000!important }
+}

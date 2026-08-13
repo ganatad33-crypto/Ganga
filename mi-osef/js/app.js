@@ -305,6 +305,9 @@ function sheetSettings(){
     '<button class="pickrow" data-act="feed" style="--c:var(--p-dad)">'+
       '<span class="av l" style="--c:var(--p-dad)">🔔</span><span class="txt"><b>התראות</b>'+
       '<span>מה מצלצל כשהאפליקציה סגורה</span></span></button>'+
+    '<button class="pickrow" data-act="printweek" style="--c:var(--p-vered)">'+
+      '<span class="av l" style="--c:var(--p-vered)">🖨</span><span class="txt"><b>שמירת הלוז השבועי כ־PDF</b>'+
+      '<span>אפשר להוריד ולצרף למייל בעצמכם</span></span></button>'+
     '<div class="eyebrow" style="margin-top:6px">מדריך — כל חלק באפליקציה</div>'+
     '<div class="pushset">'+Object.keys(M.HELP).map(function(k){
       return '<div class="pushrow"><div class="txt"><b>'+esc(M.HELP[k].t)+'</b></div>'+UI.hlp(k)+'</div>';
@@ -619,6 +622,13 @@ var ACT = {
       : '<b>חזרתם ללוז האמיתי.</b> מה שנעשה במצב טסט נמחק.');
   },
   resettest:function(){ Store.resetTest(); UI.closeSheet(); UI.render(); UI.toast('נתוני הטסט אופסו.'); },
+  /* בלי שרת ובלי ספריה חיצונית: עוברים למסך השבוע, וקוראים לתיבת ההדפסה
+     המובנית של הדפדפן — שם יש תמיד גם אפשרות "שמירה כ-PDF". התוצאה
+     אפשר לצרף למייל, לוואטסאפ, או להדפיס ממש. */
+  printweek:function(){
+    UI.closeSheet(); UI.asOther = null; UI.tab = 'week'; UI.render();
+    setTimeout(function(){ window.print(); }, 80);
+  },
   /* קישור הצטרפות לבית שלך — מי שלוחץ עליו הופך לבן בית מלא, עם גישה
      לכל הלוז. מיועד רק לבני המשפחה שלך עצמך (בן/בת זוג, סבתא). לחיבור
      עם משפחה אחרת יש להשתמש ב-ACT.shareapp, לא בזה. */

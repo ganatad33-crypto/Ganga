@@ -50,6 +50,12 @@
 }
 
 *{box-sizing:border-box}
+/* קריטי: כמה אלמנטים (.gate, .app, .sync, .installbar) מגדירים display
+   משלהם, וזה גובר על חוק ברירת המחדל של הדפדפן ל-[hidden] (display:none)
+   — לא בגלל ספציפיות, אלא כי חוקי מחבר-האתר גוברים על חוקי הדפדפן באותה
+   רמת ספציפיות. בלי החוק הזה, הצגה/הסתרה של המסכים דרך hidden בג'אווהסקריפט
+   פשוט לא עושה כלום, והמסך הקודם נשאר גלוי לצמיתות מעל כל מה שבא אחריו. */
+[hidden]{display:none!important}
 body{
   margin:0; background:var(--ground); color:var(--ink);
   font-family:'Heebo',system-ui,sans-serif; font-size:15px; line-height:1.5;

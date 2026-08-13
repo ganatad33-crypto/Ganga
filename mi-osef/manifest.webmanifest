@@ -1,0 +1,19 @@
+{
+  "name": "מי אוסף — הלוז של המשפחה",
+  "short_name": "מי אוסף",
+  "description": "הלוז השבועי של המשפחה: מי אוסף כל ילד, בכל יום.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E9ECF1",
+  "theme_color": "#171C26",
+  "categories": ["productivity", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

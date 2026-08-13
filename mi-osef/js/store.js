@@ -168,8 +168,59 @@ Store.loadRemote = function(user, houseId){
     Store.db.house.id = r.data[0].id;
     persistLocal();
     subscribe();
+    Store.syncAcceptedLinks();
     return { ready:true };
   });
+};
+
+/* ---------- חיבור בין שני בתים (הסדר עם הורה ממשפחה אחרת) ---------- */
+/* צד שיוצר הזמנה (ACT.invitePact) לא יכול לדעת מתי היא מומשה — RLS
+   לא נותן לו לקרוא שום דבר מהבית השני. אז בכל טעינה בודקים אם מישהו
+   מהזמנות ה'link' שיצרנו כבר סומן כמנוצל, ואם כן מוסיפים אותו ל-links
+   שלנו. שני הצדדים כותבים רק את השם שלהם לשורת ההזמנה המשותפת — אף
+   צד לא קורא את מסמך הבית של הצד השני. */
+/* תוספת ברקע ולא תנאי: כשל כאן (או קוד ישן/מדומה שלא תומך בשאילתה)
+   לא יעצור בשום פנים ואופן טעינת בית — בדיוק כמו התזכורות ב-App.start. */
+Store.syncAcceptedLinks = function(){
+  var c = client(); if(!c || !Store.db) return Promise.resolve();
+  try{
+    return c.from('invites').select('to_house,to_name')
+      .eq('house', Store.db.house.id).eq('kind', 'link').not('used_by', 'is', null)
+      .then(function(r){
+        if(r.error || !r.data || !r.data.length) return;
+        var added = false;
+        r.data.forEach(function(row){
+          if(!row.to_house) return;
+          if(Store.db.links.some(function(l){ return l.id === row.to_house; })) return;
+          Store.db.links.push({ id:row.to_house, name:row.to_name || 'הורה מחובר', via:'קישור הזמנה', kids:[] });
+          added = true;
+        });
+        if(added) Store.commit('link');
+      }, function(e){ console.warn('סנכרון חיבורים נכשל', e); });
+  }catch(e){
+    console.warn('סנכרון חיבורים נכשל', e);
+    return Promise.resolve();
+  }
+};
+
+/* צד שמקבל הזמנה: מסמן את עצמו כמי שמימש אותה (מותר כל עוד אף אחד
+   עוד לא מימש), ומקבל בחזרה את house ו-from_name של הצד ששלח —
+   בלי לקרוא שום דבר אחר מהבית שלו. */
+Store.acceptLink = function(code, user, houseId, myName){
+  var c = client();
+  return c.from('invites')
+    .update({ used_by:user.id, used_at:new Date().toISOString(), to_house:houseId, to_name:myName })
+    .eq('code', code).select('house,from_name').single()
+    .then(function(r){
+      if(r.error) throw r.error;
+      var row = r.data;
+      var already = Store.db.links.some(function(l){ return l.id === row.house; });
+      if(!already){
+        Store.db.links.push({ id:row.house, name:row.from_name || 'הורה מחובר', via:'קישור הזמנה', kids:[] });
+        Store.commit('link');
+      }
+      return row;
+    });
 };
 
 /* הצטרפות לבית קיים דרך קישור הזמנה: קודם נרשמים כחברי הבית (טבלת

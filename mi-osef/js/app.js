@@ -174,13 +174,16 @@ function sheetEvent(){
 function sheetPact(withWho){
   if(!D().links.length){
     /* חשוב: כאן בכוונה לא ACT.invite — זה מייצר קישור שמצרף לבית שלך
-       ממש (חברות מלאה, כל הלוז גלוי). לחיבור עם הורה ממשפחה אחרת אסור
-       להשתמש בקישור הזה בשום מקרה — הוא מיועד רק לבני הבית שלך עצמך. */
-    return UI.openSheet('הסדר עם הורה אחר', 'התכונה הזאת עוד לא מוכנה',
-      '<p class="sheetnote">חיבור אמיתי בין שני בתים — כך שרואים זה אצל זה רק פריט בודד שסיכמתם, '+
-      'לא את הלוז המלא — עדיין לא בנוי. בינתיים אפשר לשלוח להורה את קישור האפליקציה '+
-      'כדי שהוא יקים בית משלו, ולתאם איתו בנפרד.</p>'+
-      '<button class="btn pri" data-act="shareapp" style="padding:12px">שליחת קישור לאפליקציה</button>');
+       ממש (חברות מלאה, כל הלוז גלוי). לחיבור עם הורה ממשפחה אחרת יש
+       להשתמש רק ב-ACT.invitePact, שלא נותן גישה לשום דבר מלבד ההסדר
+       שיסוכם בפועל. */
+    if(Store.driver !== 'supabase') return UI.openSheet('הסדר עם הורה אחר', 'דורש חיבור לשרת',
+      '<p class="sheetnote">חיבור בין שני בתים עובד רק כשיש חיבור לשרת (לא במצב הדגמה).</p>');
+    return UI.openSheet('הסדר עם הורה אחר', 'קודם צריך חיבור',
+      '<p class="sheetnote">שלחו קישור להורה מהמשפחה השנייה. הוא מקים בית משלו (או משתמש '+
+      'בקיים), ומאותו רגע אפשר לסכם הסדר — כל צד רואה אצל השני רק את הפריט הבודד שסוכם, '+
+      'לא שום דבר אחר.</p>'+
+      '<button class="btn pri" data-act="invitePact" style="padding:12px">שליחת קישור חיבור</button>');
   }
   UI.openSheet('הסדר איסוף עם הורה', 'צד אחד מקליד — הצד השני מאשר',
     '<div class="field"><label for="pcWho">עם מי</label><select class="inp" id="pcWho">'+
@@ -651,6 +654,23 @@ var ACT = {
     else if(navigator.clipboard){ navigator.clipboard.writeText(link).then(done, done); }
     else done();
   },
+  /* קישור חיבור בין שני בתים — לא נותן גישה לשום דבר, רק מאפשר בהמשך
+     לסכם הסדר (ACT.pactok וכו'). ראו Store.acceptLink/syncAcceptedLinks. */
+  invitePact:function(){
+    var c = Store.client && Store.client();
+    if(!c){ UI.toast('דורש חיבור לשרת.'); return; }
+    c.from('invites').insert({ house:D().house.id, created_by:D().meId, kind:'link', from_name:Store.me().name })
+      .select('code').single().then(function(r){
+        if(r.error){ UI.toast('יצירת הקישור נכשלה: ' + r.error.message); return; }
+        var link = location.origin + location.pathname + '#link=' + r.data.code;
+        var done = function(){
+          UI.toast('<b>קישור החיבור הועתק.</b> שלחו אותו להורה — כשהוא יכנס תוכלו לסכם הסדר.');
+        };
+        if(navigator.share){ navigator.share({ title:'מי אוסף', url:link }).then(done, done); }
+        else if(navigator.clipboard){ navigator.clipboard.writeText(link).then(done, done); }
+        else done();
+      });
+  },
   signout:function(){
     UI.openSheet('יציאה ואיפוס', 'זה מוחק את הנתונים מהמכשיר הזה',
       '<p class="sheetnote">' + (Store.driver === 'local'
@@ -706,6 +726,7 @@ var dutyShown = false;
 App.start = function(){
   UI.render();
   Store.onChange(function(){ UI.render(true); });
+  processPendingLink();
 
   var mine = myStationsToday();
   /* תזכורות הן תוספת, לא תנאי: כשל כאן לא יעצור את פתיחת האפליקציה */
@@ -717,6 +738,26 @@ App.start = function(){
 
   if(!dutyShown && mine.length){ dutyShown = true; setTimeout(sheetDuty, 700); }
 };
+
+/* קישור חיבור בין שני בתים (#link=<code>) — ראו ACT.invitePact. בניגוד
+   ל-#join, זה לא משנה את זרימת ההרשמה בכלל: המשתמש מקים/משתמש בבית שלו
+   עצמו כרגיל, ורק בסוף (App.start) מנצלים את הקוד כדי להתחבר. גם כאן
+   localStorage ולא רק ה-hash, מאותה סיבה — ניתוב חזרה ממייל עלול לאבד אותו. */
+function processPendingLink(){
+  if(Store.driver !== 'supabase') return;
+  var code;
+  try{ code = localStorage.getItem('miosef.link'); }catch(e){ code = null; }
+  if(!code) return;
+  Store.acceptLink(code, { id:D().meId }, D().house.id, Store.me().name).then(function(){
+    try{ localStorage.removeItem('miosef.link'); }catch(e){}
+    history.replaceState(null, '', location.pathname);
+    UI.toast('<b>התחברתם!</b> עכשיו אפשר לסכם הסדר איסוף.');
+    UI.render();
+  }).catch(function(e){
+    try{ localStorage.removeItem('miosef.link'); }catch(e2){}
+    console.warn('הצטרפות לקישור חיבור נכשלה', e);
+  });
+}
 
 function boot(){
   /* קישור הזמנה (#join=<houseId>) — ראו ACT.invite. שומרים גם ב-localStorage
@@ -730,6 +771,12 @@ function boot(){
     else joinId = localStorage.getItem('miosef.join');
   }catch(e){}
   if(joinId) Auth.setJoin(joinId);
+
+  var linkMatch = /(?:^|#)link=([^&]+)/.exec(location.hash);
+  var linkCode = linkMatch ? decodeURIComponent(linkMatch[1]) : null;
+  try{
+    if(linkCode) localStorage.setItem('miosef.link', linkCode);
+  }catch(e){}
 
   /* בתצוגות מקדימות שרצות בתוך חלון מוגן (iframe עם מקור לא־מאובטח),
      הקריאה הזאת יכולה לזרוק מיידית ולא רק לדחות הבטחה — try/catch כאן

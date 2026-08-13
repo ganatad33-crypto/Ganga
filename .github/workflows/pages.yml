@@ -13,11 +13,11 @@ name: פרסום לאתר
 # היא תמיד מייצרת לוג. אם רק שלב הפרסום נופל — הבעיה היא בהרשאות הסביבה
 # ולא בקוד.
 
+# מושתק בכוונה: הפרסום בפועל נעשה מענף gh-pages, וההרצה האוטומטית כאן
+# נכשלה בשלב הפרסום בגלל הרשאת הסביבה github-pages ושלחה מייל כשל בכל
+# דחיפה. כדי להחזיר אותה לפעולה: Settings → Environments → github-pages →
+# Deployment branches → No restriction, ואז להחזיר את טריגר ה-push.
 on:
-  push:
-    branches:
-      - claude/family-schedule-app-srs6qg
-      - claude/new-session-8i9yy6
   workflow_dispatch:
 
 permissions:

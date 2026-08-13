@@ -238,6 +238,27 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
 .toast.on{opacity:1;transform:translateY(0)}
 .toast b{font-weight:700}
 
+/* ============ פעמון עדכונים ============ */
+.chrome-acts{display:flex;align-items:center;gap:7px;flex:none}
+.bell{position:relative;width:30px;height:30px;border-radius:10px;border:1px solid rgba(255,255,255,.16);display:grid;place-items:center;font-size:14px;color:var(--chrome-ink)}
+.bell .bdg{position:absolute;top:-5px;inset-inline-start:-5px;min-width:16px;height:16px;border-radius:99px;background:var(--open);color:#fff;font-family:'Rubik',sans-serif;font-size:9.5px;font-weight:700;display:grid;place-items:center;padding:0 4px;border:1.5px solid var(--chrome)}
+.feedrow{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line)}
+.feedrow:first-child{border-top:0}
+.feedrow .txt{flex:1;min-width:0}
+.feedrow .txt p{font-size:12.5px;line-height:1.5;color:var(--ink)}
+.feedrow .txt p b{font-weight:700}
+.feedrow .txt span{font-size:10.5px;color:var(--ink-3);display:block;margin-top:3px;font-variant-numeric:tabular-nums}
+.feedrow.unread{background:color-mix(in srgb,var(--p-dad) 6%,transparent);border-radius:10px;padding:11px 9px;border-top-color:transparent}
+.feedrow.unread .txt span::after{content:' · חדש';color:var(--p-dad);font-weight:700}
+@keyframes flashin{
+  0%{background:color-mix(in srgb,var(--p-gma) 26%,transparent)}
+  100%{background:transparent}
+}
+.leg.flash .body,.cell.flash{animation:flashin 1.8s ease-out}
+.livechip{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:500;color:var(--ink-3);padding:0 2px}
+.livechip i{width:6px;height:6px;border-radius:99px;background:var(--ok);font-style:normal;animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+
 /* ============ פאנל ההסבר ============ */
 .notes{width:100%;max-width:640px;display:flex;flex-direction:column;gap:16px}
 .notes .kicker{font-size:10.5px;font-weight:700;letter-spacing:.12em;color:var(--p-yossi)}
@@ -260,8 +281,11 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
   <div class="phone" id="phone">
     <div class="chrome">
       <div class="chrome-row">
-        <div class="brand">מי אוסף<i>?</i><small>כיתה ג׳2 · משפחת כהן</small></div>
-        <div class="sync">יומן Google</div>
+        <div class="brand">מי אוסף<i>?</i><small>משפחת כהן</small></div>
+        <div class="chrome-acts">
+          <div class="sync">יומן Google</div>
+          <button class="bell" id="bell" data-act="feed" aria-label="עדכונים">🔔</button>
+        </div>
       </div>
       <div class="famrow" id="famrow"></div>
     </div>
@@ -302,7 +326,11 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
       <div class="nrow"><div class="n">05</div><div><b>הכיתה והסבים</b>
         <p>מי ההורים, של מי הם, ומתי הם בדרך כלל פנויים. האפליקציה גם מזהה התאמות: מי כבר אוסף
         מאותו שער באותה שעה, כדי לצרף ילד במקום לנסוע פעמיים.</p></div></div>
-      <div class="nrow"><div class="n">06</div><div><b>סנכרון ליומן</b>
+      <div class="nrow"><div class="n">06</div><div><b>עדכון חי מכל המכשירים</b>
+        <p>סבתא משבצת את עצמה בטלפון שלה — וזה מופיע אצלכם תוך שנייה, בלי לרענן, עם התראה.
+        <em>חכו כ־7 שניות מפתיחת האב־טיפוס</em> ותראו עדכון שנכנס מבחוץ: התחנה נסגרת, נדלק באדום
+        מספר על הפעמון, והשינוי מהבהב בסגול. הפעמון פותח את יומן העדכונים — מי שינה, מה, ומאיזה מכשיר.</p></div></div>
+      <div class="nrow"><div class="n">07</div><div><b>סנכרון ליומן</b>
         <p>כל שיבוץ נכתב ליומן Google של האחראי בלבד — עם כתובת, שעה ותזכורת. בלי לפתוח את
         האפליקציה, ההתראה עדיין מגיעה.</p></div></div>
     </div>
@@ -370,6 +398,19 @@ var S = {
   ]
 };
 
+/* יומן עדכונים — מה נכנס מהמכשירים האחרים ומה עשית אתה */
+var FEED=[
+  {who:'yossi',  txt:'<b>יוסי</b> עדכן שהאיסוף ביום חמישי יהיה ב־12:55 במקום 12:45',
+   ago:'לפני 12 דקות · מהטלפון של יוסי', unread:true},
+  {who:'michal', txt:'<b>מיכל</b> שיבצה את עצמה לאיסוף שי ביום רביעי ב־16:00',
+   ago:'לפני שעה · מהטלפון של מיכל', unread:false},
+  {who:'ruti',   txt:'<b>רותי</b> אישרה את איסוף אבי היום ב־13:20',
+   ago:'היום, 08:04 · מהטלפון של רותי', unread:false}
+];
+function logAct(who,txt,ago,unread){
+  FEED.unshift({who:who, txt:txt, ago:ago||'עכשיו · מהמכשיר הזה', unread:!!unread});
+}
+
 /* ===================== עזרים ===================== */
 function el(id){ return document.getElementById(id); }
 function esc(s){ return String(s).replace(/[&<>"]/g,function(m){
@@ -390,6 +431,10 @@ function toast(html){
 }
 
 /* ===================== ראש האפליקציה ===================== */
+function renderBell(){
+  var n=FEED.filter(function(f){ return f.unread; }).length;
+  el('bell').innerHTML='🔔'+(n?'<span class="bdg">'+n+'</span>':'');
+}
 function renderChrome(){
   el('famrow').innerHTML = FAMILY.map(function(k){
     return '<span class="fam" title="'+esc(P[k].n)+'">'+av(k,'s')+
@@ -405,7 +450,8 @@ function viewToday(){
   var h = '<div class="viewhead"><div><h2>'+dayName(TODAY)+'</h2>'+
     '<p>'+DAYS[TODAY].d+' · '+S.legs.length+' תחנות'+
     (open? ' · <span style="color:var(--open);font-weight:700">'+open+' בלי אחראי</span>':' · הכול מכוסה')+
-    '</p></div><span class="pill '+(open?'open':'ok')+'">'+(open?'דרושה עזרה':'לוז סגור')+'</span></div>';
+    '</p></div><span class="pill '+(open?'open':'ok')+'">'+(open?'דרושה עזרה':'לוז סגור')+'</span></div>'+
+    '<p class="livechip"><i></i>מעודכן חי — כל מי שמשבץ במשפחה מופיע פה תוך שנייה</p>';
 
   h += '<div class="route">' + S.legs.map(function(l,i){
     var seg = l.who ? P[l.who].c : 'var(--open)';
@@ -568,11 +614,19 @@ function renderTabs(){
       (t.k==='reqs'&&openN?'<span class="badge">'+openN+'</span>':'')+'</button>';
   }).join('');
 }
-function render(){
-  var v=el('view');
+function render(keepScroll){
+  var v=el('view'), y=v.scrollTop;
   v.innerHTML = S.tab==='today'? viewToday() : S.tab==='week'? viewWeek() :
                 S.tab==='reqs' ? viewReqs()  : viewClass();
-  v.scrollTop=0; renderTabs();
+  v.scrollTop = keepScroll ? y : 0;
+  renderTabs(); renderBell();
+  if(S.flash){
+    var sel = S.flash.kind==='leg'
+      ? '.leg:nth-of-type('+(S.flash.i+1)+')'
+      : '.cell[data-kid="'+S.flash.kid+'"][data-day="'+S.flash.day+'"]';
+    var n=v.querySelector(sel); if(n) n.classList.add('flash');
+    S.flash=null;
+  }
 }
 
 /* ===================== מגירה ===================== */
@@ -601,6 +655,45 @@ function sheetAssign(kid,day){
     '">אין אחראי — פרסם לכיתה</button></div>'+
     '<p class="sheetnote">מי שנבחר מקבל התראה ואירוע ביומן. אם הוא דוחה, התא חוזר להיות ריק והלוז יסמן אותו באדום.</p>');
 }
+
+function sheetFeed(){
+  openSheet('עדכונים','כל שינוי שמישהו עשה במכשיר שלו — לפי הסדר שבו הגיע',
+    '<div>'+FEED.map(function(f){
+      return '<div class="feedrow'+(f.unread?' unread':'')+'">'+av(f.who,'l')+
+        '<div class="txt"><p>'+f.txt+'</p><span>'+esc(f.ago)+'</span></div></div>';
+    }).join('')+'</div>'+
+    '<p class="sheetnote">גם כשהאפליקציה סגורה מגיעה התראה לנעילת המסך. אפשר לכבות התראות '+
+    'לכל סוג עדכון בנפרד — למשל לקבל רק על שינויים שנוגעים לילדים שלכם.</p>');
+  FEED.forEach(function(f){ f.unread=false; });
+  renderBell();
+}
+
+/* עדכון שנכנס ממכשיר אחר — ככה זה נראה כשסבתא משבצת את עצמה אצלה בטלפון */
+var incomingDone=false;
+function incoming(){
+  if(incomingDone) return; incomingDone=true;
+  var gapIdx=-1;
+  S.legs.forEach(function(l,i){ if(!l.who && gapIdx<0) gapIdx=i; });
+
+  if(gapIdx>-1){
+    var l=S.legs[gapIdx];
+    l.who='ruti'; l.st='ok';
+    S.pick.avi[TODAY].who='ruti';
+    logAct('ruti','<b>רותי</b> נרשמה לאיסוף אבי מהשחייה ב־'+l.t+' — התחנה שהייתה פתוחה נסגרה',
+      'עכשיו · מהטלפון של רותי', true);
+    if(S.tab==='today') S.flash={kind:'leg', i:gapIdx};
+    render(true);
+    toast('<b>רותי עדכנה מהטלפון שלה.</b> היא אוספת את אבי מהשחייה ב־'+esc(l.t)+
+      ' — הלוז שלך התעדכן עכשיו, בלי לרענן.');
+  } else {
+    S.pick.shai[4].t='13:15';
+    logAct('michal','<b>מיכל</b> הזיזה את איסוף שי ביום חמישי ל־13:15','עכשיו · מהטלפון של מיכל',true);
+    if(S.tab==='week') S.flash={kind:'cell', kid:'shai', day:4};
+    render(true);
+    toast('<b>מיכל עדכנה מהטלפון שלה.</b> איסוף שי ביום חמישי הוזז ל־13:15.');
+  }
+}
+setTimeout(incoming,7000);
 
 function sheetAdd(){
   openSheet('מה מוסיפים?','',
@@ -662,6 +755,7 @@ var ACT={
   claim:function(d){
     var l=S.legs[+d.i]; l.who='daniel';
     S.pick.avi[TODAY].t=l.t;
+    logAct('daniel','<b>אתה</b> נרשמת ל'+l.what+' ב־'+l.t);
     render(); toast('<b>נרשמת.</b> '+esc(l.what)+' ב־'+esc(l.t)+' — נוסף ליומן שלך ומיכל קיבלה עדכון.');
   },
   askfam:function(d){
@@ -688,6 +782,7 @@ var ACT={
         if(l.kids.indexOf(d.kid)>-1 && !l.who){ l.who=d.who; l.t=c.t; }
       });
     }
+    logAct('daniel','<b>אתה</b> שיבצת את '+P[d.who].n+' לאיסוף '+KIDS[d.kid].n+' ב'+dayName(+d.day));
     closeSheet(); render();
     toast('<b>'+esc(P[d.who].n)+' אוסף'+(d.who==='michal'||d.who==='ruti'||d.who==='vered'?'ת':'')+' את '+
       esc(KIDS[d.kid].n)+'</b> ב'+esc(dayName(+d.day))+' ב־'+esc(c.t)+
@@ -705,7 +800,9 @@ var ACT={
   take:function(d){
     var r=S.reqs.filter(function(x){ return x.id===d.id; })[0];
     if(!r){ toast('הבקשה כבר לא פעילה.'); return; }
-    r.st='taken'; render();
+    r.st='taken';
+    logAct('daniel','<b>אתה</b> נרשמת לבקשה של '+P[r.from].n+' — '+dayName(r.day)+' '+r.t);
+    render();
     toast('<b>נרשמת לאיסוף.</b> '+esc(P[r.from].n)+' קיבל'+(r.from==='vered'?'ה':'')+
       ' אישור, וה־'+esc(r.t)+' ב'+esc(dayName(r.day))+' נכנס ליומן שלך.');
   },
@@ -729,6 +826,7 @@ var ACT={
     S.reqs.unshift({id:'n'+Date.now(), from:'daniel', mine:true,
       txt:'מי יכול לאסוף את '+kids.join(' ו')+'?', day:day, t:t, place:pl,
       st:'sent', seen:['yossi','vered','michal','ruti'], seenN:14});
+    logAct('daniel','<b>אתה</b> פרסמת בקשת איסוף ל'+dayName(day)+' ב־'+t);
     S.tab='reqs'; closeSheet(); render();
     toast('<b>הבקשה פורסמה.</b> '+esc(kids.join(' ו'))+' · '+esc(dayName(day))+' '+esc(t)+
       ' — 14 משפחות קיבלו התראה.');
@@ -749,6 +847,7 @@ var ACT={
       S.legs.push({t:t,what:what,where:pl,kids:[kid],who:who||null,st:who?'ok':'open'});
       S.legs.sort(function(a,b){ return a.t<b.t?-1:1; });
     }
+    logAct('daniel','<b>אתה</b> הוספת '+what+' ל'+KIDS[kid].n+' · '+dayName(day)+' '+t);
     S.tab = day===TODAY ? 'today' : 'week';
     closeSheet(); render();
     toast('<b>'+esc(what)+' נשמר.</b> '+esc(KIDS[kid].n)+' · '+esc(dayName(day))+' '+esc(t)+
@@ -763,6 +862,7 @@ var ACT={
   invite:function(){
     toast('<b>קישור הזמנה הועתק.</b> שלחו אותו בקבוצת הוואטסאפ של הכיתה — ההצטרפות בלי סיסמה.');
   },
+  feed:function(){ sheetFeed(); },
   tog:function(d,btn){
     btn.setAttribute('aria-pressed', btn.getAttribute('aria-pressed')==='true' ? 'false':'true');
   },

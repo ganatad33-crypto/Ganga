@@ -5,7 +5,13 @@ name: פרסום לאתר
 #   /mi-osef/  — מי אוסף
 # HTTPS הוא תנאי: בלעדיו אין התקנה למסך הבית ואין התראות.
 #
-# הפעלה חד־פעמית ב־GitHub: Settings → Pages → Source: GitHub Actions.
+# הפעלה חד־פעמית ב־GitHub:
+#   Settings → Pages → Source: GitHub Actions
+#   Settings → Environments → github-pages → Deployment branches: No restriction
+#
+# העבודה מפוצלת לשני jobs בכוונה: הבנייה רצה בלי סביבת github-pages, ולכן
+# היא תמיד מייצרת לוג. אם רק שלב הפרסום נופל — הבעיה היא בהרשאות הסביבה
+# ולא בקוד.
 
 on:
   push:
@@ -24,11 +30,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -40,11 +43,20 @@ jobs:
                    --exclude 'mi-osef/supabase' --exclude 'mi-osef/build.js' \
                    ./ _site/
           echo "פורסם: $(date -u +%FT%TZ)" > _site/BUILD.txt
+          echo "— קבצים שנארזו —"
+          find _site -maxdepth 2 -type f | sort | head -40
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - id: deploy
         uses: actions/deploy-pages@v4

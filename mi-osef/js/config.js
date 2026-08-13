@@ -8,8 +8,8 @@
    ========================================================================== */
 window.CONFIG = {
   /* מתוך Supabase → Project Settings → API */
-  SUPABASE_URL: '',
-  SUPABASE_ANON_KEY: '',
+  SUPABASE_URL: 'https://oljzujqnotjpmbtnhuwp.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_PVN8yBsTHBQlxP1aakTWQg_Tk6afh1b',
 
   /* איך נכנסים לאפליקציה:
        'email' — קוד למייל. חינם לגמרי, עובד מהרגע הראשון. (ברירת המחדל)

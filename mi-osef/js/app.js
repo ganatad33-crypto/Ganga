@@ -672,10 +672,10 @@ function boot(){
   Store.init().then(function(res){
     if(res && res.ready){ Auth.hide(); App.start(); }
     else if(res && res.needsSetup){ Auth.show('profile'); }
-    else { Auth.show(CONFIG.isConfigured ? 'phone' : 'profile'); }
+    else { Auth.show(); }
   }).catch(function(e){
     console.error(e);
-    Auth.show(CONFIG.isConfigured ? 'phone' : 'profile');
+    Auth.show();
   });
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

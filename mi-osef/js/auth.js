@@ -18,11 +18,16 @@ var err   = '';
 /* כניסה במייל היא ברירת המחדל — היא חינמית ועובדת מהרגע הראשון */
 function byMail(){ return (CONFIG.LOGIN || 'email') !== 'phone'; }
 
+/* עובדים מול שרת? נקבע לפי המנוע שנטען בפועל ולא לפי ההגדרה — אם ספריית
+   Supabase לא נטענה (רשת חסומה, קובץ שלא הגיע), האפליקציה ממשיכה מקומית
+   במקום להיתקע במסך כניסה שאין מאחוריו כלום. */
+function remote(){ return Store.driver === 'supabase'; }
+
 function gate(){ return document.getElementById('gate'); }
 function body(){ return document.getElementById('gateBody'); }
 
 Auth.show = function(which){
-  step = which || (CONFIG.isConfigured ? 'phone' : 'profile');
+  step = which || (remote() ? 'phone' : 'profile');
   document.getElementById('app').hidden  = true;
   gate().hidden = false;
   document.getElementById('gateStrip').innerHTML =
@@ -70,7 +75,7 @@ function render(){
   }
 
   else if(step === 'profile'){
-    h += steps(CONFIG.isConfigured?3:1, CONFIG.isConfigured?3:2) + '<form id="f">'+
+    h += steps(remote()?3:1, remote()?3:2) + '<form id="f">'+
       '<div class="field"><label for="nm">איך קוראים לך</label>'+
       '<input class="inp" id="nm" value="'+esc(draft.name)+'" placeholder="השם שיופיע בלוז" required></div>'+
       '<div class="field"><label for="rel">מי אתה בבית</label><select class="inp" id="rel">'+
@@ -85,7 +90,7 @@ function render(){
   }
 
   else if(step === 'kid'){
-    h += steps(CONFIG.isConfigured?3:2, CONFIG.isConfigured?3:2) + '<form id="f">'+
+    h += steps(remote()?3:2, remote()?3:2) + '<form id="f">'+
       '<div class="field"><label for="kd">שם הילד הראשון</label>'+
       '<input class="inp" id="kd" value="'+esc(draft.kid)+'" placeholder="אפשר להוסיף עוד אחר כך"></div>'+
       '<div class="field"><label for="sc">גן / בית ספר</label>'+
@@ -99,7 +104,7 @@ function render(){
     h += '<div class="center"><div class="spin"></div><span>רגע…</span></div>';
   }
 
-  if(!CONFIG.isConfigured && step === 'profile'){
+  if(!remote() && step === 'profile'){
     h += '<p class="fine">האפליקציה רצה כרגע ב<b>מצב הדגמה</b>: הכול נשמר במכשיר הזה בלבד, '+
          'בלי חשבון ובלי שרת. חיבור לשרת מפעיל כניסה בקוד וסנכרון חי בין כל בני המשפחה — '+
          'ההוראות ב־README.</p>';
@@ -175,7 +180,7 @@ function onSubmit(e){
   if(step === 'kid'){
     draft.kid = v('kd'); draft.school = v('sc');
     go('busy');
-    var make = CONFIG.isConfigured
+    var make = (remote() && user)
       ? Store.createRemoteHouse(draft, user)
       : Store.createLocalHouse(draft);
     make.then(function(){

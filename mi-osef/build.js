@@ -12,14 +12,21 @@ let css = read('css/app.css').replace(/url\('\.\.\/fonts\/([^']+)'\)/g, (_, f) =
   return `url(data:font/woff2;base64,${b64})`;
 });
 
-const js = ['js/config.js','js/model.js','js/store.js','js/push.js','js/auth.js','js/ui.js','js/app.js']
+/* כשמוגדר שרת, ספריית Supabase חייבת להיכנס גם היא לקובץ היחיד */
+const cfg = read('js/config.js');
+const needsSupabase = /SUPABASE_URL:\s*'http/.test(cfg);
+const vendor = needsSupabase ? read('vendor/supabase.js') + '\n;\n' : '';
+
+const js = vendor + ['js/config.js','js/model.js','js/store.js','js/push.js','js/auth.js','js/ui.js','js/app.js']
   .map(read).join('\n;\n');
 
+/* חשוב: מחליפים דרך פונקציה ולא דרך מחרוזת — אחרת רצפים כמו $& ו-$' בקוד
+   המוטמע מתפרשים כהוראות החלפה ומשחיתים את הקובץ */
 let html = read('index.html')
   .replace(/<link rel="manifest"[^>]*>\s*/, '')
-  .replace(/<link rel="stylesheet"[^>]*>/, '<style>\n' + css + '\n</style>')
+  .replace(/<link rel="stylesheet"[^>]*>/, () => '<style>\n' + css + '\n</style>')
   .replace(/<script src="vendor\/supabase.js"><\/script>\s*/, '')
-  .replace(/(<script src="js\/[^"]+"><\/script>\s*)+/, '<script>\n' + js + '\n</script>')
+  .replace(/(<script src="js\/[^"]+"><\/script>\s*)+/, () => '<script>\n' + js + '\n</script>')
   .replace(/<link rel="icon"[^>]*>\s*/, '')
   .replace(/<link rel="apple-touch-icon"[^>]*>\s*/, '');
 

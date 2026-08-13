@@ -188,9 +188,12 @@ function onSubmit(e){
       if(draft.phone.indexOf('@') < 1){ err = 'כתובת המייל לא נראית תקינה.'; return render(); }
       payload = { email:draft.phone, options:{
         shouldCreateUser:true,
-        /* שומרים את ה-hash (כולל #join=... אם הגיעו מקישור הזמנה) — אחרת
-           לחיצה על קישור הכניסה במייל הייתה מאבדת אותו ומחזירה למסך שגוי. */
-        emailRedirectTo: location.origin + location.pathname + location.hash
+        /* בכוונה בלי ה-hash: Supabase מוסיף לכתובת החזרה משלו טוקן דרך
+           ה-hash (implicit/PKCE), וצירוף # שני לתוכו (#join=...#access_token=...)
+           משחית גם את הפענוח שלו וגם את שלנו — כניסה שנכשלת בשקט וחוזרת
+           למסך המייל. מזהה ההזמנה כבר נשמר ב-localStorage ב-boot(), ששורד
+           את הניתוב חזרה בלי שום תלות ב-hash של הכתובת. */
+        emailRedirectTo: location.origin + location.pathname
       } };
     } else {
       var phone = M.normPhone(draft.phone);

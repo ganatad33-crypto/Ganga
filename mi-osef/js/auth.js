@@ -26,6 +26,15 @@ function remote(){ return Store.driver === 'supabase'; }
 function gate(){ return document.getElementById('gate'); }
 function body(){ return document.getElementById('gateBody'); }
 
+/* אם השרת לא עונה כלל (רשת חסומה, בלי אינטרנט), עדיף הודעה מספינר שנשאר
+   תקוע לנצח — בלי זה, בקשה שנדחית בלי Error מהשרת (ולא רק r.error) לא
+   הייתה מטופלת בשום מקום, ומסך ה"רגע…" נשאר כתקוע. */
+function withTimeout(p){
+  return Promise.race([ p, new Promise(function(_, reject){
+    setTimeout(function(){ reject(new Error('השרת לא ענה. בדקו חיבור לאינטרנט ונסו שוב.')); }, 15000);
+  })]);
+}
+
 Auth.show = function(which){
   step = which || (remote() ? 'phone' : 'profile');
   document.getElementById('app').hidden  = true;
@@ -166,9 +175,12 @@ function onSubmit(e){
       payload = { phone:phone };
     }
     go('busy');
-    Store.client().auth.signInWithOtp(payload).then(function(r){
+    withTimeout(Store.client().auth.signInWithOtp(payload)).then(function(r){
       if(r.error){ err = 'שליחת הקוד נכשלה: ' + r.error.message; return go('phone'); }
       go('code');
+    }).catch(function(e){
+      err = 'שליחת הקוד נכשלה: ' + (e && e.message || e);
+      go('phone');
     });
     return;
   }
@@ -180,10 +192,10 @@ function onSubmit(e){
       return render();
     }
     go('busy');
-    Store.client().auth.verifyOtp(byMail()
+    withTimeout(Store.client().auth.verifyOtp(byMail()
       ? { email: draft.phone, token: code, type:'email' }
       : { phone: M.normPhone(draft.phone), token: code, type:'sms' }
-    ).then(function(r){
+    )).then(function(r){
       if(r.error){ err = 'הקוד לא התאים. אפשר לבקש קוד חדש.'; return go('code'); }
       user = r.data.user;
       return Store.loadRemote(user).then(function(res){
@@ -205,16 +217,12 @@ function onSubmit(e){
   if(step === 'kid'){
     draft.kid = v('kd'); draft.school = v('sc');
     go('busy');
-    var make = remote()
+    var make = withTimeout(remote()
       ? currentUser().then(function(u){
           return u ? Store.createRemoteHouse(draft, u) : Store.createLocalHouse(draft);
         })
-      : Store.createLocalHouse(draft);
+      : Store.createLocalHouse(draft));
 
-    /* אם השרת לא עונה, עדיף לומר את זה מלהשאיר ספינר מסתובב */
-    make = Promise.race([ make, new Promise(function(_, reject){
-      setTimeout(function(){ reject(new Error('השרת לא ענה. בדקו חיבור לאינטרנט ונסו שוב.')); }, 15000);
-    })]);
     make.then(function(){
       if(draft.kid){
         Store.db.kids.push({

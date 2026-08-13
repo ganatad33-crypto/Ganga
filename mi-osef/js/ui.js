@@ -248,7 +248,11 @@ function contactsBlock(list, pactId){
 
 /* ---------- מסך: השבוע ---------- */
 function viewWeek(){
-  var wk = UI.week(), as = UI.asOther, kids = D().kids;
+  var wk = UI.week(), as = UI.asOther, kids = D().kids, me = D().meId;
+  /* אכיפה אמיתית של ההרשאה — לא רק תיאור: מי שהוגדר ״לפי שיבוץ״ רואה נעול
+     כל תא שהוא לא שלו, ולא יכול ללחוץ עליו. תקף רק לצפייה האמיתית שלי,
+     לא כשמדמים איך הלוז נראה אצל מישהו אחר (as). */
+  var myRole = as ? null : (Store.me() ? Store.me().role : 'full');
   var missing = 0;
   kids.forEach(function(k){ wk.forEach(function(d){
     if(!Store.pickOf(k.id, d.i, d.iso).who) missing++; }); });
@@ -298,17 +302,20 @@ function viewWeek(){
     kids.forEach(function(k){
       var c = Store.pickOf(k.id, d.i, d.iso);
       var hidden = as && !sharedWith(as, k.id, d.i, d.iso);
+      var locked = !as && myRole === 'task' && c.who !== me;
       var chip = hidden
         ? '<span class="cellchip masked"><span class="nm">🔒 פרטי</span></span>'
-        : c.who
-          ? '<span class="cellchip" style="--c:'+pcolor(c.who)+'">'+av(c.who,'s')+
-            '<span class="nm">'+esc(pname(c.who))+'</span><span class="tm">'+esc(c.t)+'</span></span>'
-          : '<span class="cellchip empty"><span class="nm">מי אוסף?</span></span>';
-      var extras = hidden ? '' : Store.eventsOn(d.iso, k.id).map(function(e){
+        : locked
+          ? '<span class="cellchip masked"><span class="nm">🔒 נעול</span></span>'
+          : c.who
+            ? '<span class="cellchip" style="--c:'+pcolor(c.who)+'">'+av(c.who,'s')+
+              '<span class="nm">'+esc(pname(c.who))+'</span><span class="tm">'+esc(c.t)+'</span></span>'
+            : '<span class="cellchip empty"><span class="nm">מי אוסף?</span></span>';
+      var extras = (hidden || locked) ? '' : Store.eventsOn(d.iso, k.id).map(function(e){
         var lim = as && Store.member(as) && Store.member(as).role === 'lim' && M.isSensitive(e.title);
         return '<span class="extra"><i></i>'+esc(e.t)+' '+esc(lim ? 'אירוע 🔒' : e.title)+'</span>';
       }).join('');
-      h += '<button class="cell" '+(as ? 'disabled ' : 'data-act="assign" ')+
+      h += '<button class="cell" '+((as||locked) ? 'disabled ' : 'data-act="assign" ')+
         'data-kid="'+k.id+'" data-day="'+d.i+'" data-iso="'+d.iso+'" '+
         'aria-label="שיבוץ '+esc(k.name)+' ב'+esc(M.dayName(d.i))+'">'+chip+extras+'</button>';
     });

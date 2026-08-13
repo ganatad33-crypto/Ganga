@@ -26,9 +26,15 @@ function myStationsToday(){
 function sheetAssign(kidId, dayIdx, iso){
   var cur = Store.pickOf(kidId, dayIdx, iso);
   var kid = Store.kid(kidId);
-  var people = D().members.concat(D().links);
+  /* הרשאה ״מוגבל״ או ״לפי שיבוץ״ משבצת רק את עצמה — לא בוחרים עבור מישהו
+     אחר. רק ״מלא״ (בדרך כלל המנהל/ת שממלא/ת את הלוז) רואה את כל הבית. */
+  var myRole = Store.me() ? Store.me().role : 'full';
+  var restricted = myRole === 'lim' || myRole === 'task';
+  var people = restricted ? [Store.me()] : D().members.concat(D().links);
   UI.openSheet('מי אוסף את ' + esc(kid.name) + '?',
     esc(M.dayName(dayIdx)) + ' · ' + esc(iso.split('-').reverse().slice(0,2).join('/')),
+    (restricted ? '<p class="sheetnote" style="margin-bottom:8px">ההרשאה שלך מאפשרת לשבץ רק את עצמך. '+
+      'למנהל/ת הלוז יש אפשרות לשבץ את כל בני הבית.</p>' : '') +
     people.map(function(p){
       return '<button class="pickrow" style="--c:'+p.color+'" data-act="setwho" data-kid="'+kidId+
         '" data-day="'+dayIdx+'" data-iso="'+iso+'" data-who="'+p.id+'" aria-current="'+

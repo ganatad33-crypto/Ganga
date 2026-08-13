@@ -693,6 +693,18 @@ App.start = function(){
 };
 
 function boot(){
+  /* קישור הזמנה (#join=<houseId>) — ראו ACT.invite. שומרים גם ב-localStorage
+     ולא רק בזיכרון: לקוח Supabase מנקה בעצמו את ה-hash של הדף אחרי קליק על
+     קישור כניסה במייל (כדי לפנות מקום לטוקן שלו), כך שה-hash לבדו לא היה
+     שורד את הניתוב חזרה — localStorage כן. */
+  var joinMatch = /(?:^|#)join=([^&]+)/.exec(location.hash);
+  var joinId = joinMatch ? decodeURIComponent(joinMatch[1]) : null;
+  try{
+    if(joinId) localStorage.setItem('miosef.join', joinId);
+    else joinId = localStorage.getItem('miosef.join');
+  }catch(e){}
+  if(joinId) Auth.setJoin(joinId);
+
   /* בתצוגות מקדימות שרצות בתוך חלון מוגן (iframe עם מקור לא־מאובטח),
      הקריאה הזאת יכולה לזרוק מיידית ולא רק לדחות הבטחה — try/catch כאן
      מונע ממנה לעצור את כל שאר האתחול (שהיה קורה כי אין .then אחריה). */

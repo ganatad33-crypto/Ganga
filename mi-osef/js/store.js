@@ -140,9 +140,11 @@ Store.init = function(){
   return Promise.resolve({ needsSetup:true });
 };
 
-Store.loadRemote = function(user){
+Store.loadRemote = function(user, houseId){
   var c = client();
-  return c.from('houses').select('id,doc').limit(1).then(function(r){
+  var q = c.from('houses').select('id,doc');
+  if(houseId) q = q.eq('id', houseId);
+  return q.limit(1).then(function(r){
     if(r.error) throw r.error;
     if(!r.data || !r.data.length) return { needsSetup:true, user:user };
     Store.db = r.data[0].doc;
@@ -151,6 +153,32 @@ Store.loadRemote = function(user){
     subscribe();
     return { ready:true };
   });
+};
+
+/* הצטרפות לבית קיים דרך קישור הזמנה: קודם נרשמים כחברי הבית (טבלת
+   house_members — ה־RLS מאפשר לכל משתמש מחובר להוסיף את עצמו), ורק אז
+   מותר לקרוא את מסמך הבית (houses_select תלוי בחברות). בלי הצעד הזה
+   הבקשה לטעון את המסמך הייתה נכשלת בגלל ההרשאות. */
+Store.joinHouse = function(houseId, user, profile){
+  var c = client();
+  return c.from('house_members').insert({ house:houseId, user_id:user.id, role:'full' })
+    .then(function(r){
+      if(r && r.error) throw r.error;
+      return Store.loadRemote(user, houseId);
+    })
+    .then(function(res){
+      if(!res.ready) return res;
+      var already = Store.db.members.some(function(m){ return m.id === user.id; });
+      if(!already){
+        Store.db.members.push({
+          id:user.id, name:(profile && profile.name) || '',
+          relation:(profile && profile.relation) || 'אחר',
+          phone:'', color:M.colorOf(Store.db.members.length), role:'full'
+        });
+        Store.commit('join');
+      }
+      return res;
+    });
 };
 
 /* מזהה הבית נקבע כאן ולא בשרת. הדרך ההפוכה — להוסיף שורה ולבקש בחזרה

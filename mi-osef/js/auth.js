@@ -14,6 +14,11 @@ var step = 'profile';
 var draft = { phone:'', name:'', relation:'אבא', house:'', kid:'', school:'' };
 var user  = null;
 var err   = '';
+var joinHouseId = null;
+
+/* מגיעים מקישור הזמנה (#join=<houseId>)? נשמר עד סוף הכניסה, ואז מצטרפים
+   לבית הקיים במקום ליצור בית חדש. ראו ACT.invite ב-app.js ליצירת הקישור. */
+Auth.setJoin = function(id){ joinHouseId = id; };
 
 /* כניסה במייל היא ברירת המחדל — היא חינמית ועובדת מהרגע הראשון */
 function byMail(){ return (CONFIG.LOGIN || 'email') !== 'phone'; }
@@ -91,16 +96,20 @@ function render(){
   }
 
   else if(step === 'profile'){
-    h += steps(remote()?3:1, remote()?3:2) + '<form id="f">'+
+    var joining = joinHouseId && remote();
+    h += steps(remote()?3:1, remote()?3:2) +
+      (joining ? '<div class="sent"><b>מצטרפים לבית קיים</b><p>קיבלת קישור הזמנה — '+
+        'תוזן לתוך הלוז המשותף במקום להקים בית חדש.</p></div>' : '') +
+      '<form id="f">'+
       '<div class="field"><label for="nm">איך קוראים לך</label>'+
       '<input class="inp" id="nm" value="'+esc(draft.name)+'" placeholder="השם שיופיע בלוז" required></div>'+
       '<div class="field"><label for="rel">מי אתה בבית</label><select class="inp" id="rel">'+
         M.RELATIONS.map(function(r){
           return '<option'+(r===draft.relation?' selected':'')+'>'+esc(r)+'</option>'; }).join('')+
       '</select></div>'+
-      '<div class="field"><label for="hs">שם הבית</label>'+
-      '<input class="inp" id="hs" value="'+esc(draft.house)+'" placeholder="למשל: משפחת כהן"></div>'+
-      '<button class="btn pri" type="submit">המשך</button>'+
+      (joining ? '' : '<div class="field"><label for="hs">שם הבית</label>'+
+        '<input class="inp" id="hs" value="'+esc(draft.house)+'" placeholder="למשל: משפחת כהן"></div>')+
+      '<button class="btn pri" type="submit">'+(joining?'הצטרפות':'המשך')+'</button>'+
       '<p class="fine">אלה הפרטים שבני הבית שלך יראו. אף אחד מחוץ לבית לא רואה אותם '+
       'עד שתיצור הסדר איסוף.</p></form>';
   }
@@ -179,7 +188,9 @@ function onSubmit(e){
       if(draft.phone.indexOf('@') < 1){ err = 'כתובת המייל לא נראית תקינה.'; return render(); }
       payload = { email:draft.phone, options:{
         shouldCreateUser:true,
-        emailRedirectTo: location.origin + location.pathname
+        /* שומרים את ה-hash (כולל #join=... אם הגיעו מקישור הזמנה) — אחרת
+           לחיצה על קישור הכניסה במייל הייתה מאבדת אותו ומחזירה למסך שגוי. */
+        emailRedirectTo: location.origin + location.pathname + location.hash
       } };
     } else {
       var phone = M.normPhone(draft.phone);
@@ -210,6 +221,9 @@ function onSubmit(e){
     )).then(function(r){
       if(r.error){ err = 'הקוד לא התאים. אפשר לבקש קוד חדש.'; return go('code'); }
       user = r.data.user;
+      /* מקישור הזמנה? מדלגים על החיפוש אחר בית קיים משלי — הולכים ישר
+         למסך הפרופיל כדי להצטרף לבית שאליו הוזמנתי. */
+      if(joinHouseId) { return go('profile'); }
       return Store.loadRemote(user).then(function(res){
         if(res.ready){ Auth.hide(); App.start(); }
         else go('profile');
@@ -223,6 +237,22 @@ function onSubmit(e){
     draft.relation = v('rel');
     draft.house = v('hs') || ('משפחת ' + draft.name);
     if(!draft.name){ err = 'צריך שם — הוא מה שיופיע בלוז.'; return render(); }
+    if(joinHouseId && remote()){
+      go('busy');
+      currentUser().then(function(u){
+        return Store.joinHouse(joinHouseId, u, draft);
+      }).then(function(res){
+        joinHouseId = null;
+        try{ localStorage.removeItem('miosef.join'); }catch(e){}
+        history.replaceState(null, '', location.pathname);
+        if(res.ready){ Auth.hide(); App.start(); }
+        else { err = 'ההצטרפות נכשלה.'; go('profile'); }
+      }).catch(function(e){
+        err = 'ההצטרפות נכשלה: ' + (e && (e.message || e.hint || e.details) || e);
+        go('profile');
+      });
+      return;
+    }
     return go('kid');
   }
 

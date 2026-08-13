@@ -86,7 +86,9 @@ Push.local = function(title, body, tag){
 /* תזמון התזכורות של היום במכשיר. נקרא מחדש בכל שינוי בלוז. */
 Push.scheduleToday = function(stations, remindMinutes){
   timers.forEach(clearTimeout); timers = [];
-  if(Notification.permission !== 'granted') return;
+  /* בדפדפן בלי תמיכה בהתראות עצם Notification לא קיים כלל, ופנייה אליו
+     זורקת — מה שהפיל את עליית האפליקציה ולא רק את התזכורות. */
+  if(!Push.supported || Notification.permission !== 'granted') return;
   var now = new Date();
   stations.forEach(function(s){
     if(!s.mine) return;

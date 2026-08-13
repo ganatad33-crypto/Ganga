@@ -658,9 +658,12 @@ App.start = function(){
   Store.onChange(function(){ UI.render(true); });
 
   var mine = myStationsToday();
-  Push.scheduleToday(mine.map(function(s){
-    return { mine:true, t:s.t, what:s.what, where:s.where, kids:M.andList(s.kids.map(Store.kidName)) };
-  }), D().prefs.remind);
+  /* תזכורות הן תוספת, לא תנאי: כשל כאן לא יעצור את פתיחת האפליקציה */
+  try{
+    Push.scheduleToday(mine.map(function(s){
+      return { mine:true, t:s.t, what:s.what, where:s.where, kids:M.andList(s.kids.map(Store.kidName)) };
+    }), D().prefs.remind);
+  }catch(e){ console.warn('תזכורות מקומיות לא הופעלו', e); }
 
   if(!dutyShown && mine.length){ dutyShown = true; setTimeout(sheetDuty, 700); }
 };

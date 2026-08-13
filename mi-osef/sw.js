@@ -1,6 +1,6 @@
 /* מי אוסף — עבודה אופליין והתראות
    בעדכון גרסה: להעלות את VERSION כאן וב־js/config.js */
-var VERSION = 'miosef-1.0.9';
+var VERSION = 'miosef-1.0.10';
 var SHELL = [
   './', './index.html', './css/app.css', './manifest.webmanifest',
   './js/config.js', './js/model.js', './js/store.js', './js/push.js',

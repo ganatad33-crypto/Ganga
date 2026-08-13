@@ -23,7 +23,7 @@ window.CONFIG = {
   APP_NAME: 'מי אוסף',
 
   /* גרסה — מעלים אותה כדי לאלץ רענון של הקבצים השמורים במכשיר */
-  VERSION: '1.0.11'
+  VERSION: '1.0.12'
 };
 
 window.CONFIG.isConfigured = !!(window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY);

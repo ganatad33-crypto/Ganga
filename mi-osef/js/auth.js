@@ -112,6 +112,7 @@ function render(){
       '<div class="field"><label for="sc">גן / בית ספר</label>'+
       '<input class="inp" id="sc" value="'+esc(draft.school)+'" placeholder="למשל: כיתה ג׳2, בי״ס רמון"></div>'+
       '<button class="btn pri" type="submit">בונים את הלוז</button>'+
+      '<button class="btn ghost" type="button" data-go="profile">חזרה</button>'+
       '<p class="fine">אתה מזין את הילדים שלך — <b>אין מאגר מרכזי</b>. הורה אחר יראה ילד שלך רק '+
       'אחרי שתיצור איתו הסדר, ורק את השם, המקום והשעה.</p></form>';
   }
@@ -150,9 +151,20 @@ function currentUser(){
   }, function(){ return null; });
 }
 
+/* לפני מעבר יזום (חזרה/דילוג) שומרים את מה שכבר הוקלד, כדי שחזרה קדימה
+   לא תאבד אותו */
+function saveDraft(){
+  var v = function(id){ var n = document.getElementById(id); return n ? n.value.trim() : null; };
+  var nm = v('nm'); if(nm !== null) draft.name = nm;
+  var rel = document.getElementById('rel'); if(rel) draft.relation = rel.value;
+  var hs = v('hs'); if(hs !== null) draft.house = hs;
+  var kd = v('kd'); if(kd !== null) draft.kid = kd;
+  var sc = v('sc'); if(sc !== null) draft.school = sc;
+}
+
 document.addEventListener('click', function(e){
   var b = e.target.closest('[data-go]');
-  if(b){ err = ''; go(b.getAttribute('data-go')); }   /* מעבר יזום — מנקים */
+  if(b){ err = ''; saveDraft(); go(b.getAttribute('data-go')); }   /* מעבר יזום — מנקים */
 });
 
 function onSubmit(e){

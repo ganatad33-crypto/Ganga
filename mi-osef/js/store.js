@@ -106,6 +106,21 @@ function flush(){
   });
 }
 
+/* עדכון חי מגיע כעדכון-מסמך שלם, בלי אירוע ״נלקחה בקשה״ נפרד — אז
+   מזהים את זה בעצמנו: השוואה בין הבקשות שלי לפני ואחרי, וכל בקשה
+   שעברה ל'taken' מציגה הודעה, גם אם האפליקציה כבר פתוחה. */
+function notifyTakenRequests(before, after){
+  if(!before || !window.UI || !UI.toast) return;
+  var myId = after.meId, oldReqs = before.reqs || [], newReqs = after.reqs || [];
+  newReqs.forEach(function(r){
+    if(r.from !== myId || r.st !== 'taken') return;
+    var old = oldReqs.filter(function(o){ return o.id === r.id; })[0];
+    if(old && old.st === 'taken') return;
+    var who = (after.members.concat(after.links).filter(function(p){ return p.id === r.by; })[0] || {}).name || 'מישהו';
+    UI.toast('<b>' + M.esc(who) + ' אישר/ה את הבקשה שלך!</b> ' + M.esc(r.txt) + ' — זה כבר בלוז.');
+  });
+}
+
 function subscribe(){
   var c = client(); if(!c || !Store.db) return;
   if(chan) c.removeChannel(chan);
@@ -117,9 +132,11 @@ function subscribe(){
           if(!row || !row.doc) return;
           /* לא לדרוס שינוי מקומי שעוד לא נשלח */
           if(pending) return;
+          var before = Store.db;
           Store.db = row.doc;
           persistLocal();
           emit();
+          notifyTakenRequests(before, row.doc);
         })
     .subscribe();
 }

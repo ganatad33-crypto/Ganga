@@ -238,6 +238,37 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
 .toast.on{opacity:1;transform:translateY(0)}
 .toast b{font-weight:700}
 
+/* כפתורי הסבר */
+.hlp{width:19px;height:19px;border-radius:99px;border:1.5px solid var(--line-2);background:var(--card);color:var(--ink-3);font-family:'Rubik',sans-serif;font-size:10px;font-weight:700;display:inline-grid;place-items:center;vertical-align:middle;flex:none;line-height:1}
+.hlp:active{background:var(--card-2)}
+.viewhead .hlp{width:22px;height:22px;font-size:11px}
+.hlprow{display:flex;align-items:center;gap:7px}
+
+/* אנשי קשר לשעת חירום */
+.contacts{margin-top:10px;border:1px solid color-mix(in srgb,var(--open) 26%,transparent);background:color-mix(in srgb,var(--open) 6%,var(--card));border-radius:12px;padding:10px 11px}
+.contacts > b{font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:6px;color:var(--open)}
+.crow{display:flex;align-items:center;gap:9px;margin-top:8px}
+.crow .txt{flex:1;min-width:0}
+.crow .txt b{font-size:12.5px;font-weight:700;display:block}
+.crow .txt span{font-size:10.5px;color:var(--ink-3);display:block}
+.crow .ph{font-family:'Rubik',sans-serif;font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink-2);letter-spacing:.01em}
+.crow .callbtn{width:32px;height:32px;border-radius:10px;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:14px;flex:none}
+
+/* מצב טסט */
+:root[data-test="on"] .chrome{background:#7A3D06}
+:root[data-test="on"] .phone{border-color:var(--p-yossi);box-shadow:0 0 0 3px color-mix(in srgb,var(--p-yossi) 30%,transparent),var(--shadow-l)}
+.testbadge{font-size:9.5px;font-weight:700;background:var(--p-yossi);color:#241202;border-radius:99px;padding:3px 8px;letter-spacing:.02em}
+.testbar{display:flex;align-items:center;gap:9px;background:color-mix(in srgb,var(--p-yossi) 14%,var(--card));border:1px solid color-mix(in srgb,var(--p-yossi) 40%,transparent);border-radius:14px;padding:10px 12px}
+.testbar .txt{flex:1;min-width:0}
+.testbar .txt b{font-size:12.5px;font-weight:700;display:block}
+.testbar .txt span{font-size:10.5px;color:var(--ink-2);display:block;margin-top:1px}
+
+/* דרגות בתוך הבית */
+.rolechip{font-size:9.5px;font-weight:700;border-radius:99px;padding:2px 7px;background:var(--card-2);color:var(--ink-2);border:1px solid var(--line)}
+.rolechip.full{background:color-mix(in srgb,var(--p-dad) 13%,var(--card));color:var(--p-dad);border-color:color-mix(in srgb,var(--p-dad) 34%,transparent)}
+.rolechip.lim{background:color-mix(in srgb,var(--p-gma) 13%,var(--card));color:var(--p-gma);border-color:color-mix(in srgb,var(--p-gma) 34%,transparent)}
+.rolechip.task{background:var(--card-2);color:var(--ink-3)}
+
 .scope{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;border-radius:99px;padding:3px 8px;background:var(--card-2);color:var(--ink-3);border:1px solid var(--line)}
 .scope.shared{background:color-mix(in srgb,var(--p-yossi) 13%,var(--card));color:var(--p-yossi);border-color:color-mix(in srgb,var(--p-yossi) 34%,transparent)}
 .scope.public{background:color-mix(in srgb,var(--p-vered) 13%,var(--card));color:var(--p-vered);border-color:color-mix(in srgb,var(--p-vered) 34%,transparent)}
@@ -318,10 +349,11 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
   <div class="phone" id="phone">
     <div class="chrome">
       <div class="chrome-row">
-        <div class="brand">מי אוסף<i>?</i><small>משפחת כהן</small></div>
+        <div class="brand">מי אוסף<i>?</i><small id="brandSub">משפחת כהן</small></div>
         <div class="chrome-acts">
-          <div class="sync">יומן Google</div>
+          <button class="sync" data-act="help" data-k="sync">יומן Google</button>
           <button class="bell" id="bell" data-act="feed" aria-label="עדכונים">🔔</button>
+          <button class="bell" data-act="settings" aria-label="הגדרות ובדיקות">⚙</button>
         </div>
       </div>
       <div class="famrow" id="famrow"></div>
@@ -371,15 +403,26 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
       <div class="nrow"><div class="n">07</div><div><b>המשפחה וההורים המחוברים</b>
         <p>מי יכול לעזור ומתי הוא בדרך כלל פנוי. האפליקציה גם מזהה התאמות: מי כבר אוסף מאותו שער
         באותה שעה, כדי לצרף ילד במקום לנסוע פעמיים.</p></div></div>
-      <div class="nrow"><div class="n">08</div><div><b>מי רואה מה</b>
-        <p>הבית שלכם רואה הכול; הורה אחר מחובר לפריט אחד שסיכמתם עליו, ולא ללוז; לוח הכיתה מקבל
+      <div class="nrow"><div class="n">08</div><div><b>מי רואה מה — כולל בתוך הבית</b>
+        <p>גם במשפחה יש דרגות: מלא, מוגבל (רואה את הלוז אבל תור לרופא מוצג כ״אירוע״), ולפי שיבוץ.
+        מחוץ לבית: הורה אחר מחובר לפריט אחד שסיכמתם עליו, ולא ללוז; לוח הכיתה מקבל
         רק את מה שפרסמתם. <em>נסו: לוז שבועי ← ״מי רואה מה״ ← ״מה יוסי רואה מהלוז שלי״</em> —
         האפליקציה עוברת לעיניים שלו, ורוב הלוז פשוט נעול.</p></div></div>
-      <div class="nrow"><div class="n">09</div><div><b>עדכון חי מכל המכשירים</b>
+      <div class="nrow"><div class="n">09</div><div><b>מי לחייג אם משהו משתבש</b>
+        <p>כשאתם אוספים ילד של מישהו אחר, ההסדר נושא איתו טלפונים: שני ההורים ואיש קשר גיבוי —
+        בלי לחפש ובלי לשאול. ויש כפתור אדום <em>״לא אצליח להגיע — הודע עכשיו״</em> ששולח התראה
+        מיידית ומחזיר את התחנה למצב פתוח כדי שמישהו ייקח אותה.</p></div></div>
+      <div class="nrow"><div class="n">10</div><div><b>כפתור הסבר ליד כל דבר</b>
+        <p>העיגולים הקטנים עם ? פזורים ליד כל אלמנט ומסבירים בדיוק מה הוא עושה. <em>⚙ בכותרת ←
+        ״מדריך״</em> מרכז את כולם ברשימה אחת.</p></div></div>
+      <div class="nrow"><div class="n">11</div><div><b>מצב טסט</b>
+        <p>עותק נפרד לניסויים: <em>⚙ ← מצב טסט</em>. הכותרת נצבעת כתום, אפשר לשבור הכול, לאפס
+        בלחיצה, וביציאה הלוז האמיתי חוזר בדיוק כפי שהיה.</p></div></div>
+      <div class="nrow"><div class="n">12</div><div><b>עדכון חי מכל המכשירים</b>
         <p>סבתא משבצת את עצמה בטלפון שלה — וזה מופיע אצלכם תוך שנייה, בלי לרענן, עם התראה.
         <em>חכו כ־7 שניות מפתיחת האב־טיפוס</em> ותראו עדכון שנכנס מבחוץ: התחנה נסגרת, נדלק באדום
         מספר על הפעמון, והשינוי מהבהב בסגול. הפעמון פותח את יומן העדכונים — מי שינה, מה, ומאיזה מכשיר.</p></div></div>
-      <div class="nrow"><div class="n">10</div><div><b>סנכרון ליומן</b>
+      <div class="nrow"><div class="n">13</div><div><b>סנכרון ליומן</b>
         <p>כל שיבוץ נכתב ליומן Google של האחראי בלבד — עם כתובת, שעה ותזכורת. בלי לפתוח את
         האפליקציה, ההתראה עדיין מגיעה.</p></div></div>
     </div>
@@ -403,6 +446,19 @@ var P = {
   vered: {n:'ורד',   r:'אמא של תמר · ג׳2', c:'var(--p-vered)', i:'ו',           free:'פנויה ג׳ אחה״צ'}
 };
 var FAMILY = ['daniel','michal','ruti','eli'];
+/* דרגות בתוך הבית: מלא רואה הכול · מוגבל לא רואה פרטים רגישים · לפי שיבוץ רואה רק את הימים שלו */
+var ROLE={ daniel:'full', michal:'full', ruti:'lim', eli:'task' };
+var ROLES={
+  full:{n:'מלא',       d:'רואה את כל הלוז, כל תור וכל שינוי. יכול לשבץ כל אחד.'},
+  lim: {n:'מוגבל',     d:'רואה את הלוז, אבל תורים רפואיים מוצגים כ״אירוע״ בלי פירוט. משבץ רק את עצמו.'},
+  task:{n:'לפי שיבוץ', d:'רואה רק את הימים שהוא עצמו אוסף בהם. שאר השבוע נעול.'}
+};
+var SENSITIVE=['רופא','שיניים','מרפאה','טיפול'];
+function isSensitive(txt){
+  var s=String(txt);
+  for(var i=0;i<SENSITIVE.length;i++){ if(s.indexOf(SENSITIVE[i])>-1) return true; }
+  return false;
+}
 var CLASSP = ['yossi','vered'];
 
 var KIDS = {
@@ -457,11 +513,17 @@ var LINKS={
 /* הסדרי איסוף הדדיים: צד אחד מקליד, הצד השני מאשר — ורק אז זה נכנס ללוז */
 var PACTS=[
   {id:'p1', by:'yossi', driver:'daniel', owner:'yossi', kids:['נעם'],
-   day:0, t:'13:20', place:'שער ראשי, בי״ס רמון', st:'pending-me'},
+   day:2, t:'13:20', place:'שער ראשי, בי״ס רמון', st:'pending-me',
+   contacts:[{n:'יוסי',  r:'אבא של נעם',            ph:'054-223-4110'},
+             {n:'ליאת', r:'אמא של נעם',            ph:'052-887-1204'},
+             {n:'רינה', r:'מזכירות בי״ס רמון',     ph:'03-641-2200'}]},
   {id:'p2', by:'daniel', driver:'vered', owner:'daniel', kids:['אבי'],
    day:4, t:'13:20', place:'שער ראשי, בי״ס רמון', st:'pending-them'},
   {id:'p3', by:'yossi', driver:'yossi', owner:'daniel', kids:['אבי'],
-   day:4, t:'12:45', place:'שער ראשי, בי״ס רמון', st:'active'}
+   day:4, t:'12:45', place:'שער ראשי, בי״ס רמון', st:'active',
+   contacts:[{n:'דניאל', r:'אבא של אבי (אתה)',      ph:'050-411-9023'},
+             {n:'מיכל',  r:'אמא של אבי',            ph:'054-330-7781'},
+             {n:'רותי',  r:'סבתא · גיבוי',          ph:'052-664-1188'}]}
 ];
 
 /* יומן עדכונים — מה נכנס מהמכשירים האחרים ומה עשית אתה */
@@ -501,6 +563,46 @@ var PUSH=[
   {n:'הסדר שממתין לאישור שלך',   d:'הורה אחר הקליד הסדר שנוגע אליך',            on:true},
   {n:'בקשת איסוף חדשה בכיתה',    d:'לא דחוף — בלי צלצול, רק בפעמון',            on:false}
 ];
+/* ===== הסברים קצרים ליד כל אלמנט ===== */
+var HELP={
+  route:{t:'מסלול היום',p:'כל תחנה היא רגע שבו מישהו צריך להיות במקום מסוים: הסעה, איסוף, סוף חוג. '+
+    'הקו הצבעוני מימין הוא האחראי — צבע לכל אדם. תחנה בקו מקוטע אדום היא תחנה שאין לה אחראי.'},
+  gap:{t:'תחנה בלי אחראי',p:'זה המצב היחיד שבו האפליקציה מתעקשת. שלוש דרכים לסגור אותו: להירשם בעצמך, '+
+    'לשלוח לסבא וסבתא, או לפרסם לכיתה. כל עוד התחנה אדומה — היא נשארת ראשונה בעין ומייצרת התראות.'},
+  remind:{t:'שעת התזכורת',p:'ההתראה נשלחת מהשרת, לא מהטלפון — היא תגיע גם אם הטלפון היה כבוי או '+
+    'שהאפליקציה נסגרה. הזמן מחושב אחורה משעת האיסוף לפי מה שבחרת: חצי שעה, שעה, שעתיים או ערב קודם.'},
+  scope:{t:'מי רואה את התחנה הזאת',p:'״המשפחה בלבד״ = רק הבית שלכם. אם רשום שם של הורה אחר, זה אומר '+
+    'שיש עליה הסדר משותף והוא רואה את השורה הזאת — ורק אותה.'},
+  grid:{t:'הלוז השבועי',p:'שורה ליום, עמודה לילד. הצבע אומר מי אוסף בלי לקרוא. לחיצה על תא פותחת החלפת '+
+    'אחראי ושעה, ואפשר להחיל את השינוי על השבוע הזה בלבד או על כל השבועות.'},
+  legend:{t:'מקרא הצבעים',p:'לכל אדם צבע קבוע לאורך כל האפליקציה — בלוז, במסלול ובהתראות. אדום הוא לא '+
+    'אדם אלא מצב: אין אחראי.'},
+  reqs:{t:'בקשות איסוף',p:'בקשה היא קריאה פתוחה: הראשון שנרשם סוגר אותה, וכל השאר רואים שהיא נסגרה. '+
+    'אפשר לשלוח למשפחה, לכיתה, או להורה מסוים.'},
+  pacts:{t:'הסדרים הדדיים',p:'הסדר הוא סיכום קבוע בין שני בתים — ״אתה את שלי בראשון, אני את שלך בחמישי״. '+
+    'צד אחד מקליד, הצד השני מאשר, ורק אז זה נכנס ללוז ולתזכורות של שניהם.'},
+  contacts:{t:'למי מתקשרים אם משהו משתבש',p:'כשאתה אוסף ילד של מישהו אחר, האפליקציה מציגה לך את מספרי '+
+    'הטלפון של ההורים שלו ואיש קשר גיבוי — בלי לחפש, בלי לשאול. הכפתור האדום שולח התראה מיידית לשני '+
+    'ההורים אם נתקעת ולא תגיע.'},
+  bell:{t:'פעמון העדכונים',p:'כל שינוי שמישהו עשה במכשיר שלו נכנס לכאן לפי הסדר. מתחת לרשימה יש מתג לכל '+
+    'סוג עדכון — מה מצלצל בטלפון גם כשהאפליקציה סגורה, ומה רק נאסף כאן בשקט.'},
+  sync:{t:'סנכרון ליומן',p:'כל שיבוץ נכתב כאירוע ביומן Google של האחראי בלבד, עם כתובת ותזכורת. הכתיבה '+
+    'חד־כיוונית: האפליקציה כותבת ליומן, ולא מושכת ממנו.'},
+  circles:{t:'מעגלי החשיפה',p:'הבית רואה הכול; הורה מחובר רואה פריט בודד שסוכם; לוח הכיתה רואה רק מה '+
+    'שפרסמתם. אפשר לבדוק את זה בעיניים של הצד השני.'},
+  roles:{t:'דרגות בתוך הבית',p:'גם בתוך המשפחה לא כולם צריכים לראות הכול. שלוש דרגות: מלא (ההורים), '+
+    'מוגבל (רואה את הלוז אבל לא פרטים רגישים כמו תורים רפואיים), ולפי שיבוץ (רואה רק את הימים שהוא אוסף).'},
+  mykids:{t:'הילדים שלי',p:'אתה מזין אותם, ואתה בוחר מה משותף. אין רשימת כיתה שמישהו אחר מנהל, וילד לא '+
+    'קיים באפליקציה של אף אחד בלי שההורה שלו שיתף אותו.'},
+  test:{t:'מצב טסט',p:'עותק נפרד לגמרי לניסויים. אפשר לשבץ, למחוק ולשבור בלי לגעת בלוז האמיתי — '+
+    'הכותרת נצבעת כתום כדי שלא יהיה בלבול. יציאה מהמצב מחזירה את הנתונים האמיתיים בדיוק כפי שהיו.'},
+  duty:{t:'תזכורת יום תורנות',p:'ביום שאתה אחראי, ההודעה הזאת קופצת פעם אחת כשאתה נכנס לאפליקציה, '+
+    'ואומרת קודם כול את מי אתה אוסף ואחר כך מתי ואיפה.'},
+  fab:{t:'כפתור ההוספה',p:'ארבעה דברים: בקשת איסוף, תור או אירוע חד־פעמי, הסדר קבוע עם הורה אחר, וחוג '+
+    'שחוזר כל שבוע.'}
+};
+function hlp(k){ return '<button class="hlp" data-act="help" data-k="'+k+'" aria-label="הסבר">?</button>'; }
+
 var ME='daniel';
 var REMIND=120;                    /* דקות לפני האיסוף — ניתן לשינוי */
 function minus(t,m){
@@ -515,7 +617,15 @@ function myLegs(){ return S.legs.filter(function(l){ return l.who===ME; }); }
 
 /* ===== מעגלי חשיפה =====
    בית = הכול גלוי. הסדר = פריט בודד שמשותף עם משק בית אחד. לוח כיתה = שידור בהסכמה. */
+function houseSees(person,kid,day){
+  var r=ROLE[person];
+  if(r==='full') return true;
+  if(r==='lim')  return true;                       /* רואה, אבל תוכן רגיש מוסתר */
+  var c=S.pick[kid][day];                           /* 'task' — רק ימים שהוא משובץ בהם */
+  return !!c && c.who===person;
+}
 function sharedWith(person,kid,day){
+  if(FAMILY.indexOf(person)>-1) return houseSees(person,kid,day);
   var nm=KIDS[kid]?KIDS[kid].n:kid, hit=false;
   PACTS.forEach(function(p){
     if(p.st!=='active') return;
@@ -545,11 +655,22 @@ function toast(html){
 }
 
 /* ===================== ראש האפליקציה ===================== */
+function testBar(){
+  return '<div class="testbar">'+
+    '<span class="av l" style="--c:var(--p-yossi)">🧪</span>'+
+    '<div class="txt"><b>מצב טסט</b><span>העותק הזה נועד לניסויים. הלוז האמיתי שמור ויחזור ביציאה.</span></div>'+
+    hlp('test')+
+    '<button class="btn" data-act="resettest" style="padding:6px 10px;font-size:11px">איפוס</button>'+
+    '<button class="btn pri" data-act="test" style="padding:6px 10px;font-size:11px">יציאה</button></div>';
+}
 function renderBell(){
   var n=FEED.filter(function(f){ return f.unread; }).length;
   el('bell').innerHTML='🔔'+(n?'<span class="bdg">'+n+'</span>':'');
 }
 function renderChrome(){
+  el('brandSub').innerHTML = TEST
+    ? '<span class="testbadge">🧪 מצב טסט</span>'
+    : 'משפחת כהן';
   el('famrow').innerHTML = FAMILY.map(function(k){
     return '<span class="fam" title="'+esc(P[k].n)+'">'+av(k,'s')+
       '<b>'+esc(P[k].n)+(P[k].me?' (אני)':'')+'</b><span>'+esc(P[k].r)+'</span></span>';
@@ -567,6 +688,10 @@ function viewToday(){
     '</p></div><span class="pill '+(open?'open':'ok')+'">'+(open?'דרושה עזרה':'לוז סגור')+'</span></div>'+
     '<p class="livechip"><i></i>מעודכן חי — כל מי שמשבץ במשפחה מופיע פה תוך שנייה</p>';
 
+  if(TEST) h += testBar();
+  h += '<div class="hlprow"><span class="eyebrow">מסלול היום</span>'+hlp('route')+
+       '<span class="eyebrow">תזכורות</span>'+hlp('remind')+
+       '<span class="eyebrow" style="margin-inline-start:auto">מי רואה</span>'+hlp('scope')+'</div>';
   h += '<div class="route">' + S.legs.map(function(l,i){
     var seg = l.who ? P[l.who].c : 'var(--open)';
     var body = '<div class="what">'+esc(l.what)+'</div><div class="where">'+esc(l.where)+'</div>'+
@@ -577,9 +702,16 @@ function viewToday(){
       body += '<div class="remind"><span>🔔</span><div>תזכורת אליך ב־<b>'+esc(minus(l.t,REMIND))+
         '</b> · '+esc(remindLabel())+'<em>גם אם האפליקציה סגורה</em></div>'+
         '<button class="btn ghost" data-act="remindset" style="padding:5px 9px;font-size:11px">שינוי</button></div>';
+      var pc=null;
+      PACTS.forEach(function(pp){
+        if(pp.st!=='active' || pp.driver!==ME) return;
+        var names=l.kids.map(kidName);
+        if(pp.kids.some(function(n){ return names.indexOf(n)>-1; })) pc=pp;
+      });
+      if(pc) body += contactsBlock(pc.contacts, ME, pc.id);
     }
     if(!l.who){
-      body += '<div class="gapbox"><p><strong>מי אוסף?</strong> '+
+      body += '<div class="gapbox"><p><strong>מי אוסף?</strong> '+hlp('gap')+' '+
         'הודעה נשלחה למשפחה. אם אף אחד לא ירשם עד 16:30, נציע את זה להורי הכיתה.</p>'+
         '<div class="btnrow"><button class="btn pri" data-act="claim" data-i="'+i+'">אני אוסף</button>'+
         '<button class="btn" data-act="askfam" data-i="'+i+'">שאל את סבא וסבתא</button>'+
@@ -613,11 +745,16 @@ function viewWeek(){
     var vis=0, tot=0;
     Object.keys(KIDS).forEach(function(k){ DAYS.forEach(function(d,i){
       tot++; if(sharedWith(as,k,i)) vis++; }); });
+    var fam=FAMILY.indexOf(as)>-1;
     h += '<div class="asbar">'+av(as,'l')+'<div class="txt"><b>אתה רואה את הלוז שלך בעיניים של '+
-      esc(P[as].n)+'</b><span>'+vis+' מתוך '+tot+' השיבוצים גלויים לו — רק מה שיש עליו הסדר משותף</span></div>'+
+      esc(P[as].n)+'</b><span>'+vis+' מתוך '+tot+' השיבוצים גלויים'+
+      (fam? ' · הרשאה: '+esc(ROLES[ROLE[as]].n) : ' · רק מה שיש עליו הסדר משותף')+'</span></div>'+
       '<button data-act="asme">חזרה</button></div>';
   }
 
+  if(TEST && !as) h += testBar();
+  h += '<div class="hlprow"><span class="eyebrow">הטבלה</span>'+hlp('grid')+
+       '<span class="eyebrow" style="margin-inline-start:auto">מעגלי חשיפה</span>'+hlp('circles')+'</div>';
   h += '<div class="grid"><div class="grow head"><div>יום</div>'+
     Object.keys(KIDS).map(function(k){
       return '<div>'+esc(KIDS[k].n)+'<span>'+esc(KIDS[k].cls)+'</span></div>'; }).join('')+'</div>';
@@ -638,13 +775,16 @@ function viewWeek(){
       h += '<button class="cell" '+(as?'disabled ':'data-act="assign" ')+'data-kid="'+kid+
         '" data-day="'+di+'" aria-label="שיבוץ '+esc(KIDS[kid].n)+' ב'+esc(dayName(di))+'">'+chip+
         (hidden? '' : ex.map(function(e){
-          return '<span class="extra"><i></i>'+esc(e.t)+' '+esc(e.l)+'</span>'; }).join(''))+
+          var lim = as && FAMILY.indexOf(as)>-1 && ROLE[as]==='lim' && isSensitive(e.l);
+          return '<span class="extra"><i></i>'+esc(e.t)+' '+esc(lim?'אירוע 🔒':e.l)+'</span>';
+        }).join(''))+
         '</button>';
     });
     h += '</div>';
   });
   h += '</div>';
 
+  h += '<div class="hlprow"><span class="eyebrow">מקרא</span>'+hlp('legend')+'</div>';
   h += '<div class="legend">'+FAMILY.concat(CLASSP).map(function(k){
     return '<span style="--c:'+P[k].c+'"><i></i>'+esc(P[k].n)+' · '+esc(P[k].r.split(' · ')[0])+'</span>'; }).join('')+
     '<span style="--c:var(--open)"><i></i>אין אחראי</span></div>';
@@ -652,8 +792,10 @@ function viewWeek(){
   if(as){
     h += '<div class="card" style="padding:12px 13px"><b style="font-size:13px">למה רוב הלוז נעול</b>'+
       '<p style="font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.55">'+
-      esc(P[as].n)+' לא מחובר ללוז שלך אלא לפריט אחד שסיכמתם עליו. כל השאר — מי אוסף, מתי, '+
-      'איזה חוג, איזה תור — לא קיים אצלו בכלל, וגם לא מייצר לו התראות.</p></div>';
+      (FAMILY.indexOf(as)>-1
+        ? esc(P[as].n)+' בבית שלכם, בהרשאה ״'+esc(ROLES[ROLE[as]].n)+'״. '+esc(ROLES[ROLE[as]].d)
+        : esc(P[as].n)+' לא מחובר ללוז שלך אלא לפריט אחד שסיכמתם עליו. כל השאר — מי אוסף, מתי, '+
+          'איזה חוג, איזה תור — לא קיים אצלו בכלל, וגם לא מייצר לו התראות.')+'</p></div>';
     return h;
   }
   h += '<div class="card" style="padding:12px 13px"><b style="font-size:13px">קבוע כל שבוע</b>'+
@@ -704,13 +846,15 @@ function viewReqs(){
     '<p>הלוח המשותף של כיתה ג׳2 · 14 משפחות</p></div>'+
     '<span class="pill '+(openN?'open':'ok')+'">'+(openN? openN+' ממתינות לך':'אין חדשות')+'</span></div>';
 
-  h+='<div class="eyebrow">מהכיתה</div>';
+  if(TEST) h+=testBar();
+  h+='<div class="hlprow"><span class="eyebrow">מהכיתה</span>'+hlp('reqs')+'</div>';
   h+=S.reqs.filter(function(r){ return !r.mine; }).map(reqCard).join('');
   h+='<div class="eyebrow" style="margin-top:4px">הבקשות שלי</div>';
   h+=S.reqs.filter(function(r){ return r.mine; }).map(reqCard).join('');
   h+='<button class="btn pri" data-act="newreq" style="padding:12px">פרסם בקשת איסוף חדשה</button>';
 
-  h+='<div class="eyebrow" style="margin-top:6px">הסדרים הדדיים · צד אחד מקליד, השני מאשר</div>';
+  h+='<div class="hlprow" style="margin-top:6px"><span class="eyebrow">הסדרים הדדיים · צד אחד מקליד, '+
+     'השני מאשר</span>'+hlp('pacts')+'</div>';
   h+=PACTS.map(pactCard).join('');
   h+='<button class="btn" data-act="pact" style="padding:12px">הסדר חדש עם הורה</button>';
   return h;
@@ -722,7 +866,9 @@ function viewClass(){
     '<p>אין מאגר מרכזי — כל הורה מזין את הילדים שלו בעצמו</p></div>'+
     '<button class="btn" data-act="privacy" style="padding:7px 11px;font-size:11.5px">מי רואה מה</button></div>';
 
-  h+='<div class="card" style="padding:12px 13px"><b style="font-size:13px">הילדים שלי</b>'+
+  if(TEST) h+=testBar();
+  h+='<div class="card" style="padding:12px 13px"><b style="font-size:13px;display:flex;align-items:center;'+
+     'gap:7px">הילדים שלי '+hlp('mykids')+'</b>'+
      '<p style="font-size:11.5px;color:var(--ink-3);margin-top:2px">אתה הזנת אותם, ואתה מחליט מי רואה אותם.</p>'+
      Object.keys(KIDS).map(function(k){
        return '<div class="prow" style="padding:9px 0 0"><span class="av l" style="--c:'+KIDS[k].c+'">'+
@@ -737,7 +883,9 @@ function viewClass(){
      'צירוף אבי מייתר את הנסיעה שלכם.</p>'+
      '<div class="btnrow"><button class="btn pri" data-act="join" data-id="r2">בקש לצרף את אבי</button></div></div>';
 
-  h+='<div class="eyebrow">המשפחה</div><div class="ntable">'+
+  h+='<div class="hlprow"><span class="eyebrow">הבית שלי</span>'+hlp('roles')+
+     '<button class="btn ghost" data-act="roles" style="margin-inline-start:auto;padding:5px 10px;'+
+     'font-size:11px">שינוי דרגות</button></div><div class="ntable">'+
     FAMILY.map(function(k){ return prow(k); }).join('')+'</div>';
   h+='<div class="eyebrow" style="margin-top:4px">הורים שהתחברת אליהם</div><div class="ntable">'+
     CLASSP.map(function(k){
@@ -758,7 +906,8 @@ function viewClass(){
 }
 function prow(k){
   var p=P[k];
-  return '<div class="prow">'+av(k,'l')+'<div class="txt"><b>'+esc(p.n)+(p.me?' (אני)':'')+'</b>'+
+  return '<div class="prow">'+av(k,'l')+'<div class="txt"><b>'+esc(p.n)+(p.me?' (אני)':'')+
+    (ROLE[k]?' <span class="rolechip '+ROLE[k]+'">'+esc(ROLES[ROLE[k]].n)+'</span>':'')+'</b>'+
     '<span>'+esc(p.r)+' · '+esc(p.free)+'</span></div><div class="acts">'+
     '<button class="iconbtn" data-act="askone" data-who="'+k+'" aria-label="בקשה אישית מ'+esc(p.n)+'">✋</button>'+
     '<button class="iconbtn" data-act="call" data-who="'+k+'" aria-label="התקשר ל'+esc(p.n)+'">☎</button>'+
@@ -793,6 +942,33 @@ function render(keepScroll){
     var n=v.querySelector(sel); if(n) n.classList.add('flash');
     S.flash=null;
   }
+}
+
+/* ===================== מצב טסט ===================== */
+var TEST=false, REALSNAP=null, TESTSEED=null;
+function snap(){ return JSON.stringify({S:S,PACTS:PACTS,FEED:FEED,PUSH:PUSH,REMIND:REMIND,ROLE:ROLE}); }
+function loadSnap(s){
+  var o=JSON.parse(s);
+  S=o.S; PACTS=o.PACTS; FEED=o.FEED; PUSH=o.PUSH; REMIND=o.REMIND; ROLE=o.ROLE;
+}
+function setTest(on){
+  if(on===TEST) return;
+  if(on){
+    REALSNAP=snap(); TEST=true;
+    S.asOther=null; S.tab='today';
+    document.documentElement.setAttribute('data-test','on');
+    TESTSEED=snap();
+  } else {
+    loadSnap(REALSNAP); TEST=false;
+    document.documentElement.removeAttribute('data-test');
+  }
+  closeSheet(); renderChrome(); render();
+  toast(on ? '<b>מצב טסט פעיל.</b> שברו כאן מה שתרצו — הלוז האמיתי שמור בצד ויחזור כשתצאו.'
+           : '<b>חזרתם ללוז האמיתי.</b> כל מה שעשיתם במצב טסט נמחק.');
+}
+function resetTest(){
+  loadSnap(TESTSEED); closeSheet(); render();
+  toast('נתוני הטסט אופסו למצב ההתחלתי.');
 }
 
 /* ===================== מגירה ===================== */
@@ -848,7 +1024,7 @@ function sheetDuty(){
         '<span class="who-kid">אתה אוסף את <b>'+esc(andList(l.kids.map(kidName)))+'</b></span>'+
         '<span>'+esc(l.where)+'</span></span></div>';
     }).join('')+
-    '<div class="field"><label>מתי להזכיר לך</label><div class="chipset">'+
+    '<div class="field"><label>מתי להזכיר לך '+hlp('duty')+'</label><div class="chipset">'+
       [[30,'חצי שעה'],[60,'שעה'],[120,'שעתיים'],[1440,'ערב קודם']].map(function(o){
         return '<button class="tog" data-act="setremind" data-m="'+o[0]+'" aria-pressed="'+
           (REMIND===o[0])+'" style="--c:'+P[ME].c+'">'+o[1]+'</button>'; }).join('')+
@@ -859,6 +1035,20 @@ function sheetDuty(){
 }
 
 /* ---- הסדר איסוף הדדי בין שני הורים ---- */
+function contactsBlock(list,who,id){
+  if(!list||!list.length) return '';
+  return '<div class="contacts"><b>☎ אם משהו משתבש '+hlp('contacts')+'</b>'+
+    list.map(function(c){
+      return '<div class="crow"><span class="av" style="--c:var(--p-none)">'+esc(c.n.charAt(0))+'</span>'+
+        '<span class="txt"><b>'+esc(c.n)+'</b><span>'+esc(c.r)+'</span></span>'+
+        '<span class="ph">'+esc(c.ph)+'</span>'+
+        '<button class="callbtn" data-act="call2" data-n="'+esc(c.n)+'" data-ph="'+esc(c.ph)+
+        '" aria-label="התקשר ל'+esc(c.n)+'">☎</button></div>';
+    }).join('')+
+    '<div class="btnrow"><button class="btn danger wide" data-act="cantmake" data-id="'+(id||'')+
+    '">לא אצליח להגיע — הודע עכשיו</button></div></div>';
+}
+
 function pactCard(p){
   var other = p.driver===ME ? p.owner : p.driver;
   var txt = p.driver===ME
@@ -886,6 +1076,7 @@ function pactCard(p){
   } else {
     h+='<div class="btnrow" style="align-items:center">'+
        whotag(p.driver, 'שני הצדדים אישרו')+'<span class="pill ok">ביומן של שניכם</span></div>';
+    h+=contactsBlock(p.contacts, p.driver, p.id);
   }
   return h+'</div>';
 }
@@ -904,6 +1095,12 @@ function sheetPact(){
     '<div class="field"><label for="pcT">שעה</label><input class="inp" id="pcT" type="time" value="13:20"></div>'+
     '<div class="field"><label for="pcPl">מאיפה</label>'+
       '<input class="inp" id="pcPl" value="שער ראשי, בי״ס רמון"></div>'+
+    '<div class="field"><label for="pcC1">איש קשר זמין · שם</label>'+
+      '<input class="inp" id="pcC1" value="ליאת" placeholder="מי לחייג אם משהו משתבש"></div>'+
+    '<div class="field"><label for="pcP1">טלפון</label>'+
+      '<input class="inp" id="pcP1" type="tel" value="052-887-1204" inputmode="tel"></div>'+
+    '<div class="field"><label for="pcC2">גיבוי · שם וטלפון</label>'+
+      '<input class="inp" id="pcC2" value="רינה · 03-641-2200"></div>'+
     '<button class="btn pri" data-act="savepact" style="padding:12px">שלח לאישור</button>'+
     '<p class="sheetnote">מספיק שצד אחד מקליד. אצל הצד השני זה מופיע כבקשת אישור — ורק אחרי '+
     'שהוא מאשר זה נכנס ללוז ולתזכורות של שניכם.</p>');
@@ -931,13 +1128,59 @@ function sheetPrivacy(){
     'אבי, גם אשתו רואה את זה אצלה — והיא צריכה לראות, כי היא זו שעלולה לצאת במקומו.</p>');
 }
 
+function sheetSettings(){
+  openSheet('הגדרות ובדיקות','',
+    '<div class="pushset">'+
+      '<div class="pushrow"><div class="txt"><b>🧪 מצב טסט</b><span>עותק נפרד לניסויים — '+
+      'הלוז האמיתי לא נוגע</span></div>'+
+      '<button class="sw" data-act="test" aria-pressed="'+TEST+'" aria-label="מצב טסט"></button></div>'+
+      (TEST?'<div class="pushrow"><div class="txt"><b>איפוס נתוני הטסט</b>'+
+        '<span>חוזר למצב ההתחלתי של הבדיקה</span></div>'+
+        '<button class="btn" data-act="resettest">איפוס</button></div>':'')+
+    '</div>'+
+    '<button class="pickrow" data-act="roles" style="--c:var(--p-gma)">'+
+      '<span class="av l" style="--c:var(--p-gma)">🏠</span><span class="txt"><b>דרגות בתוך הבית</b>'+
+      '<span>מי מבני המשפחה רואה מה</span></span></button>'+
+    '<button class="pickrow" data-act="privacy" style="--c:var(--p-yossi)">'+
+      '<span class="av l" style="--c:var(--p-yossi)">👁</span><span class="txt"><b>מי רואה מה</b>'+
+      '<span>שלושת מעגלי החשיפה, ובדיקה בעיניים של הצד השני</span></span></button>'+
+    '<button class="pickrow" data-act="feed" style="--c:var(--p-dad)">'+
+      '<span class="av l" style="--c:var(--p-dad)">🔔</span><span class="txt"><b>התראות</b>'+
+      '<span>מה מצלצל כשהאפליקציה סגורה</span></span></button>'+
+    '<div class="eyebrow" style="margin-top:6px">מדריך — כל חלק באפליקציה</div>'+
+    '<div class="pushset">'+Object.keys(HELP).map(function(k){
+      return '<div class="pushrow"><div class="txt"><b>'+esc(HELP[k].t)+'</b></div>'+hlp(k)+'</div>';
+    }).join('')+'</div>');
+}
+
+function sheetRoles(){
+  openSheet('דרגות בתוך הבית','גם במשפחה לא כולם צריכים לראות הכול',
+    FAMILY.map(function(k){
+      return '<div class="pickrow" style="--c:'+P[k].c+';flex-wrap:wrap">'+av(k,'l')+
+        '<span class="txt"><b>'+esc(P[k].n)+(P[k].me?' (אני)':'')+'</b>'+
+        '<span>'+esc(P[k].r)+' · '+esc(ROLES[ROLE[k]].d)+'</span></span>'+
+        '<button class="hlp" data-act="asother" data-who="'+k+'" aria-label="מה '+esc(P[k].n)+
+        ' רואה">👁</button>'+
+        '<div class="chipset" style="flex-basis:100%;margin-top:8px">'+
+        roleButtons(k)+'</div></div>';
+    }).join('')+
+    '<p class="sheetnote">״מוגבל״ שימושי לסבים: הם רואים את כל הלוז ומקבלים את התזכורות שלהם, '+
+    'אבל תור לרופא מוצג להם כ״אירוע״ בלי פירוט. ״לפי שיבוץ״ מתאים לדודה או שכנה שאוספת מדי פעם.</p>');
+}
+function roleButtons(k){
+  return Object.keys(ROLES).map(function(r){
+    return '<button class="tog" data-act="setrole" data-who="'+k+'" data-r="'+r+'" aria-pressed="'+
+      (ROLE[k]===r)+'" style="--c:'+P[k].c+'">'+esc(ROLES[r].n)+'</button>'; }).join('');
+}
+
 function sheetFeed(){
   openSheet('עדכונים','כל שינוי שמישהו עשה במכשיר שלו — לפי הסדר שבו הגיע',
     '<div>'+FEED.map(function(f){
       return '<div class="feedrow'+(f.unread?' unread':'')+'">'+av(f.who,'l')+
         '<div class="txt"><p>'+f.txt+'</p><span>'+esc(f.ago)+'</span></div></div>';
     }).join('')+'</div>'+
-    '<div class="eyebrow" style="margin-top:8px">מה יגיע לנעילת המסך גם כשהאפליקציה סגורה</div>'+
+    '<div class="hlprow" style="margin-top:8px"><span class="eyebrow">מה יגיע לנעילת המסך גם '+
+    'כשהאפליקציה סגורה</span>'+hlp('bell')+'</div>'+
     '<div class="pushset">'+PUSH.map(function(o,i){
       return '<div class="pushrow"><div class="txt"><b>'+esc(o.n)+'</b><span>'+esc(o.d)+'</span></div>'+
         '<button class="sw" data-act="push" data-i="'+i+'" aria-pressed="'+o.on+'" '+
@@ -976,7 +1219,7 @@ function incoming(){
 setTimeout(incoming,7000);
 
 function sheetAdd(){
-  openSheet('מה מוסיפים?','',
+  openSheet('מה מוסיפים? '+hlp('fab'),'ארבעה סוגים — לכל אחד התנהגות אחרת',
     '<button class="pickrow" data-act="addreq" style="--c:var(--p-yossi)">'+
     '<span class="av l" style="--c:var(--p-yossi)">✋</span><span class="txt"><b>בקשת איסוף</b>'+
     '<span>אני צריך שמישהו יאסוף — למשפחה או לכיתה</span></span></button>'+
@@ -1149,6 +1392,33 @@ var ACT={
   invite:function(){
     toast('<b>קישור הזמנה הועתק.</b> שלחו אותו בקבוצת הוואטסאפ של הכיתה — ההצטרפות בלי סיסמה.');
   },
+  help:function(d){
+    var x=HELP[d.k]; if(!x) return;
+    openSheet(esc(x.t),'מה זה עושה',
+      '<p style="font-size:13.5px;line-height:1.65;color:var(--ink-2)">'+x.p+'</p>'+
+      '<button class="btn pri" data-act="closesheet" style="padding:11px">הבנתי</button>');
+  },
+  call2:function(d){
+    toast('מתקשר ל'+esc(d.n)+' · '+esc(d.ph)+'…');
+  },
+  cantmake:function(d){
+    var p=PACTS.filter(function(x){ return x.id===d.id; })[0];
+    S.legs.forEach(function(l){
+      if(p && l.kids.some(function(k){ return p.kids.indexOf(kidName(k))>-1; })) l.who=null;
+    });
+    logAct(ME,'<b>אתה</b> הודעת שלא תצליח להגיע לאיסוף'+(p?' של '+andList(p.kids):''), 'עכשיו · התראה דחופה', false);
+    render();
+    toast('<b>התראה דחופה נשלחה.</b> '+(p?esc(andList(p.contacts.map(function(c){ return c.n; }))):'אנשי הקשר')+
+      ' קיבלו הודעה מיידית, והתחנה סומנה כפתוחה כדי שמישהו ייקח אותה.');
+  },
+  settings:function(){ sheetSettings(); },
+  roles:function(){ sheetRoles(); },
+  setrole:function(d){
+    ROLE[d.who]=d.r; sheetRoles(); render(true);
+    toast('<b>'+esc(P[d.who].n)+' — הרשאה '+esc(ROLES[d.r].n)+'.</b> '+esc(ROLES[d.r].d));
+  },
+  test:function(){ setTest(!TEST); },
+  resettest:function(){ resetTest(); },
   feed:function(){ sheetFeed(); },
   privacy:function(){ sheetPrivacy(); },
   asother:function(d){
@@ -1204,10 +1474,13 @@ var ACT={
         t=val('pcT')||'13:20', pl=val('pcPl')||'—',
         kids=(val('pcKids')||'נעם').split(',').map(function(s){ return s.trim(); })
              .filter(function(s){ return s; });
+    var c2=(val('pcC2')||'').split('·');
     PACTS.unshift({id:'n'+Date.now(), by:ME,
       driver: dir==='me' ? ME : who,
       owner:  dir==='me' ? who : ME,
-      kids:kids, day:day, t:t, place:pl, st:'pending-them'});
+      kids:kids, day:day, t:t, place:pl, st:'pending-them',
+      contacts:[{n:val('pcC1')||P[who].n, r:'איש קשר זמין', ph:val('pcP1')||'—'}].concat(
+        c2[1]? [{n:c2[0].trim(), r:'גיבוי', ph:c2[1].trim()}] : [])});
     logAct(ME,'<b>אתה</b> רשמת הסדר עם '+P[who].n+' ל'+dayName(day));
     S.tab='reqs'; closeSheet(); render();
     toast('<b>נשלח ל'+esc(P[who].n)+'.</b> זה מופיע אצלו עכשיו כבקשת אישור — '+

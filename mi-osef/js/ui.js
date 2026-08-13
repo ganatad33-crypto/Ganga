@@ -456,8 +456,11 @@ function viewPeople(){
         ' רואה">👁</button></div></div>';
     }).join('')+
     '<div class="prow"><span class="av l" style="--c:var(--p-none)">+</span>'+
-    '<div class="txt"><b>הוספת בן בית</b><span>בן זוג, סבא, סבתא, מטפלת</span></div>'+
-    '<div class="acts"><button class="btn" data-act="addmember">הוספה</button></div></div></div>';
+    '<div class="txt"><b>הוספת בן בית</b><span>מוסיפים כאן מי שלא צריך כניסה משלו (למשל מטפלת)</span></div>'+
+    '<div class="acts"><button class="btn" data-act="addmember">הוספה</button></div></div>'+
+    '<div class="prow"><span class="av l" style="--c:var(--p-none)">📲</span>'+
+    '<div class="txt"><b>הזמנת בן בית להצטרפות</b><span>קישור שהופך אותם לבן בית מלא, עם כניסה משלהם</span></div>'+
+    '<div class="acts"><button class="btn" data-act="invite">קישור</button></div></div></div>';
 
   h += '<div class="hlprow" style="margin-top:4px"><span class="eyebrow">הורים שהתחברת אליהם</span>'+
        hlp('invite')+'</div><div class="ntable">'+
@@ -471,9 +474,12 @@ function viewPeople(){
         '<button class="iconbtn" data-act="asother" data-who="'+l.id+'" aria-label="מה הוא רואה">👁</button>'+
         '</div></div>';
     }).join('')+
+    /* בכוונה shareapp ולא invite: זו אינה הזמנה לבית שלך אלא רק שליחת
+       האפליקציה למשפחה אחרת, שמקימה בית נפרד משלה. */
     '<div class="prow"><span class="av l" style="--c:var(--p-none)">+</span>'+
-    '<div class="txt"><b>הזמנת הורה</b><span>שולחים קישור — הוא מזין את הילדים שלו ובוחר מה לשתף</span></div>'+
-    '<div class="acts"><button class="btn" data-act="invite">קישור</button></div></div></div>';
+    '<div class="txt"><b>שליחת האפליקציה להורה אחר</b><span>הוא מקים בית נפרד משלו — אין עדיין '+
+    'חיבור ישיר בין הלוזים</span></div>'+
+    '<div class="acts"><button class="btn" data-act="shareapp">קישור</button></div></div></div>';
   return h;
 }
 

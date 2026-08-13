@@ -173,10 +173,14 @@ function sheetEvent(){
 
 function sheetPact(withWho){
   if(!D().links.length){
-    return UI.openSheet('הסדר עם הורה אחר', 'קודם צריך חיבור',
-      '<p class="sheetnote">הסדר נוצר מול הורה שמחובר אליך. שלחו לו קישור הזמנה — הוא מזין את '+
-      'הילדים שלו בעצמו, ואז אפשר לסכם.</p>'+
-      '<button class="btn pri" data-act="invite" style="padding:12px">שליחת קישור הזמנה</button>');
+    /* חשוב: כאן בכוונה לא ACT.invite — זה מייצר קישור שמצרף לבית שלך
+       ממש (חברות מלאה, כל הלוז גלוי). לחיבור עם הורה ממשפחה אחרת אסור
+       להשתמש בקישור הזה בשום מקרה — הוא מיועד רק לבני הבית שלך עצמך. */
+    return UI.openSheet('הסדר עם הורה אחר', 'התכונה הזאת עוד לא מוכנה',
+      '<p class="sheetnote">חיבור אמיתי בין שני בתים — כך שרואים זה אצל זה רק פריט בודד שסיכמתם, '+
+      'לא את הלוז המלא — עדיין לא בנוי. בינתיים אפשר לשלוח להורה את קישור האפליקציה '+
+      'כדי שהוא יקים בית משלו, ולתאם איתו בנפרד.</p>'+
+      '<button class="btn pri" data-act="shareapp" style="padding:12px">שליחת קישור לאפליקציה</button>');
   }
   UI.openSheet('הסדר איסוף עם הורה', 'צד אחד מקליד — הצד השני מאשר',
     '<div class="field"><label for="pcWho">עם מי</label><select class="inp" id="pcWho">'+
@@ -332,8 +336,8 @@ function sheetMember(){
         return '<button class="tog" data-act="tog" data-role="'+r+'" aria-pressed="'+(r==='full')+
           '">'+esc(M.ROLES[r].n)+'</button>'; }).join('')+'</div></div>'+
     '<button class="btn pri" data-act="savemember" style="padding:12px">הוספה</button>'+
-    '<p class="sheetnote">בני הבית נכנסים עם מספר הטלפון שלהם — בלי סיסמה. מי שמוסיפים כאן יקבל '+
-    'קישור כניסה.</p>');
+    '<p class="sheetnote">זה מוסיף מישהו ללוז בלי שיש לו כניסה עצמאית משלו — טוב למי שלא צריך '+
+    'להתחבר בעצמו. אם רוצים שהם ייכנסו בעצמם ממכשיר שלהם, יש לשלוח להם קישור הזמנה במקום.</p>');
 }
 
 /* ==================== פעולות ==================== */
@@ -615,12 +619,24 @@ var ACT = {
       : '<b>חזרתם ללוז האמיתי.</b> מה שנעשה במצב טסט נמחק.');
   },
   resettest:function(){ Store.resetTest(); UI.closeSheet(); UI.render(); UI.toast('נתוני הטסט אופסו.'); },
+  /* קישור הצטרפות לבית שלך — מי שלוחץ עליו הופך לבן בית מלא, עם גישה
+     לכל הלוז. מיועד רק לבני המשפחה שלך עצמך (בן/בת זוג, סבתא). לחיבור
+     עם משפחה אחרת יש להשתמש ב-ACT.shareapp, לא בזה. */
   invite:function(){
     var link = location.origin + location.pathname + '#join=' + D().house.id;
     var done = function(){
-      UI.toast('<b>קישור ההזמנה הועתק.</b> שלחו אותו בוואטסאפ — מי שנכנס מזין את הילדים שלו ' +
-        'בעצמו ובוחר מה לשתף.');
+      UI.toast('<b>קישור ההזמנה הועתק.</b> שלחו אותו רק לבני הבית שלכם — מי שנכנס דרכו ' +
+        'הופך לבן בית מלא, עם גישה לכל הלוז.');
     };
+    if(navigator.share){ navigator.share({ title:'מי אוסף', url:link }).then(done, done); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(link).then(done, done); }
+    else done();
+  },
+  /* קישור פשוט לאפליקציה עצמה, בלי הזמנה לשום בית — מי שנכנס דרכו מקים
+     בית משלו, נפרד לגמרי. מיועד לחברים ולמשפחות אחרות. */
+  shareapp:function(){
+    var link = location.origin + location.pathname;
+    var done = function(){ UI.toast('<b>הקישור לאפליקציה הועתק.</b> מי שנכנס דרכו מקים בית משלו.'); };
     if(navigator.share){ navigator.share({ title:'מי אוסף', url:link }).then(done, done); }
     else if(navigator.clipboard){ navigator.clipboard.writeText(link).then(done, done); }
     else done();

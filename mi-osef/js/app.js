@@ -669,8 +669,12 @@ App.start = function(){
 };
 
 function boot(){
+  /* בתצוגות מקדימות שרצות בתוך חלון מוגן (iframe עם מקור לא־מאובטח),
+     הקריאה הזאת יכולה לזרוק מיידית ולא רק לדחות הבטחה — try/catch כאן
+     מונע ממנה לעצור את כל שאר האתחול (שהיה קורה כי אין .then אחריה). */
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js').catch(function(){});
+    try{ navigator.serviceWorker.register('sw.js').catch(function(){}); }
+    catch(e){ console.warn('רישום Service Worker נכשל (סביבה מוגבלת)', e); }
   }
   Store.init().then(function(res){
     if(res && res.ready){ Auth.hide(); App.start(); }

@@ -14,6 +14,30 @@
 <link rel="icon" type="image/png" href="icons/favicon-48.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="css/app.css">
+<script>
+/* רשת ביטחון: אם תוך כמה שניות שום מסך לא נפתח (לא הכניסה ולא האפליקציה),
+   מציגים על המסך את הסיבה הטכנית במקום להשאיר מסך תקוע בלי שום מידע.
+   רץ לפני כל שאר הסקריפטים כדי לתפוס גם כשל בטעינה שלהם עצמם. */
+window.__bootErr = null;
+window.addEventListener('error', function(e){
+  window.__bootErr = (e.error && e.error.message) || e.message || String(e);
+});
+window.addEventListener('unhandledrejection', function(e){
+  window.__bootErr = (e.reason && (e.reason.message || String(e.reason))) || 'הבטחה נדחתה בלי סיבה';
+});
+setTimeout(function(){
+  var gate = document.getElementById('gate'), app = document.getElementById('app');
+  var gateBody = document.getElementById('gateBody');
+  var stuck = app && app.hidden && (!gateBody || !gateBody.innerHTML.trim());
+  if(!stuck) return;
+  if(gate) gate.hidden = false;
+  if(gateBody) gateBody.innerHTML =
+    '<div class="err">הטעינה נתקעה.<br>סיבה טכנית: ' +
+    (window.__bootErr ? String(window.__bootErr).replace(/[<>&]/g, function(c){
+      return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; }) : 'לא זוהתה שגיאה — כנראה בעיית רשת/מטמון') +
+    '</div><button class="btn pri" onclick="location.reload()" style="margin-top:10px">רענון</button>';
+}, 6000);
+</script>
 </head>
 <body>
 
@@ -56,6 +80,14 @@
   <div class="scrim" id="scrim"></div>
   <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></section>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<!-- באנר התקנה למסך הבית — מופיע רק כשהדפדפן מאשר שאפשר להתקין -->
+<div class="installbar" id="installBar" hidden style="position:fixed;left:14px;right:14px;bottom:14px;z-index:60">
+  <span style="font-size:22px">📲</span>
+  <div class="txt"><b>התקנת האפליקציה למסך הבית</b><span>פתיחה מהירה, גם בלי אינטרנט</span></div>
+  <button class="btn pri" id="installBtn" style="padding:8px 12px;font-size:12.5px">התקנה</button>
+  <button class="btn ghost" id="installClose" aria-label="סגירה" style="padding:8px 10px">✕</button>
 </div>
 
 <script src="vendor/supabase.js"></script>

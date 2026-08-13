@@ -282,8 +282,8 @@ function sheetSettings(){
       (Store.test ? '<div class="pushrow"><div class="txt"><b>איפוס נתוני הטסט</b>'+
         '<span>חזרה למצב ההתחלתי של הבדיקה</span></div>'+
         '<button class="btn" data-act="resettest">איפוס</button></div>' : '')+
-      '<div class="pushrow"><div class="txt"><b>כתיבה ליומן</b>'+
-      '<span>כל שיבוץ נכתב ליומן של האחראי</span></div>'+
+      '<div class="pushrow"><div class="txt"><b>הוספה ליומן</b>'+
+      '<span>כפתור ליד כל תחנה משובצת, לפתיחה ב־Google Calendar</span></div>'+
       '<button class="sw" data-act="cal" aria-pressed="'+(!!D().prefs.calendar)+'" aria-label="יומן"></button></div>'+
     '</div>'+
     '<button class="pickrow" data-act="roles" style="--c:var(--p-gma)">'+
@@ -449,8 +449,8 @@ var ACT = {
     D().prefs.calendar = on;
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     commit('cal');
-    UI.toast(on ? '<b>כתיבה ליומן הופעלה.</b> כל שיבוץ ייכתב ליומן של האחראי בלבד.'
-                : 'הכתיבה ליומן כובתה.');
+    UI.toast(on ? '<b>הוספה ליומן הופעלה.</b> ליד כל תחנה משובצת יופיע כפתור להוספה ל־Google Calendar.'
+                : 'כפתורי ההוספה ליומן הוסתרו.');
   },
 
   /* --- בקשות --- */
@@ -650,6 +650,24 @@ document.addEventListener('click', function(e){
   if(e.target.id === 'scrim'){ UI.closeSheet(); }
 });
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape') UI.closeSheet(); });
+
+/* ---------- התקנה למסך הבית (PWA) ---------- */
+var deferredInstall = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredInstall = e;
+  el('installBar').hidden = false;
+});
+el('installBtn').addEventListener('click', function(){
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(function(r){
+    if(r.outcome === 'accepted') el('installBar').hidden = true;
+    deferredInstall = null;
+  });
+});
+el('installClose').addEventListener('click', function(){ el('installBar').hidden = true; });
+window.addEventListener('appinstalled', function(){ el('installBar').hidden = true; });
 
 /* ==================== אתחול ==================== */
 var dutyShown = false;

@@ -218,6 +218,10 @@ function viewToday(){
         '<button class="btn ghost" data-act="remindset" style="padding:5px 9px;font-size:11px">שינוי</button></div>';
       if(l.pact) body += contactsBlock(l.pact.contacts, l.pact.id);
     }
+    if(l.who && D().prefs.calendar){
+      body += '<a class="btn ghost" style="padding:5px 9px;font-size:11px" target="_blank" rel="noopener" '+
+        'href="'+esc(M.calLink(l.what, l.iso, l.t, l.where, 'נוצר באפליקציית מי אוסף'))+'">📅 ליומן</a>';
+    }
     return '<div class="leg'+(l.who?'':' gap')+'" style="--seg:'+seg+'">'+
       '<div class="time">'+esc(l.t)+'</div>'+
       '<div class="rail"><span class="dot"></span></div>'+

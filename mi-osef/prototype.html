@@ -238,6 +238,21 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
 .toast.on{opacity:1;transform:translateY(0)}
 .toast b{font-weight:700}
 
+.scope{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;border-radius:99px;padding:3px 8px;background:var(--card-2);color:var(--ink-3);border:1px solid var(--line)}
+.scope.shared{background:color-mix(in srgb,var(--p-yossi) 13%,var(--card));color:var(--p-yossi);border-color:color-mix(in srgb,var(--p-yossi) 34%,transparent)}
+.scope.public{background:color-mix(in srgb,var(--p-vered) 13%,var(--card));color:var(--p-vered);border-color:color-mix(in srgb,var(--p-vered) 34%,transparent)}
+.cellchip.masked{background:repeating-linear-gradient(135deg,var(--card-2) 0 6px,transparent 6px 12px);border-style:dashed;border-color:var(--line-2);justify-content:center;color:var(--ink-3)}
+.cellchip.masked .nm{color:var(--ink-3);font-weight:500;font-size:10.5px}
+.asbar{display:flex;align-items:center;gap:9px;background:var(--chrome);color:var(--chrome-ink);border-radius:14px;padding:10px 12px}
+.asbar .txt{flex:1;min-width:0}
+.asbar .txt b{font-size:12.5px;font-weight:700;display:block}
+.asbar .txt span{font-size:10.5px;color:var(--chrome-mut);display:block;margin-top:1px}
+.asbar button{background:rgba(255,255,255,.14);border-radius:9px;padding:7px 11px;font-size:11.5px;font-weight:700;flex:none}
+.circles{display:flex;flex-direction:column;gap:9px}
+.circ{border:1px solid var(--line);border-radius:14px;padding:11px 12px;border-inline-start:4px solid var(--c,var(--line-2))}
+.circ b{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
+.circ b em{font-style:normal;margin-inline-start:auto;font-size:10px;font-weight:700;color:var(--c)}
+.circ p{font-size:11.5px;color:var(--ink-2);margin-top:5px;line-height:1.5}
 .duty{background:color-mix(in srgb,var(--p-dad) 10%,var(--card));border:1px solid color-mix(in srgb,var(--p-dad) 30%,transparent);border-radius:14px;padding:12px 13px}
 .duty > span{font-size:11.5px;color:var(--ink-2);display:block}
 .duty > b{font-family:'Rubik',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;display:block;margin-top:2px;color:var(--p-dad)}
@@ -356,11 +371,15 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
       <div class="nrow"><div class="n">07</div><div><b>המשפחה וההורים המחוברים</b>
         <p>מי יכול לעזור ומתי הוא בדרך כלל פנוי. האפליקציה גם מזהה התאמות: מי כבר אוסף מאותו שער
         באותה שעה, כדי לצרף ילד במקום לנסוע פעמיים.</p></div></div>
-      <div class="nrow"><div class="n">08</div><div><b>עדכון חי מכל המכשירים</b>
+      <div class="nrow"><div class="n">08</div><div><b>מי רואה מה</b>
+        <p>הבית שלכם רואה הכול; הורה אחר מחובר לפריט אחד שסיכמתם עליו, ולא ללוז; לוח הכיתה מקבל
+        רק את מה שפרסמתם. <em>נסו: לוז שבועי ← ״מי רואה מה״ ← ״מה יוסי רואה מהלוז שלי״</em> —
+        האפליקציה עוברת לעיניים שלו, ורוב הלוז פשוט נעול.</p></div></div>
+      <div class="nrow"><div class="n">09</div><div><b>עדכון חי מכל המכשירים</b>
         <p>סבתא משבצת את עצמה בטלפון שלה — וזה מופיע אצלכם תוך שנייה, בלי לרענן, עם התראה.
         <em>חכו כ־7 שניות מפתיחת האב־טיפוס</em> ותראו עדכון שנכנס מבחוץ: התחנה נסגרת, נדלק באדום
         מספר על הפעמון, והשינוי מהבהב בסגול. הפעמון פותח את יומן העדכונים — מי שינה, מה, ומאיזה מכשיר.</p></div></div>
-      <div class="nrow"><div class="n">09</div><div><b>סנכרון ליומן</b>
+      <div class="nrow"><div class="n">10</div><div><b>סנכרון ליומן</b>
         <p>כל שיבוץ נכתב ליומן Google של האחראי בלבד — עם כתובת, שעה ותזכורת. בלי לפתוח את
         האפליקציה, ההתראה עדיין מגיעה.</p></div></div>
     </div>
@@ -399,6 +418,7 @@ var TODAY = 2;
 /* לוז: מי אוסף כל ילד בכל יום */
 var S = {
   tab:'today',
+  asOther:null,          /* צפייה בלוז שלי בעיניים של הורה מחובר */
   pick:{
     avi:  [{who:'daniel',t:'13:20'},{who:'michal',t:'13:20'},{who:'ruti',t:'13:20'},{who:null,t:'16:00'},{who:'yossi',t:'12:45'}],
     shai: [{who:'michal',t:'16:00'},{who:'eli',t:'16:00'},{who:'ruti',t:'16:00'},{who:'michal',t:'16:00'},{who:'daniel',t:'13:00'}]
@@ -493,6 +513,31 @@ function remindLabel(){
 }
 function myLegs(){ return S.legs.filter(function(l){ return l.who===ME; }); }
 
+/* ===== מעגלי חשיפה =====
+   בית = הכול גלוי. הסדר = פריט בודד שמשותף עם משק בית אחד. לוח כיתה = שידור בהסכמה. */
+function sharedWith(person,kid,day){
+  var nm=KIDS[kid]?KIDS[kid].n:kid, hit=false;
+  PACTS.forEach(function(p){
+    if(p.st!=='active') return;
+    if(p.day!==day) return;
+    if(p.driver!==person && p.owner!==person) return;
+    if(p.kids.indexOf(nm)>-1) hit=true;
+  });
+  return hit;
+}
+function legScope(l){
+  var who=null;
+  PACTS.forEach(function(p){
+    if(p.st!=='active' && p.st!=='pending-me') return;
+    var names=l.kids.map(function(k){ return KIDS[k]?KIDS[k].n:k; });
+    var common=p.kids.filter(function(n){ return names.indexOf(n)>-1; });
+    if(common.length) who = p.driver===ME ? p.owner : p.driver;
+  });
+  return who
+    ? '<span class="scope shared">גם '+esc(P[who].n)+' רואה</span>'
+    : '<span class="scope">המשפחה בלבד</span>';
+}
+
 var toastT;
 function toast(html){
   var t=el('toast'); t.innerHTML=html; t.classList.add('on');
@@ -527,7 +572,7 @@ function viewToday(){
     var body = '<div class="what">'+esc(l.what)+'</div><div class="where">'+esc(l.where)+'</div>'+
       '<div class="who">'+ l.kids.map(kidtag).join('') +
       (l.who ? whotag(l.who) + '<span class="pill ok">אושר</span>'
-             : '<span class="pill open">אין מי שאוסף</span>') + '</div>';
+             : '<span class="pill open">אין מי שאוסף</span>') + legScope(l) + '</div>';
     if(l.who===ME){
       body += '<div class="remind"><span>🔔</span><div>תזכורת אליך ב־<b>'+esc(minus(l.t,REMIND))+
         '</b> · '+esc(remindLabel())+'<em>גם אם האפליקציה סגורה</em></div>'+
@@ -558,9 +603,20 @@ function viewWeek(){
   var missing=0;
   Object.keys(S.pick).forEach(function(k){ S.pick[k].forEach(function(c){ if(!c.who) missing++; }); });
 
+  var as=S.asOther;
   var h = '<div class="viewhead"><div><h2>לוז שבועי</h2>'+
-    '<p>30/11 – 4/12 · לחיצה על תא מחליפה אחראי</p></div>'+
-    '<span class="pill '+(missing?'open':'ok')+'">'+(missing? missing+' תאים ריקים':'הכול משובץ')+'</span></div>';
+    '<p>30/11 – 4/12 · '+(as? 'כך זה נראה אצל '+esc(P[as].n):'לחיצה על תא מחליפה אחראי')+'</p></div>'+
+    (as? '' : '<span class="pill '+(missing?'open':'ok')+'">'+
+      (missing? missing+' תאים ריקים':'הכול משובץ')+'</span>')+'</div>';
+
+  if(as){
+    var vis=0, tot=0;
+    Object.keys(KIDS).forEach(function(k){ DAYS.forEach(function(d,i){
+      tot++; if(sharedWith(as,k,i)) vis++; }); });
+    h += '<div class="asbar">'+av(as,'l')+'<div class="txt"><b>אתה רואה את הלוז שלך בעיניים של '+
+      esc(P[as].n)+'</b><span>'+vis+' מתוך '+tot+' השיבוצים גלויים לו — רק מה שיש עליו הסדר משותף</span></div>'+
+      '<button data-act="asme">חזרה</button></div>';
+  }
 
   h += '<div class="grid"><div class="grow head"><div>יום</div>'+
     Object.keys(KIDS).map(function(k){
@@ -572,13 +628,17 @@ function viewWeek(){
       (di===TODAY?'<span style="color:var(--p-dad);font-weight:700">היום</span>':'')+'</div>';
     Object.keys(KIDS).forEach(function(kid){
       var c = S.pick[kid][di], ex = S.extra[kid][di] || [];
-      var chip = c.who
+      var hidden = as && !sharedWith(as,kid,di);
+      var chip = hidden
+        ? '<span class="cellchip masked"><span class="nm">🔒 פרטי</span></span>'
+        : c.who
         ? '<span class="cellchip" style="--c:'+P[c.who].c+'">'+av(c.who,'s')+
           '<span class="nm">'+esc(P[c.who].n)+'</span><span class="tm">'+esc(c.t)+'</span></span>'
         : '<span class="cellchip empty"><span class="nm">מי אוסף?</span></span>';
-      h += '<button class="cell" data-act="assign" data-kid="'+kid+'" data-day="'+di+'" '+
-        'aria-label="שיבוץ '+esc(KIDS[kid].n)+' ב'+esc(dayName(di))+'">'+chip+
-        ex.map(function(e){ return '<span class="extra"><i></i>'+esc(e.t)+' '+esc(e.l)+'</span>'; }).join('')+
+      h += '<button class="cell" '+(as?'disabled ':'data-act="assign" ')+'data-kid="'+kid+
+        '" data-day="'+di+'" aria-label="שיבוץ '+esc(KIDS[kid].n)+' ב'+esc(dayName(di))+'">'+chip+
+        (hidden? '' : ex.map(function(e){
+          return '<span class="extra"><i></i>'+esc(e.t)+' '+esc(e.l)+'</span>'; }).join(''))+
         '</button>';
     });
     h += '</div>';
@@ -589,9 +649,17 @@ function viewWeek(){
     return '<span style="--c:'+P[k].c+'"><i></i>'+esc(P[k].n)+' · '+esc(P[k].r.split(' · ')[0])+'</span>'; }).join('')+
     '<span style="--c:var(--open)"><i></i>אין אחראי</span></div>';
 
+  if(as){
+    h += '<div class="card" style="padding:12px 13px"><b style="font-size:13px">למה רוב הלוז נעול</b>'+
+      '<p style="font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.55">'+
+      esc(P[as].n)+' לא מחובר ללוז שלך אלא לפריט אחד שסיכמתם עליו. כל השאר — מי אוסף, מתי, '+
+      'איזה חוג, איזה תור — לא קיים אצלו בכלל, וגם לא מייצר לו התראות.</p></div>';
+    return h;
+  }
   h += '<div class="card" style="padding:12px 13px"><b style="font-size:13px">קבוע כל שבוע</b>'+
     '<p style="font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.55">הלוז חוזר על עצמו אוטומטית. '+
     'שינוי בתא בודד תופס רק לשבוע הזה; לשינוי קבוע יש בחירה של ״כל השבועות״ בחלון השיבוץ.</p></div>';
+  h += '<button class="btn" data-act="privacy" style="padding:11px">מי רואה מה — מעגלי החשיפה</button>';
   return h;
 }
 
@@ -651,7 +719,8 @@ function viewReqs(){
 /* ===================== מסך: הכיתה ===================== */
 function viewClass(){
   var h='<div class="viewhead"><div><h2>מי מחובר אליך</h2>'+
-    '<p>אין מאגר מרכזי — כל הורה מזין את הילדים שלו בעצמו</p></div></div>';
+    '<p>אין מאגר מרכזי — כל הורה מזין את הילדים שלו בעצמו</p></div>'+
+    '<button class="btn" data-act="privacy" style="padding:7px 11px;font-size:11.5px">מי רואה מה</button></div>';
 
   h+='<div class="card" style="padding:12px 13px"><b style="font-size:13px">הילדים שלי</b>'+
      '<p style="font-size:11.5px;color:var(--ink-3);margin-top:2px">אתה הזנת אותם, ואתה מחליט מי רואה אותם.</p>'+
@@ -678,7 +747,8 @@ function viewClass(){
         '<span>שיתף איתך: '+L.kids.map(function(c){ return esc(c.n)+' · '+esc(c.cls); }).join(', ')+
         '</span></div><div class="acts">'+
         '<button class="iconbtn" data-act="pact" aria-label="הסדר עם '+esc(P[k].n)+'">🤝</button>'+
-        '<button class="iconbtn" data-act="call" data-who="'+k+'" aria-label="התקשר">☎</button>'+
+        '<button class="iconbtn" data-act="asother" data-who="'+k+
+        '" aria-label="מה '+esc(P[k].n)+' רואה ממני">👁</button>'+
         '</div></div>'; }).join('')+
     '<div class="prow"><span class="av l" style="--c:var(--p-none)">+</span>'+
     '<div class="txt"><b>הזמן הורה</b><span>שולחים קישור בוואטסאפ — הוא מזין את הילדים שלו בעצמו, '+
@@ -837,6 +907,28 @@ function sheetPact(){
     '<button class="btn pri" data-act="savepact" style="padding:12px">שלח לאישור</button>'+
     '<p class="sheetnote">מספיק שצד אחד מקליד. אצל הצד השני זה מופיע כבקשת אישור — ורק אחרי '+
     'שהוא מאשר זה נכנס ללוז ולתזכורות של שניכם.</p>');
+}
+
+function sheetPrivacy(){
+  openSheet('מי רואה מה','שלושה מעגלים. ברירת המחדל היא הצר ביותר',
+    '<div class="circles">'+
+    '<div class="circ" style="--c:var(--p-dad)"><b>🏠 הבית שלכם<em>הכול</em></b>'+
+    '<p>אתה, מיכל, רותי ואליהו. רואים את כל הלוז, כל שינוי וכל תור — ומקבלים התראות על הכול. '+
+    'זה המעגל היחיד שרואה תמונה מלאה, בדיוק כמו קבוצת משפחה.</p></div>'+
+    '<div class="circ" style="--c:var(--p-yossi)"><b>🤝 הסדר עם משפחה אחרת<em>פריט בודד</em></b>'+
+    '<p>יוסי לא מחובר ללוז שלכם — הוא מחובר לשורה אחת שסיכמתם עליה. הוא רואה שם פרטי, שער ושעה, '+
+    'ומקבל התראות רק עליה. הוא לא יודע שמיכל החליפה את יום שני, ולא שיש לאבי תור לרופא שיניים.</p></div>'+
+    '<div class="circ" style="--c:var(--p-vered)"><b>📢 לוח הכיתה<em>רק כשמפרסמים</em></b>'+
+    '<p>בקשה שאתם מפרסמים לכיתה נראית לכולם — ולכן היא מכילה את המינימום: שם פרטי, מקום ושעה. '+
+    'בלי כתובת בית, בלי טלפון, ובלי שאר הלוז. ברגע שהבקשה נסגרת היא יורדת מהלוח.</p></div>'+
+    '</div>'+
+    '<div class="eyebrow" style="margin-top:6px">בדיקה בעיניים שלהם</div>'+
+    Object.keys(LINKS).map(function(k){
+      return '<button class="pickrow" style="--c:'+P[k].c+'" data-act="asother" data-who="'+k+'">'+
+        av(k,'l')+'<span class="txt"><b>מה '+esc(P[k].n)+' רואה מהלוז שלי</b>'+
+        '<span>פותח את הלוז השבועי בדיוק כפי שהוא נראה אצלו</span></span></button>'; }).join('')+
+    '<p class="sheetnote">שימו לב לנקודה אחת: שיתוף הוא מול <b>בית</b>, לא מול אדם. אם יוסי אוסף את '+
+    'אבי, גם אשתו רואה את זה אצלה — והיא צריכה לראות, כי היא זו שעלולה לצאת במקומו.</p>');
 }
 
 function sheetFeed(){
@@ -1058,6 +1150,16 @@ var ACT={
     toast('<b>קישור הזמנה הועתק.</b> שלחו אותו בקבוצת הוואטסאפ של הכיתה — ההצטרפות בלי סיסמה.');
   },
   feed:function(){ sheetFeed(); },
+  privacy:function(){ sheetPrivacy(); },
+  asother:function(d){
+    S.asOther=d.who; S.tab='week'; closeSheet(); render();
+    toast('<b>תצוגה בעיניים של '+esc(P[d.who].n)+'.</b> כל מה שנעול פשוט לא קיים אצלו — '+
+      'לא בלוז ולא בהתראות.');
+  },
+  asme:function(){
+    S.asOther=null; render();
+    toast('חזרת לתצוגה שלך.');
+  },
   push:function(d,btn){
     var o=PUSH[+d.i]; o.on=!o.on;
     btn.setAttribute('aria-pressed', o.on?'true':'false');
@@ -1130,7 +1232,7 @@ document.addEventListener('click',function(e){
     }
   }
   var tb=e.target.closest('[data-tab]');
-  if(tb){ S.tab=tb.getAttribute('data-tab'); closeSheet(); render(); return; }
+  if(tb){ S.tab=tb.getAttribute('data-tab'); S.asOther=null; closeSheet(); render(); return; }
   if(e.target.id==='fab'){ sheetAdd(); return; }
   if(e.target.id==='scrim'){ closeSheet(); }
 });

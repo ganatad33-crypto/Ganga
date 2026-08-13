@@ -117,6 +117,7 @@ function render(){
          'ההוראות ב־README.</p>';
   }
   body().innerHTML = h;
+  if(err) gate().scrollTop = 0;
 
   var f = document.getElementById('f');
   if(f) f.addEventListener('submit', onSubmit);
@@ -124,7 +125,10 @@ function render(){
   if(first) setTimeout(function(){ first.focus(); }, 60);
 }
 
-function go(next){ err=''; step = next; render(); }
+/* אין ניקוי של err כאן: קוד שמזהה כשל מציב הודעה ואז קורא ל-go כדי
+   לחזור למסך. ניקוי כאן היה מוחק את ההודעה בדיוק לפני שהיא מוצגת,
+   והמשתמש היה רואה את הטופס נטען מחדש בלי שום הסבר. */
+function go(next){ step = next; render(); }
 
 /* מי מחובר עכשיו — מהטופס אם נכנסנו בקוד, ומהחיבור אם נכנסנו דרך הקישור */
 function currentUser(){
@@ -139,7 +143,7 @@ function currentUser(){
 
 document.addEventListener('click', function(e){
   var b = e.target.closest('[data-go]');
-  if(b) go(b.getAttribute('data-go'));
+  if(b){ err = ''; go(b.getAttribute('data-go')); }   /* מעבר יזום — מנקים */
 });
 
 function onSubmit(e){
@@ -206,6 +210,11 @@ function onSubmit(e){
           return u ? Store.createRemoteHouse(draft, u) : Store.createLocalHouse(draft);
         })
       : Store.createLocalHouse(draft);
+
+    /* אם השרת לא עונה, עדיף לומר את זה מלהשאיר ספינר מסתובב */
+    make = Promise.race([ make, new Promise(function(_, reject){
+      setTimeout(function(){ reject(new Error('השרת לא ענה. בדקו חיבור לאינטרנט ונסו שוב.')); }, 15000);
+    })]);
     make.then(function(){
       if(draft.kid){
         Store.db.kids.push({
@@ -216,7 +225,9 @@ function onSubmit(e){
       }
       Auth.hide(); App.start();
     }).catch(function(e2){
-      err = 'ההקמה נכשלה: ' + (e2.message || e2); go('kid');
+      console.error('הקמת הבית נכשלה', e2);
+      err = 'ההקמה נכשלה: ' + (e2 && (e2.message || e2.hint || e2.details) || e2);
+      go('kid');
     });
   }
 }

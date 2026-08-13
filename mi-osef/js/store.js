@@ -153,20 +153,33 @@ Store.loadRemote = function(user){
   });
 };
 
+/* מזהה הבית נקבע כאן ולא בשרת. הדרך ההפוכה — להוסיף שורה ולבקש בחזרה
+   את המזהה שנוצר — נשענת על קריאה לשורה שנוצרה באותו רגע, וההרשאה לקרוא
+   אותה תלויה בשורת חברות שנוצרת בטריגר; המצב הזה עלול להחזיר "אין שורה"
+   ולהכשיל את ההקמה. כשאנחנו קובעים את המזהה מראש, אין קריאה ואין תלות. */
+function newId(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  var s = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+  return s.replace(/[xy]/g, function(ch){
+    var r = Math.random()*16|0, v = ch === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 Store.createRemoteHouse = function(profile, user){
   var c  = client();
   var db = Store.seed(profile);
   db.members[0].id = user.id;
   db.meId = user.id;
-  return c.from('houses').insert({ doc:db, owner:user.id }).select('id').single()
+  db.house.id = newId();
+  return c.from('houses').insert({ id:db.house.id, owner:user.id, doc:db })
     .then(function(r){
-      if(r.error) throw r.error;
-      db.house.id = r.data.id;
+      if(r && r.error) throw r.error;
       Store.db = db;
       persistLocal();
-      return c.from('houses').update({ doc:db }).eq('id', r.data.id);
-    })
-    .then(function(){ subscribe(); return { ready:true }; });
+      subscribe();
+      return { ready:true };
+    });
 };
 
 Store.createLocalHouse = function(profile){

@@ -62,16 +62,23 @@ function render(){
   }
 
   else if(step === 'code'){
-    h += steps(2,3) + '<form id="f">'+
-      '<div class="field"><label for="code">הקוד שנשלח ל־'+
-      esc(byMail() ? draft.phone : M.prettyPhone(draft.phone))+'</label>'+
+    h += steps(2,3);
+    if(byMail()){
+      h += '<div class="sent"><b>שלחנו מייל ל־'+esc(draft.phone)+'</b>'+
+        '<p>פתחו אותו ולחצו על <b>Sign in</b> — וזהו, אתם בפנים. אפשר לפתוח את המייל '+
+        'גם בטלפון; הקישור עובד מכל מכשיר.</p></div>'+
+        '<p class="fine">לא הגיע? כדאי להציץ בספאם. הקישור תקף לשעה ומשמש פעם אחת.</p>';
+    }
+    h += '<form id="f">'+
+      (byMail() ? '<div class="field"><label for="code">יש קוד במייל? אפשר גם להקליד אותו</label>'
+                : '<div class="field"><label for="code">הקוד שנשלח ל־'+
+                  esc(M.prettyPhone(draft.phone))+'</label>')+
       '<input class="inp otp" id="code" type="text" inputmode="numeric" autocomplete="one-time-code" '+
-      'maxlength="6" placeholder="——————" required></div>'+
-      '<button class="btn pri" type="submit">כניסה</button>'+
+      'maxlength="6" placeholder="——————"'+(byMail()?'':' required')+'></div>'+
+      (byMail() ? '' : '<button class="btn pri" type="submit">כניסה</button>')+
+      (byMail() ? '<button class="btn" type="submit">כניסה עם קוד</button>' : '')+
       '<button class="btn ghost" type="button" data-go="phone">'+
-      (byMail()?'מייל אחר':'מספר אחר')+'</button>'+
-      (byMail() ? '<p class="fine">אפשר גם פשוט ללחוץ על הקישור שבמייל — זה מכניס אתכם '+
-        'ישירות.</p>' : '')+'</form>';
+      (byMail()?'שליחה למייל אחר':'מספר אחר')+'</button></form>';
   }
 
   else if(step === 'profile'){
@@ -119,6 +126,17 @@ function render(){
 
 function go(next){ err=''; step = next; render(); }
 
+/* מי מחובר עכשיו — מהטופס אם נכנסנו בקוד, ומהחיבור אם נכנסנו דרך הקישור */
+function currentUser(){
+  if(user) return Promise.resolve(user);
+  var c = Store.client && Store.client();
+  if(!c) return Promise.resolve(null);
+  return c.auth.getUser().then(function(r){
+    user = r && r.data && r.data.user;
+    return user;
+  }, function(){ return null; });
+}
+
 document.addEventListener('click', function(e){
   var b = e.target.closest('[data-go]');
   if(b) go(b.getAttribute('data-go'));
@@ -134,7 +152,10 @@ function onSubmit(e){
     var payload;
     if(byMail()){
       if(draft.phone.indexOf('@') < 1){ err = 'כתובת המייל לא נראית תקינה.'; return render(); }
-      payload = { email:draft.phone, options:{ shouldCreateUser:true } };
+      payload = { email:draft.phone, options:{
+        shouldCreateUser:true,
+        emailRedirectTo: location.origin + location.pathname
+      } };
     } else {
       var phone = M.normPhone(draft.phone);
       if(phone.length < 12){ err = 'המספר לא נראה תקין. נסו שוב, למשל 050-1234567.'; return render(); }
@@ -180,8 +201,10 @@ function onSubmit(e){
   if(step === 'kid'){
     draft.kid = v('kd'); draft.school = v('sc');
     go('busy');
-    var make = (remote() && user)
-      ? Store.createRemoteHouse(draft, user)
+    var make = remote()
+      ? currentUser().then(function(u){
+          return u ? Store.createRemoteHouse(draft, u) : Store.createLocalHouse(draft);
+        })
       : Store.createLocalHouse(draft);
     make.then(function(){
       if(draft.kid){

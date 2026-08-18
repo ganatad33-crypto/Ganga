@@ -507,3 +507,108 @@ strong { font-weight: 700; }
   background: var(--accent-fill); color: #fff; padding: .6rem 1rem; border-radius: 0 0 10px 0; z-index: 100;
 }
 .skip:focus { inset-inline-start: 0; top: 0; }
+
+/* ===========================================================
+   שכבת האיור — מה שהופך עמוד טקסט לעמוד שרוצים להישאר בו
+   =========================================================== */
+
+.artwrap {
+  margin: 1.2rem 0 2rem;
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  box-shadow: var(--shadow-m);
+  border: 1px solid var(--border);
+  line-height: 0;
+}
+.artwrap svg { width: 100%; height: auto; display: block; }
+
+/* איור קטן בראש עמוד תוכן */
+.spot { margin: .5rem 0 1.4rem; line-height: 0; }
+.spot svg { width: 100%; max-width: 320px; height: auto; display: block; margin-inline-start: 0; }
+
+/* פתיחה רחבה יותר מרוחב הטקסט */
+.bleed { margin-inline: calc(50% - 50vw); padding-inline: 1.15rem; }
+@media (min-width: 52rem) { .bleed { margin-inline: -3.5rem; padding-inline: 0; } }
+
+/* ---------- ציטוט בולט ---------- */
+
+.pull {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
+  line-height: 1.45;
+  color: var(--ink);
+  border-inline-start: 5px solid var(--accent-fill);
+  padding: .3rem 0 .3rem 0;
+  padding-inline-start: 1.1rem;
+  margin: 2rem 0;
+}
+.pull span { display: block; font-family: var(--font-body); font-size: .9rem; color: var(--muted); margin-top: .6rem; font-weight: 600; }
+
+/* ---------- המסלול כמסע ---------- */
+
+.journeypath { list-style: none; padding: 0; margin: 1.6rem 0; position: relative; }
+.journeypath::before {
+  content: ""; position: absolute; top: 22px; bottom: 22px;
+  inset-inline-start: 19px; width: 3px;
+  background: linear-gradient(var(--accent-fill), var(--border));
+  border-radius: 2px;
+}
+.journeypath li {
+  position: relative; margin: 0 0 .7rem;
+  padding-inline-start: 3.2rem; min-height: 42px;
+}
+.jp-dot {
+  position: absolute; inset-inline-start: 0; top: 2px;
+  width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface); border: 3px solid var(--border);
+  color: var(--muted); font-weight: 700; font-size: .95rem;
+  box-shadow: var(--shadow-s);
+}
+.journeypath li.ready .jp-dot { background: var(--accent-fill); border-color: var(--accent-fill); color: #fff; }
+.jp-body { padding-top: .3rem; }
+.jp-body b { font-family: var(--font-display); font-size: 1.08rem; display: block; }
+.jp-body a { font-weight: 600; }
+.jp-body small { color: var(--muted); display: block; font-size: .9rem; line-height: 1.55; }
+.jp-tag {
+  display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+  background: var(--raised); color: var(--muted);
+  border-radius: 999px; padding: .05rem .6rem; margin-inline-start: .4rem; vertical-align: 2px;
+}
+
+/* ---------- כרטיסי כניסה ---------- */
+
+.entrys { display: grid; gap: .9rem; margin: 1.5rem 0; }
+@media (min-width: 40rem) { .entrys { grid-template-columns: 1fr 1fr; } }
+.entry {
+  display: block; text-decoration: none; color: var(--ink);
+  border: 1px solid var(--border); border-radius: var(--radius-l);
+  background: var(--surface); padding: 1.1rem 1.25rem 1.2rem;
+  box-shadow: var(--shadow-s); position: relative; overflow: hidden;
+  transition: transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
+}
+.entry::before {
+  content: ""; position: absolute; inset-block-start: 0; inset-inline: 0; height: 4px;
+  background: linear-gradient(to left, var(--accent-fill), var(--olive));
+  opacity: .85;
+}
+.entry:hover { transform: translateY(-2px); border-color: var(--accent-fill); box-shadow: var(--shadow-m); }
+.entry-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: var(--accent-soft); color: var(--accent);
+  display: grid; place-items: center; margin-bottom: .7rem;
+}
+.entry-icon svg { width: 22px; height: 22px; }
+.entry b { font-family: var(--font-display); font-size: 1.14rem; display: block; margin-bottom: .2rem; }
+.entry small { color: var(--muted); font-size: .93rem; line-height: 1.6; display: block; }
+
+/* ---------- פס נתונים ---------- */
+
+.facts { display: grid; grid-template-columns: repeat(3,1fr); gap: .7rem; margin: 1.8rem 0; }
+.fact {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .9rem .6rem; text-align: center;
+  box-shadow: var(--shadow-s);
+}
+.fact b { display: block; font-family: var(--font-display); font-size: 1.7rem; color: var(--accent); line-height: 1.15; }
+.fact small { color: var(--muted); font-size: .82rem; line-height: 1.4; display: block; margin-top: .15rem; }

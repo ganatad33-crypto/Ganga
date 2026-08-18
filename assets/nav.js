@@ -88,6 +88,8 @@ var PAGES = [
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    /* מסמן שה-JS חי — רק אז אנימציות ההופעה מופעלות */
+    document.documentElement.classList.add('js-on');
     document.querySelectorAll('[data-nav]').forEach(buildTop);
     document.querySelectorAll('[data-crumbs]').forEach(buildCrumbs);
     document.querySelectorAll('[data-pager]').forEach(buildPager);

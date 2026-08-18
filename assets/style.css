@@ -612,3 +612,78 @@ strong { font-weight: 700; }
 }
 .fact b { display: block; font-family: var(--font-display); font-size: 1.7rem; color: var(--accent); line-height: 1.15; }
 .fact small { color: var(--muted); font-size: .82rem; line-height: 1.4; display: block; margin-top: .15rem; }
+
+/* ===========================================================
+   שכבת עריכה — דפוסים שהותאמו מ-"Editorial Hero" ב-21st.dev
+   (felipemenezes098). הקוד שם הוא React+Tailwind; מה שנלקח
+   הוא החלטות העיצוב, שנכתבו כאן מחדש ב-CSS רגיל.
+   =========================================================== */
+
+/* איזון שורות בכותרות — מונע שורה אחרונה יתומה */
+h1, h2, .lede, .j-q, .pull { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* כותרת ראשית במשקל בינוני ולא כבד — קריאה עיתונאית */
+h1 { font-weight: 500; letter-spacing: -.025em; }
+
+/* ---------- פתיחה עורכית ---------- */
+
+.edhero { padding: 1.6rem 0 .5rem; }
+
+.edhero-grid { display: grid; gap: 1.1rem; }
+@media (min-width: 46rem) {
+  .edhero-grid {
+    grid-template-columns: repeat(12, 1fr);
+    gap: 2rem;
+    align-items: end;
+  }
+  .edhero-tag  { grid-column: 1 / span 4; }
+  .edhero-main { grid-column: 6 / span 7; }
+}
+
+.edhero-tag {
+  font-size: .95rem;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 22ch;
+  border-inline-start: 3px solid var(--accent-fill);
+  padding-inline-start: .85rem;
+  margin: 0;
+}
+.edhero-main h1 { margin: 0 0 .7rem; }
+.edhero-main .lede { margin-bottom: 0; }
+
+/* האיור נמס לתוך העמוד במקום לשבת בקופסה */
+.artfade {
+  margin: 2rem 0 1.5rem;
+  line-height: 0;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 88%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 88%, transparent 100%);
+}
+.artfade svg { width: 100%; height: auto; display: block; }
+
+/* ---------- הופעה מדורגת ---------- */
+
+/* מופעל רק אחרי שה-JS הוסיף .js-on — כך שאם משהו נכשל,
+   התוכן פשוט מוצג במקום להישאר בלתי נראה */
+@media (prefers-reduced-motion: no-preference) {
+  .js-on .reveal > * {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(6px);
+    animation: rise .42s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  .js-on .reveal > *:nth-child(1) { animation-delay: .04s; }
+  .js-on .reveal > *:nth-child(2) { animation-delay: .13s; }
+  .js-on .reveal > *:nth-child(3) { animation-delay: .22s; }
+  .js-on .reveal > *:nth-child(4) { animation-delay: .31s; }
+  .js-on .reveal > *:nth-child(5) { animation-delay: .40s; }
+}
+@keyframes rise {
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* מעברים רכים יותר על כרטיסים */
+.entry, .situations button, .pager a, .type, .angle, .signal {
+  transition: transform .22s var(--ease), border-color .22s var(--ease), box-shadow .22s var(--ease);
+}

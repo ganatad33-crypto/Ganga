@@ -1,139 +1,69 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#1B2A4A">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ניהול מלאי">
-<title>ניהול מלאי</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="icons/favicon-48.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="css/app.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ללמוד כלב — להבין את הכלב שלך, צעד אחר צעד</title>
+<meta name="description" content="לא אוסף טיפים. מסלול שמלמד אדם לקרוא כלב, להבין אותו ולנוע בנוחות בעולם הזה.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<header>
-  <button class="helpbtn" id="helpBtn" aria-label="עזרה">?</button>
-  <h1>📦 ניהול מלאי — תא העמסה <span class="savemark" id="saveState">נשמר</span> <span class="modebadge" id="modeBadge">🧪 מצב טסט</span></h1>
-  <div class="date" id="hdrDate"></div>
-  <div class="stats">
-    <div class="stat"><b id="stItems">–</b><span>פריטים</span></div>
-    <div class="stat alert"><b id="stLow">–</b><span>בחוסר / אזל</span></div>
-    <div class="stat"><b id="stToday">–</b><span>תנועות היום</span></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html">ללמוד כלב</a>
+    <span class="brand-note">שם זמני · האתר בבנייה</span>
   </div>
 </header>
+<div class="profilebar" data-profile-bar></div>
 
-<div id="viewStock">
-  <div class="toolbar">
-    <input class="search" id="q" type="search" placeholder="חיפוש מועדון או מק״ט…">
-    <div class="chips">
-      <button class="chip on" data-f="all">הכול</button>
-      <button class="chip" data-f="env">מעטפות חלון</button>
-      <button class="chip" data-f="page">דפי נושא</button>
-      <button class="chip" data-f="low">⚠️ רק חוסרים</button>
-    </div>
-    <button class="batchbtn instbtn" id="instBanner" style="display:none">⬇️ התקנת האפליקציה למסך הבית</button>
-    <button class="batchbtn" id="batchBtn">📥 קליטת תעודת משלוח</button>
-  </div>
-  <div class="list" id="list"></div>
-</div>
+<main class="wrap">
 
-<div id="viewLog" style="display:none">
-  <div class="list" id="log"></div>
-</div>
+<h1>ללמוד כלב</h1>
 
-<nav>
-  <button class="on" id="tabStock"><span class="ic">📦</span>מלאי</button>
-  <button id="tabLog"><span class="ic">📋</span>יומן תנועות</button>
-  <button id="tabExport"><span class="ic">📊</span>דוח אקסל</button>
-</nav>
+<p class="lede">רוב התוכן על כלבים נכתב למי שיש לו בעיה עכשיו. זה נכתב גם למי שרוצה להבין — ולומד ללכת בעולם הזה, לא רק לכבות שריפות.</p>
 
-<div class="helpsheet" id="helpSheet">
-  <div class="helphead"><h2>❓ מדריך שימוש</h2><button id="helpClose">✕</button></div>
-  <div class="helpbody">
-    <div class="hgroup"><h3>מסך המלאי</h3>
-      <div class="hrow"><div class="hico">📇</div><div><b>כרטיס פריט</b><p>כל שורה היא מוצר. מוצג: כמה ארגזים יש עכשיו, כמה יחידות זה, ומה הצריכה החודשית. <b>לחיצה על הכרטיס פותחת את חלון הפעולות.</b></p></div></div>
-      <div class="hrow"><div class="hico"><span class="hdot" style="background:var(--bad)"></span></div><div><b>פס אדום</b><p>המלאי אזל או נמוך מהצריכה החודשית — צריך להזמין.</p></div></div>
-      <div class="hrow"><div class="hico"><span class="hdot" style="background:var(--warn)"></span></div><div><b>פס צהוב</b><p>גבולי — יש מלאי, אבל פחות מ-20% מעל הצריכה. כדאי לעקוב.</p></div></div>
-      <div class="hrow"><div class="hico"><span class="hdot" style="background:var(--ok)"></span></div><div><b>פס ירוק</b><p>מצב תקין, יש מספיק מלאי.</p></div></div>
-      <div class="hrow"><div class="hico">⏱️</div><div><b>קצב ותחזית</b><p>אחרי 2 ספירות מדף (או 2 משיכות) לאותו מוצר, האפליקציה מחשבת את קצב השימוש האמיתי ומציגה לכמה ימים יספיק המלאי הכולל (תא העמסה + מדף). אדום = פחות משבוע, צהוב = פחות משבועיים. ספירות מדף נותנות את התחזית המדויקת ביותר.</p></div></div>
-      <div class="hrow"><div class="hico">🔍</div><div><b>חיפוש וסינון</b><p>חיפוש לפי שם או מק"ט. הכפתורים מתחת מסננים: מעטפות בלבד, דפים בלבד, או "רק חוסרים" — כל מה שדורש הזמנה.</p></div></div>
-    </div>
-    <div class="hgroup"><h3>חלון הפעולות (אחרי לחיצה על פריט)</h3>
-      <div class="hrow"><div class="hico">↓</div><div><b>משיכה לשוטף</b><p>כשאתה מוציא ארגזים מתא העמסה למדף העבודה השוטפת. בוחר כמה ארגזים — והכמות יורדת מהמלאי.</p></div></div>
-      <div class="hrow"><div class="hico">↑</div><div><b>קליטת הזמנה</b><p>כשמגיעה סחורה חדשה מהספק. בוחר כמה ארגזים הגיעו — והכמות נוספת למלאי.</p></div></div>
-      <div class="hrow"><div class="hico">🗄️</div><div><b>ספירת מדף</b><p>הפעולה של הבוקר: סופרים כמה ארגזים נשארו על המדף השוטף ומעדכנים כאן. ההפרש מהספירה הקודמת (ועוד המשיכות שביניהן) נרשם כשימוש בפועל — ככה האפליקציה לומדת את הצריכה האמיתית.</p></div></div>
-      <div class="hrow"><div class="hico">✎</div><div><b>תיקון ספירה</b><p>אם ספרת פיזית בתא העמסה וגילית שהמספר לא מדויק — כאן קובעים את הכמות הנכונה ישירות.</p></div></div>
-      <div class="hrow"><div class="hico">−/+</div><div><b>בורר כמות</b><p>לחיצה על + או − משנה את מספר הארגזים, או שאפשר להקליד מספר ישירות באמצע.</p></div></div>
-    </div>
-    <div class="hgroup"><h3>הכפתורים למטה</h3>
-      <div class="hrow"><div class="hico">📦</div><div><b>מלאי</b><p>המסך הראשי עם כל הפריטים.</p></div></div>
-      <div class="hrow"><div class="hico">📋</div><div><b>יומן תנועות</b><p>היסטוריה מלאה של כל משיכה, קליטה ותיקון — לפי תאריכים. שום דבר לא הולך לאיבוד.</p></div></div>
-      <div class="hrow"><div class="hico">📊</div><div><b>דוח אקסל</b><p>לחיצה אחת מייצרת קובץ אקסל עם המלאי הנוכחי ויומן התנועות, ומורידה אותו לטלפון — מוכן לשליחה למנהל.</p></div></div>
-    </div>
-    <div class="hgroup"><h3>בכותרת למעלה</h3>
-      <div class="hrow"><div class="hico">💾</div><div><b>סימון "נשמר"</b><p>מראה שהנתונים נשמרו במכשיר. אם כתוב "שגיאת שמירה" — נסה שוב את הפעולה האחרונה.</p></div></div>
-      <div class="hrow"><div class="hico">🔢</div><div><b>המונים</b><p>כמה פריטים יש בסך הכול, כמה מהם בחוסר או אזלו, וכמה תנועות רשמת היום.</p></div></div>
-    </div>
-    <div class="hgroup"><h3>💾 גיבוי ושחזור</h3>
-      <p class="hnote">הנתונים נשמרים בטלפון עצמו. מומלץ אחת לשבוע לשמור קובץ גיבוי — ואם מחליפים טלפון, משחזרים ממנו הכול בלחיצה.</p>
-      <button class="setbtn" id="bkExport">💾 שמירת קובץ גיבוי (הכול)</button>
-      <button class="setbtn" id="bkImport">📥 שחזור מקובץ גיבוי</button>
-      <input type="file" id="bkFile" accept=".json,application/json" style="display:none">
-    </div>
-    <div class="hgroup"><h3>📲 התקנה למסך הבית</h3>
-      <p class="hnote">אחרי ההתקנה האפליקציה נפתחת מאייקון במסך הבית ועובדת גם בלי אינטרנט.</p>
-      <button class="setbtn" id="instBtn" style="display:none">⬇️ התקנת האפליקציה</button>
-      <p class="hnote" id="instHint" style="display:none">אם אין כפתור: תפריט כרום (⋮) ← "הוספה למסך הבית".</p>
-    </div>
-    <div class="hgroup"><h3>🧪 מצב עבודה / מצב טסט</h3>
-      <p class="hnote">מצב טסט שומר נתונים בנפרד לגמרי — אפשר להתאמן וללחוץ חופשי בלי לגעת בנתוני העבודה האמיתיים. כשחוזרים למצב עבודה, הכול בדיוק כמו שהשארת.</p>
-      <button class="setbtn" id="modeToggle">מעבר למצב טסט 🧪</button>
-      <button class="setbtn danger" id="resetBtn">🗑️ איפוס המצב הנוכחי לספירה המקורית</button>
-      <p class="hnote" style="margin-top:6px">האיפוס מוחק את כל התנועות של המצב הנוכחי ומחזיר את המלאי לספירה של 11/08/2026.</p>
-    </div>
-  </div>
-</div>
+<p>שני דברים שלא תמצאו כאן: מכירה של שירותי אילוף, ורשימות של עשרה טיפים. כל עמוד עונה על שאלה אחת עד הסוף, מראה איך זה נראה במציאות, ומסתיים בדבר אחד קטן שאפשר לעשות היום.</p>
 
-<div class="helpsheet" id="batchSheet">
-  <div class="helphead"><h2>📥 קליטת תעודת משלוח</h2><button id="batchClose">✕</button></div>
-  <div class="helpbody">
-    <p class="hnote">חפש והוסף כל מוצר שמופיע בתעודה עם הכמות שהגיעה, ובסוף לחץ "קלוט הכול". כל הפריטים ייקלטו למלאי בבת אחת עם תאריך של היום. אפשר גם לצלם את התעודה, לשלוח לקלוד בצ'אט, ולקבל ממנו את הרשימה מוכנה.</p>
-    <input class="search" id="bq" type="search" placeholder="חפש מוצר מהתעודה…">
-    <div id="bres"></div>
-    <div id="bsel"></div>
-    <button class="confirm" id="batchConfirm" style="margin-top:14px" disabled>קלוט הכול למלאי</button>
-  </div>
-</div>
+<p><strong>והתוכן מתאים את עצמו לכלב שלכם.</strong> גור בן 9 חודשים וכלב בן 4 שעושים בדיוק את אותה התנהגות עושים אותה לרוב מסיבות שונות — אז הם לא מקבלים את אותה תשובה. <a href="profile.html">הזינו גיל וגזע</a> והתוכן ישתנה בהתאם, בכל האתר. הפרטים נשמרים בדפדפן שלכם בלבד ולא נשלחים לשום מקום.</p>
 
-<div class="overlay" id="overlay"></div>
-<div class="sheet" id="sheet">
-  <h2 id="shName"></h2>
-  <div class="cur" id="shCur"></div>
-  <div class="modes">
-    <button class="mode on-pull" id="mPull">↓ משיכה לשוטף</button>
-    <button class="mode" id="mRecv">↑ קליטת הזמנה</button>
-    <button class="mode" id="mShelf">🗄️ ספירת מדף</button>
-    <button class="mode" id="mAdj">✎ תיקון ספירה</button>
-  </div>
-  <div class="stepper">
-    <button id="minus">−</button>
-    <input id="qty" type="number" inputmode="numeric" min="0" value="1">
-    <button id="plus">+</button>
-  </div>
-  <div class="steplbl">ארגזים</div>
-  <div class="preview" id="shPrev"></div>
-  <button class="confirm" id="confirm">אישור משיכה</button>
-  <button class="cancel" id="cancel">ביטול</button>
-</div>
-<div class="toast" id="toast"></div>
+<h2>המסלול</h2>
 
-<script src="js/catalog.js"></script>
-<script src="js/db.js"></script>
-<script src="vendor/xlsx.full.min.js"></script>
-<script src="js/app.js"></script>
+<ol class="stages">
+  <li><span class="stage-n">1</span> <strong>לראות</strong> — <a href="signals.html">לקרוא שפת גוף, לזהות מתח ובקשת מרחב</a></li>
+  <li><span class="stage-n">2</span> <strong>להבין</strong> — איך כלב לומד, מה מניע אותו <span class="stage-soon">· בקרוב</span></li>
+  <li><span class="stage-n">3</span> <strong>לתקשר</strong> — <a href="household.html">מה אתם משדרים בלי לשים לב</a></li>
+  <li><span class="stage-n">4</span> <strong>לחיות</strong> — השגרה שמונעת את רוב הבעיות <span class="stage-soon">· בקרוב</span></li>
+  <li><span class="stage-n">5</span> <strong>לתקן</strong> — הבעיות הקלאסיות · <a href="barking.html">נביחה</a> · <a href="guide.html">מסלול השאלות</a></li>
+  <li><span class="stage-n">6</span> <strong>לנוע בעולם</strong> — כלבים זרים, רחוב, גן כלבים <span class="stage-soon">· בקרוב</span></li>
+  <li><span class="stage-n">7</span> <strong>לאורך החיים</strong> — גור, בוגר, מבוגר <span class="stage-soon">· בקרוב</span></li>
+</ol>
+
+<h2>מה כבר אפשר לקרוא</h2>
+
+<ul class="stages">
+  <li><a href="signals.html"><strong>לקרוא כלב</strong></a><br>
+  <span class="stage-soon">עשרה סימנים שאומרים "אני לא בנוח", והסולם שמסביר למה כלבים "נושכים בלי אזהרה". זה הבסיס לכל השאר.</span></li>
+
+  <li><a href="guide.html"><strong>מה קרה לכלב שלי</strong></a><br>
+  <span class="stage-soon">תארו מה קרה, ענו על כמה שאלות, וקבלו הסבר שמתאים למצב שלכם. כרגע: נהמה, משיכה ברצועה, הרס כשיוצאים, הקאה ושלשול.</span></li>
+
+  <li><a href="barking.html"><strong>הכלב שלי נובח</strong></a><br>
+  <span class="stage-soon">נביחה היא לא בעיה אחת אלא שש. איך מזהים איזו יש לכם, למה צעקה מחמירה, ומה הצעד הראשון שבאמת עובד.</span></li>
+
+  <li><a href="household.html"><strong>מה בני הבית עושים לכלב</strong></a><br>
+  <span class="stage-soon">מה המחקר מראה על סנכרון מתח בין כלבים לבעליהם — ומה זה אומר בפועל בבית.</span></li>
+
+  <li><a href="profile.html"><strong>פרטי הכלב שלי</strong></a><br>
+  <span class="stage-soon">גיל וגזע, כולל כלב מעורב. מידע על מוצא הגזע — האם הוא הכלאה, וממה.</span></li>
+</ul>
+
+<p class="sitefoot">האתר בשלב בנייה. השם, העיצוב ומבנה הניווט עדיין לא סופיים.<br><br>כל התוכן באתר הוא מידע כללי בגדר המלצה בלבד. הוא אינו מהווה ייעוץ וטרינרי, אבחון רפואי או תוכנית אילוף פרטנית, ואינו מחליף בדיקה של וטרינר מורשה או ליווי של מאלף מוסמך שרואה את הכלב. במצב חירום רפואי — פנו מיד לווטרינר או לחדר מיון וטרינרי.</p>
+
+</main>
+<script src="assets/profile.js" defer></script>
 </body>
 </html>

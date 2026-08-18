@@ -189,6 +189,87 @@ ART.spotDog = '' +
   '</g>' +
 '</svg>';
 
+
+/* ---------- כותרת עמוד: מרחק ---------- */
+ART.spotGuard = '' +
+'<svg viewBox="0 0 320 130" role="img" aria-label="איור: כלב מבקש מרחק, וחץ שמסמן את המרחק הבטוח">' +
+  '<ellipse cx="160" cy="120" rx="126" ry="9" fill="#B5613F" opacity=".13"/>' +
+  /* כלב מתוח, משקל אחורה */
+  '<g transform="translate(214,58)">' +
+    '<ellipse cx="34" cy="30" rx="30" ry="17" fill="#B5613F"/>' +
+    '<path d="M12 44v14M26 45v13M44 45v13M58 43v15" stroke="#B5613F" stroke-width="8" stroke-linecap="round"/>' +
+    '<path d="M62 22c9-10 16-7 14 2-1 7-7 10-12 8" fill="#B5613F"/>' +
+    '<circle cx="10" cy="10" r="14" fill="#C06E4A"/>' +
+    '<path d="M-1 -1c-5-8-2-13 4-9l5 4z" fill="#9E4A26"/>' +
+    '<path d="M-4 14c-7 1-9 5-8 8 1 4 5 5 10 3" fill="#C06E4A"/>' +
+    /* שיניים — אזהרה */
+    '<path d="M-3 17l2 4 2-4 2 4 2-4" fill="none" stroke="#FBF7EF" stroke-width="1.8" stroke-linejoin="round"/>' +
+    '<circle cx="11" cy="6" r="2.6" fill="#3E3428"/>' +
+  '</g>' +
+  /* אדם — מרוחק */
+  '<g transform="translate(40,44)" fill="none" stroke="#4E5B2E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">' +
+    '<circle cx="16" cy="9" r="9"/><path d="M16 19v22M6 27h20M16 41l-7 17M16 41l7 17"/>' +
+  '</g>' +
+  /* חץ המרחק */
+  '<g stroke="#9E4A26" stroke-width="2.6" fill="none" stroke-linecap="round">' +
+    '<path d="M84 92h136"/><path d="M92 86l-8 6 8 6"/><path d="M212 86l8 6-8 6"/>' +
+  '</g>' +
+  '<rect x="128" y="80" width="48" height="24" rx="9" fill="#F3E7DA"/>' +
+  '<path d="M141 92h22M152 84v16" stroke="#9E4A26" stroke-width="3" stroke-linecap="round"/>' +
+'</svg>';
+
+/* ---------- כותרת עמוד: לבד מול הדלת ---------- */
+ART.spotAlone = '' +
+'<svg viewBox="0 0 320 130" role="img" aria-label="איור: כלב יושב מול דלת סגורה">' +
+  '<ellipse cx="160" cy="120" rx="118" ry="9" fill="#B5613F" opacity=".13"/>' +
+  /* קיר ודלת */
+  '<rect x="176" y="8" width="96" height="106" rx="6" fill="#F0E0CC" stroke="#B5613F" stroke-width="4"/>' +
+  '<circle cx="192" cy="64" r="5" fill="#9E4A26"/>' +
+  '<path d="M176 8v106" stroke="#9E4A26" stroke-width="4"/>' +
+  /* כלב יושב, גב אלינו */
+  '<g transform="translate(96,44)">' +
+    '<path d="M30 68c-10 0-17-5-17-13 0-11 6-22 6-31 0-9 6-16 15-16s15 7 15 16c0 9 6 20 6 31 0 8-7 13-17 13z" fill="#B5613F"/>' +
+    '<path d="M17 24c-6-11-3-18 5-13" fill="#B5613F"/>' +
+    '<path d="M51 24c6-11 3-18-5-13" fill="#B5613F"/>' +
+    '<path d="M13 66c-9 3-13 6-12 9 1 3 7 3 13 1" fill="#B5613F"/>' +
+    '<ellipse cx="34" cy="70" rx="24" ry="6" fill="#9E4A26" opacity=".35"/>' +
+  '</g>' +
+  /* שעון */
+  '<g transform="translate(44,26)">' +
+    '<circle cx="18" cy="18" r="17" fill="none" stroke="#4E5B2E" stroke-width="3.5"/>' +
+    '<path d="M18 8v11l7 5" fill="none" stroke="#4E5B2E" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+  '</g>' +
+'</svg>';
+
+/* ---------- כותרת עמוד: גור ועולם חדש ---------- */
+ART.spotPuppy = '' +
+'<svg viewBox="0 0 320 130" role="img" aria-label="איור: גור קטן וסביבו דברים חדשים שהוא פוגש">' +
+  '<ellipse cx="160" cy="118" rx="120" ry="9" fill="#B5613F" opacity=".13"/>' +
+  /* גור */
+  '<g transform="translate(134,50)">' +
+    '<ellipse cx="28" cy="42" rx="26" ry="16" fill="#C06E4A"/>' +
+    '<path d="M10 54v10M22 55v9M36 55v9M48 53v11" stroke="#C06E4A" stroke-width="7" stroke-linecap="round"/>' +
+    '<path d="M52 34c8-7 13-4 11 3-1 6-6 8-10 6" fill="#C06E4A"/>' +
+    '<circle cx="12" cy="18" r="17" fill="#D07E58"/>' +
+    '<ellipse cx="-2" cy="14" rx="7" ry="12" fill="#B5613F" transform="rotate(-18 -2 14)"/>' +
+    '<ellipse cx="26" cy="13" rx="7" ry="12" fill="#B5613F" transform="rotate(18 26 13)"/>' +
+    '<ellipse cx="10" cy="26" rx="9" ry="6" fill="#EBD3BC"/>' +
+    '<ellipse cx="10" cy="22" rx="3.4" ry="2.6" fill="#8E4526"/>' +
+    '<circle cx="4" cy="15" r="2.6" fill="#3E3428"/><circle cx="19" cy="15" r="2.6" fill="#3E3428"/>' +
+  '</g>' +
+  /* דברים חדשים בעולם */
+  '<g fill="none" stroke="#4E5B2E" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="24" y="22" width="30" height="24" rx="5"/><path d="M31 34h16M39 28v12"/>' +      /* קופסה */
+    '<circle cx="52" cy="82" r="13"/><path d="M43 74l18 16M61 74l-18 16"/>' +                   /* כדור */
+    '<path d="M254 34c10 0 17 7 17 16s-7 16-17 16"/><path d="M254 34v32"/>' +                   /* צליל */
+    '<path d="M282 40a26 26 0 010 20"/>' +
+    '<path d="M240 96h44M248 96v-12M276 96v-12"/>' +                                            /* מדרגה */
+  '</g>' +
+  '<g fill="#B5613F" opacity=".45">' +
+    '<circle cx="96" cy="24" r="4"/><circle cx="230" cy="20" r="3.4"/><circle cx="288" cy="106" r="3"/><circle cx="20" cy="102" r="3.4"/>' +
+  '</g>' +
+'</svg>';
+
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('[data-art]').forEach(function (el) {
     var k = el.getAttribute('data-art');

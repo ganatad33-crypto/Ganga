@@ -29,7 +29,10 @@ var PAGES = [
   { file: 'index.html',     nav: 'בית',         title: 'כלבלב',              icon: 'home'  },
   { file: 'signals.html',   nav: 'לקרוא כלב',   title: 'לקרוא כלב',          icon: 'eye'   },
   { file: 'household.html', nav: 'בני הבית',    title: 'מה בני הבית עושים לכלב', icon: 'users' },
+  { file: 'puppy.html',     nav: 'גור חדש',     title: 'גור חדש בבית',       icon: 'paw'   },
   { file: 'barking.html',   nav: 'נביחה',       title: 'הכלב שלי נובח',      icon: 'sound' },
+  { file: 'aggression.html',nav: 'תוקפנות',     title: 'הכלב שלי תוקפני',    icon: 'alert' },
+  { file: 'separation.html',nav: 'חרדת נטישה',  title: 'חרדת נטישה',         icon: 'house' },
   { file: 'guide.html',     nav: 'מה קרה?',     title: 'מה קרה לכלב שלי',    icon: 'chat'  },
   { file: 'profile.html',   nav: 'הכלב שלי',    title: 'פרטי הכלב שלי',      icon: 'dog'   }
 ];

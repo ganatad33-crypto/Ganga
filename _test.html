@@ -1,0 +1,37 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><link rel="stylesheet" href="assets/style.css"></head>
+<body><pre id="out" style="direction:ltr;font:12px monospace;padding:10px;white-space:pre-wrap"></pre>
+<div id="sb" style="position:absolute;left:-4000px"></div>
+<script src="assets/breeds.js"></script><script src="assets/nav.js"></script>
+<script src="assets/art.js"></script><script src="assets/profile.js"></script>
+<script src="assets/trees.js"></script><script src="assets/journey.js"></script>
+<script>
+window.onerror=function(m,src,l,c){document.getElementById('out').textContent='JS ERROR: '+m+'\n'+src+':'+l+':'+c;};
+var log=[],fails=0,out=document.getElementById('out');
+function ok(c,m){log.push((c?'PASS  ':'FAIL  ')+m); if(!c)fails++;}
+function show(){out.textContent=(fails?'*** '+fails+' FAILURES ***\n\n':'ALL '+log.length+' CHECKS PASSED\n\n')+log.join('\n');}
+ok(PAGES.length===9,'9 pages in nav');
+ok(Object.keys(ART).length===9,'9 illustrations');
+ok(Journey.validate().length===0,'tree links valid');
+Dog.save({name:'לונה',months:10,breedKey:'labrador',breed:'לברדור ריטריבר'});
+var files=PAGES.map(function(p){return p.file}), n=files.length;
+files.forEach(function(f){
+  var fr=document.createElement('iframe'); fr.style.cssText='width:390px;height:600px;border:0';
+  fr.src=f; document.getElementById('sb').appendChild(fr);
+  fr.addEventListener('load',function(){
+    try{
+      var d=fr.contentDocument, vw=d.documentElement.clientWidth, sw=d.documentElement.scrollWidth;
+      ok(d.querySelectorAll('.mainnav a').length===9,f+': 9 nav links');
+      ok(!!d.querySelector('[data-hist="back"]'),f+': back button');
+      ok(!!d.querySelector('.pager a')||f==='profile.html',f+': pager');
+      ok(sw<=vw+1,f+': no horizontal overflow ('+sw+'<='+vw+')');
+      if(f!=='index.html') ok(!!d.querySelector('.spot svg'),f+': spot illustration drawn');
+      ok(getComputedStyle(d.body).fontFamily.indexOf('Assistant')>-1,f+': fonts');
+      var age=d.querySelectorAll('.ageblock[data-age]');
+      if(age.length){var vis=[].filter.call(age,function(e){return !e.hidden});
+        ok(vis.length===1,f+': age filter shows exactly 1 block (got '+vis.length+')');}
+    }catch(e){ok(false,f+': ERROR '+e.message);}
+    if(--n===0) show();
+  });
+});
+setTimeout(show,9000);
+</script></body></html>

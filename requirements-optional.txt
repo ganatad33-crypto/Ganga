@@ -1,0 +1,3 @@
+# Trained source separation. Much better stems than the built-in DSP split,
+# but it pulls in torch (~2 GB) and downloads model weights on first run.
+demucs>=4.0

@@ -33,6 +33,7 @@ var PAGES = [
   { file: 'barking.html',   nav: 'נביחה',       title: 'הכלב שלי נובח',      icon: 'sound' },
   { file: 'aggression.html',nav: 'תוקפנות',     title: 'הכלב שלי תוקפני',    icon: 'alert' },
   { file: 'separation.html',nav: 'חרדת נטישה',  title: 'חרדת נטישה',         icon: 'house' },
+  { file: 'cases.html',     nav: 'מקרים',       title: 'שלושה מקרים',        icon: 'bolt'  },
   { file: 'guide.html',     nav: 'מה קרה?',     title: 'מה קרה לכלב שלי',    icon: 'chat'  },
   { file: 'profile.html',   nav: 'הכלב שלי',    title: 'פרטי הכלב שלי',      icon: 'dog'   }
 ];

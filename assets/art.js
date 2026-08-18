@@ -270,6 +270,37 @@ ART.spotPuppy = '' +
   '</g>' +
 '</svg>';
 
+
+/* ---------- כותרת עמוד: קשת המקרה ---------- */
+ART.spotCase = '' +
+'<svg viewBox="0 0 320 130" role="img" aria-label="איור: קשת של תהליך — מבעיה, דרך נקודת מפנה, לפתרון">' +
+  '<ellipse cx="160" cy="120" rx="126" ry="9" fill="#B5613F" opacity=".13"/>' +
+  /* הקשת */
+  '<path d="M28 96C64 34 128 18 176 40s60 42 116 22" fill="none" stroke="#E6DCC9" stroke-width="5" stroke-linecap="round"/>' +
+  '<path d="M28 96C64 34 128 18 176 40" fill="none" stroke="#B5613F" stroke-width="5" stroke-linecap="round"/>' +
+  /* נקודות השלבים */
+  '<g fill="#FBF7EF" stroke="#B5613F" stroke-width="4">' +
+    '<circle cx="28" cy="96" r="9"/><circle cx="86" cy="46" r="9"/>' +
+  '</g>' +
+  /* נקודת המפנה — מלאה */
+  '<circle cx="176" cy="40" r="13" fill="#B5613F"/>' +
+  '<path d="M170 40l4.5 5 8-9" fill="none" stroke="#FBF7EF" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>' +
+  '<g fill="#FBF7EF" stroke="#D8C6A4" stroke-width="4">' +
+    '<circle cx="238" cy="58" r="9"/><circle cx="292" cy="62" r="9"/>' +
+  '</g>' +
+  /* התחלה: כלב מתוח */
+  '<g transform="translate(6,66)" fill="#C06E4A">' +
+    '<ellipse cx="14" cy="22" rx="13" ry="8"/>' +
+    '<path d="M5 29v7M12 30v6M19 30v6M25 28v8" stroke="#C06E4A" stroke-width="4" stroke-linecap="round"/>' +
+    '<circle cx="4" cy="12" r="7"/>' +
+  '</g>' +
+  /* סוף: כלב רגוע שוכב */
+  '<g transform="translate(276,78)" fill="#4E5B2E" opacity=".8">' +
+    '<ellipse cx="16" cy="16" rx="17" ry="7"/>' +
+    '<circle cx="2" cy="10" r="7"/>' +
+  '</g>' +
+'</svg>';
+
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('[data-art]').forEach(function (el) {
     var k = el.getAttribute('data-art');

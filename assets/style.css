@@ -330,3 +330,154 @@ li { margin-bottom: .5rem; }
 }
 .stage-n { color: var(--accent); font-weight: 700; margin-inline-end: .5rem; }
 .stage-soon { font-size: .8rem; color: var(--muted); }
+
+/* ===========================================================
+   פרופיל הכלב — גיל וגזע. משפיע על התוכן בכל האתר.
+   =========================================================== */
+
+.profilebar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-size: .9rem;
+}
+.profilebar .wrap { padding-top: .6rem; padding-bottom: .6rem; display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.profilebar .pb-text { color: var(--muted); }
+.profilebar .pb-text b { color: var(--text); }
+.btn {
+  font: inherit;
+  font-size: .88rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: .3rem .9rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn:hover { border-color: var(--accent); }
+.btn-plain { background: transparent; color: var(--muted); }
+
+.pform { display: grid; gap: .8rem; margin: 1rem 0 0; }
+.pform label { display: block; font-size: .88rem; font-weight: 600; margin-bottom: .25rem; }
+.pform input, .pform select {
+  font: inherit; font-size: 1rem;
+  width: 100%;
+  padding: .55rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+}
+.pform .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.pform .hint { font-size: .82rem; color: var(--muted); margin: .25rem 0 0; }
+.pform .actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+
+/* בלוקים תלויי-גיל */
+.ageblock { position: relative; }
+.agechip {
+  display: inline-block;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: .1rem .6rem;
+  margin-bottom: .35rem;
+}
+[hidden] { display: none !important; }
+
+/* כרטיס מידע גזע */
+.breedcard {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  margin: 1.2rem 0;
+}
+.breedcard h3 { margin-top: 0; }
+.breedcard dl { margin: 0; }
+.breedcard dt { font-size: .8rem; font-weight: 700; color: var(--muted); letter-spacing: .03em; margin-top: .8rem; }
+.breedcard dd { margin: .1rem 0 0; }
+.tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .9rem; }
+.tag { font-size: .8rem; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: .15rem .7rem; font-weight: 600; }
+
+/* ===========================================================
+   מסע — עץ שאלות ותשובות
+   =========================================================== */
+
+.journey {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.3rem 1.35rem;
+  margin: 1.5rem 0;
+}
+.j-step { font-size: .78rem; font-weight: 700; letter-spacing: .04em; color: var(--muted); margin: 0 0 .5rem; }
+.j-q { font-size: 1.2rem; font-weight: 700; line-height: 1.4; margin: 0 0 .3rem; }
+.j-help { font-size: .93rem; color: var(--muted); margin: 0 0 1rem; }
+.j-opts { display: grid; gap: .55rem; margin: 0 0 1rem; }
+.j-opt {
+  font: inherit;
+  text-align: start;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: .7rem .95rem;
+  cursor: pointer;
+  color: var(--text);
+  line-height: 1.5;
+}
+.j-opt:hover { border-color: var(--accent); background: var(--accent-soft); }
+.j-opt small { display: block; color: var(--muted); font-size: .85rem; }
+.j-nav { display: flex; gap: .8rem; font-size: .88rem; }
+.j-nav button { font: inherit; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0; text-decoration: underline; }
+.j-nav button:hover { color: var(--accent); }
+
+.j-answer h3 { margin-top: 0; font-size: 1.25rem; }
+.j-trail { font-size: .85rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: .8rem; margin-top: 1.2rem; }
+.j-trail b { color: var(--text); font-weight: 600; }
+
+.j-urgent {
+  border: 2px solid #c0392b;
+  background: #fdeeec;
+  color: #7d2018;
+  border-radius: var(--radius);
+  padding: 1.15rem 1.3rem;
+  margin: 0 0 1.2rem;
+}
+.j-urgent p:last-child { margin-bottom: 0; }
+.j-urgent strong { color: inherit; }
+@media (prefers-color-scheme: dark) {
+  .j-urgent { background: #2a1815; color: #f3b8ae; border-color: #a0392b; }
+}
+
+.situations { list-style: none; padding: 0; margin: 1.2rem 0; display: grid; gap: .6rem; }
+.situations button {
+  font: inherit; text-align: start; width: 100%;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: .8rem 1rem; cursor: pointer; color: var(--text);
+}
+.situations button:hover { border-color: var(--accent); }
+.situations b { display: block; }
+.situations small { color: var(--muted); }
+
+/* אזהרה רפואית */
+.medical {
+  border: 1px solid var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  font-size: .93rem;
+  margin: 1.5rem 0;
+}
+.medical p:last-child { margin-bottom: 0; }
+
+.sitefoot {
+  border-top: 1px solid var(--border);
+  margin-top: 3.5rem;
+  padding-top: 1.2rem;
+  font-size: .84rem;
+  color: var(--muted);
+}

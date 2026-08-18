@@ -1,0 +1,332 @@
+/* ===========================================================
+   ללמוד כלב — גיליון סגנון ראשי
+   עברית, RTL, מובייל-קודם. בלי פריימוורק, בלי תלויות.
+   =========================================================== */
+
+:root {
+  --bg:          #fbfaf8;
+  --surface:     #ffffff;
+  --text:        #1f2421;
+  --muted:       #5c6560;
+  --accent:      #2f6f5e;
+  --accent-soft: #e8f1ee;
+  --border:      #e4e1db;
+  --warn-bg:     #fdf5ec;
+  --warn-border: #e6c8a6;
+  --warn-text:   #7a4a1c;
+  --radius:      14px;
+  --maxw:        44rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:          #14171a;
+    --surface:     #1b1f22;
+    --text:        #e8e6e1;
+    --muted:       #a4aca7;
+    --accent:      #7fc4ac;
+    --accent-soft: #1d2c28;
+    --border:      #2b3135;
+    --warn-bg:     #271f18;
+    --warn-border: #55432e;
+    --warn-text:   #f0cfa8;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Assistant", "Heebo", -apple-system, "Segoe UI", Arial, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 1.15rem 5rem;
+}
+
+/* ---------- כותרת עליונה ---------- */
+
+.topbar {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.topbar .wrap {
+  padding-top: .9rem;
+  padding-bottom: .9rem;
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+.brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -.01em;
+}
+.brand-note {
+  font-size: .8rem;
+  color: var(--muted);
+}
+
+/* ---------- טיפוגרפיה ---------- */
+
+h1 {
+  font-size: clamp(1.7rem, 5.5vw, 2.35rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  margin: 2.2rem 0 .6rem;
+}
+h2 {
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 3rem 0 .9rem;
+  padding-top: .4rem;
+}
+h3 {
+  font-size: 1.06rem;
+  margin: 1.6rem 0 .35rem;
+}
+p { margin: 0 0 1.05rem; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+
+strong { font-weight: 700; }
+
+.lede {
+  font-size: 1.15rem;
+  color: var(--muted);
+  margin-bottom: 1.8rem;
+}
+
+.meta {
+  font-size: .85rem;
+  color: var(--muted);
+  margin: 0 0 2rem;
+}
+
+ul, ol { padding-inline-start: 1.3rem; margin: 0 0 1.05rem; }
+li { margin-bottom: .5rem; }
+
+/* ---------- תוכן עניינים ---------- */
+
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  margin: 0 0 2.5rem;
+}
+.toc-title {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .04em;
+  margin: 0 0 .5rem;
+}
+.toc ol { margin: 0; padding-inline-start: 1.2rem; }
+.toc li { margin-bottom: .2rem; }
+.toc a { color: var(--text); text-decoration: none; }
+.toc a:hover { color: var(--accent); text-decoration: underline; }
+
+/* ---------- תיבת "בקצרה" ---------- */
+
+.quick {
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.35rem .4rem;
+  margin: 0 0 2.5rem;
+}
+.quick-title {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--accent);
+  margin: 0 0 .7rem;
+}
+.quick ul { padding-inline-start: 1.15rem; }
+.quick li { margin-bottom: .7rem; }
+
+/* ---------- כרטיסי סוגי נביחה ---------- */
+
+.types { display: grid; gap: .85rem; margin: 1.5rem 0 1.2rem; }
+.type {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+}
+.type h3 { margin: 0 0 .3rem; }
+.type p { margin: 0 0 .5rem; }
+.type p:last-child { margin-bottom: 0; }
+.tell {
+  font-size: .93rem;
+  color: var(--muted);
+}
+.tell b { color: var(--text); font-weight: 700; }
+
+/* ---------- שלוש זוויות ---------- */
+
+.angles { display: grid; gap: 1rem; margin: 1.5rem 0; }
+.angle {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 1.05rem 1.2rem;
+}
+.angle-who { font-weight: 700; margin: 0 0 .1rem; }
+.angle-what { font-size: .85rem; color: var(--muted); margin: 0 0 .6rem; }
+.angle p { margin: 0 0 .6rem; }
+.angle .take {
+  font-size: .95rem;
+  border-inline-start: 3px solid var(--accent);
+  padding-inline-start: .75rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ---------- וידאו (טעינה בלחיצה) ---------- */
+
+.video {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  margin: 1.4rem 0;
+}
+.video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #10120f;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  display: block;
+}
+.video-frame img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .78; }
+.video-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.video-frame .play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.video-frame .play span {
+  background: rgba(0,0,0,.66);
+  color: #fff;
+  border-radius: 999px;
+  padding: .55rem 1.15rem;
+  font-size: .95rem;
+  font-weight: 600;
+  font-family: inherit;
+}
+.video-body { padding: .95rem 1.2rem 1.1rem; }
+.video-title { font-weight: 700; margin: 0 0 .15rem; }
+.video-src { font-size: .82rem; color: var(--muted); margin: 0 0 .8rem; }
+.look-title {
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--accent);
+  margin: 0 0 .35rem;
+}
+.video-body ul { margin: 0; padding-inline-start: 1.15rem; font-size: .97rem; }
+
+/* חותמת זמן — לשימוש כשממלאים דקות מדויקות */
+.ts {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 0 .4rem;
+  font-size: .85rem;
+  font-weight: 700;
+  margin-inline-end: .35rem;
+  direction: ltr;
+}
+
+/* ---------- נסה את זה היום ---------- */
+
+.today {
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.35rem;
+  margin: 2rem 0;
+  background: var(--surface);
+}
+.today-title {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--accent);
+  margin: 0 0 .5rem;
+}
+.today h3 { margin-top: 0; }
+.today p:last-child { margin-bottom: 0; }
+
+/* ---------- דגלים אדומים ---------- */
+
+.flags {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.35rem .5rem;
+  margin: 1.5rem 0;
+}
+.flags p, .flags li { color: var(--warn-text); }
+.flags ul { padding-inline-start: 1.15rem; }
+
+/* ---------- הערת שקיפות / מקורות ---------- */
+
+.note {
+  font-size: .93rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 1.2rem;
+  margin-top: 3rem;
+}
+.sources { font-size: .93rem; }
+.sources li { margin-bottom: .6rem; }
+
+.soon {
+  color: var(--muted);
+  border-bottom: 1px dotted var(--border);
+}
+
+/* ---------- תחתית ---------- */
+
+.foot {
+  border-top: 1px solid var(--border);
+  margin-top: 3rem;
+  padding-top: 1.2rem;
+  font-size: .85rem;
+  color: var(--muted);
+}
+
+/* ---------- דף הבית ---------- */
+
+.stages { list-style: none; padding: 0; margin: 1.5rem 0; }
+.stages li {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: .85rem 1.1rem;
+  margin-bottom: .6rem;
+}
+.stage-n { color: var(--accent); font-weight: 700; margin-inline-end: .5rem; }
+.stage-soon { font-size: .8rem; color: var(--muted); }

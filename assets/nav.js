@@ -21,7 +21,9 @@ var ICONS = {
   users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c0-3.1 2.7-5.2 6-5.2s6 2.1 6 5.2"/><path d="M16.5 5.2a3.2 3.2 0 010 6.2M18 14.6c2 .7 3.3 2.5 3.3 4.9"/></svg>',
   leash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6.5" cy="5.5" r="2.5"/><path d="M6.5 8v4.5c0 4 3.5 4 3.5 7.5"/><path d="M14 12c3 0 5.5 2 5.5 5"/></svg>',
   house: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V9.5L12 4l8 5.5V20z"/><path d="M9.5 20v-5.5h5V20"/></svg>',
-  cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg>'
+  cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg>',
+  moon:  '<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.2A8.4 8.4 0 019.8 4a8.4 8.4 0 1010.2 10.2z"/></svg>',
+  sun:   '<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/></svg>'
 };
 
 /* סדר העמודים — קובע את התפריט, פירורי הלחם, "הקודם/הבא" ומפת האתר.
@@ -64,6 +66,7 @@ var PAGES = [
           '<div class="navbtns">' +
             '<button class="iconbtn" type="button" data-hist="back" aria-label="חזרה לעמוד הקודם" title="אחורה">' + ICONS.back + '</button>' +
             '<button class="iconbtn" type="button" data-hist="fwd" aria-label="קדימה" title="קדימה">' + ICONS.fwd + '</button>' +
+            '<button class="iconbtn themebtn" type="button" aria-label="החלפת תצוגה בהירה או כהה" title="תצוגה בהירה / כהה">' + ICONS.moon + ICONS.sun + '</button>' +
           '</div>' +
         '</div>' +
         '<nav class="mainnav" aria-label="ניווט ראשי">' + links + '</nav>' +

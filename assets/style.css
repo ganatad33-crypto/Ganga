@@ -35,7 +35,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg:          #171410;
     --surface:     #211C16;
     --raised:      #2A241C;
@@ -57,8 +57,35 @@
   }
 }
 
+:root[data-theme="dark"] {
+    --bg:          #171410;
+    --surface:     #211C16;
+    --raised:      #2A241C;
+    --ink:         #F0E9DD;
+    --muted:       #A99C88;
+    --accent:      #E09A72;
+    --accent-fill: #C9764B;
+    --accent-soft: #2C231B;
+    --olive:       #A8BC71;
+    --border:      #352E24;
+    --warn-bg:     #2A2016;
+    --warn-border: #5C462A;
+    --warn-text:   #F0C793;
+    --danger:      #F0A493;
+    --danger-bg:   #2B1814;
+    --danger-border:#5E2F26;
+    --shadow-s: 0 1px 2px rgba(0,0,0,.3);
+    --shadow-m: 0 2px 4px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+}
+
+
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* הסרגל העליון דביק — בלי זה, עוגן או פוקוס מקלדת נחתכים מתחתיו */
+  scroll-padding-top: 7.5rem;
+}
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -66,6 +93,7 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 
 body {
   margin: 0;
+  overflow-wrap: anywhere;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body);
@@ -843,3 +871,77 @@ details.qa > summary:focus-visible { outline: 3px solid var(--accent-fill); outl
   border-top: 1px solid var(--border);
   margin: 1.4rem 0 0; padding-top: 1rem;
 }
+
+/* ===========================================================
+   שדרוג עיצוב — קשת עליונה, אות פתיחה, קריאה
+   פרטים שאולים מסגנון "Academia" והותאמו לפלטה החמה שלנו
+   =========================================================== */
+
+/* קשת עליונה לאיור הפתיחה — במקום מלבן */
+.artfade {
+  border-start-start-radius: 999px 180px;
+  border-start-end-radius: 999px 180px;
+  overflow: hidden;
+  position: relative;
+}
+.artfade::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 35%, transparent 45%, rgba(60,42,26,.14) 100%);
+}
+
+/* אות פתיחה — רק בעמודי תוכן ורק במסך רחב מספיק */
+@media (min-width: 34rem) {
+  .lede.dropcap::first-letter {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 3.1em;
+    line-height: .84;
+    float: inline-start;
+    margin-inline-end: .1em;
+    margin-block-start: .06em;
+    color: var(--accent);
+  }
+}
+
+/* ---------- פס התקדמות קריאה ---------- */
+
+.readbar {
+  position: fixed; inset-block-start: 0; inset-inline: 0;
+  height: 3px; z-index: 60;
+  background: transparent; pointer-events: none;
+}
+.readbar i {
+  display: block; height: 100%; width: 0;
+  background: linear-gradient(to left, var(--accent-fill), var(--olive));
+  transition: width .08s linear;
+}
+@media (prefers-reduced-motion: reduce) { .readbar i { transition: none; } }
+
+/* ---------- החלפת מצב תצוגה ---------- */
+
+.themebtn { font-size: 0; }
+.themebtn .sun, .themebtn .moon { display: none; }
+:root[data-theme="dark"] .themebtn .sun { display: block; }
+:root[data-theme="light"] .themebtn .moon { display: block; }
+:root:not([data-theme]) .themebtn .moon { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .themebtn .moon { display: none; }
+  :root:not([data-theme]) .themebtn .sun { display: block; }
+}
+
+/* ---------- חשיפה בגלילה ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .js-on .onview {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity .5s var(--ease), transform .5s var(--ease);
+  }
+  .js-on .onview.seen { opacity: 1; transform: none; }
+}
+
+/* ---------- ליטוש כרטיסים ---------- */
+
+.entry:hover, .situations button:hover { transform: translateY(-3px); }
+.entry:active, .situations button:active { transform: translateY(-1px); }
+.type:hover, .signal:hover, .angle:hover { border-color: var(--accent-fill); }

@@ -4,20 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>מה קרה לכלב שלי — מסע של שאלות ותשובות</title>
-<meta name="description" content="תארו מה קרה, ענו על כמה שאלות קצרות, וקבלו הסבר שמתאים למצב הספציפי שלכם ולגיל הכלב.">
+
+<meta name="description" content="תארו מה קרה, ענו על כמה שאלות קצרות, וקבלו הסבר שמתאים למצב שלכם ולגיל הכלב.">
+<link rel="canonical" href="https://ganatad33-crypto.github.io/Ganga/guide.html">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="כלבלב">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="מה קרה לכלב שלי — מסלול שאלות ותשובות">
+<meta property="og:description" content="תארו מה קרה, ענו על כמה שאלות קצרות, וקבלו הסבר שמתאים למצב שלכם ולגיל הכלב.">
+<meta property="og:url" content="https://ganatad33-crypto.github.io/Ganga/guide.html">
+<meta property="og:image" content="https://ganatad33-crypto.github.io/Ganga/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="כלבלב — להבין את הכלב שלך, צעד אחר צעד">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<a class="skip" href="#main">דילוג לתוכן</a>
 
-<header class="topbar">
-  <div class="wrap"><a class="brand" href="index.html">ללמוד כלב</a><span class="brand-note">שם זמני</span></div>
-</header>
+<header class="topbar" data-nav></header>
 <div class="profilebar" data-profile-bar></div>
 
-<main class="wrap">
+<main class="wrap" id="main">
+
+<nav data-crumbs></nav>
 
 <h1>מה קרה?</h1>
 
@@ -26,11 +43,11 @@
 <div id="picker">
   <p><strong>בחרו מה קרה:</strong></p>
   <ul class="situations">
-    <li><button type="button" data-tree="growl"><b>ביקשתי מהכלב לרדת מהספה והוא נהם עליי</b><small>נהמה, חשיפת שיניים, או מתח כשמתקרבים אליו</small></button></li>
-    <li><button type="button" data-tree="leash"><b>הכלב מושך ברצועה</b><small>הליכה, ציוד, ותגובתיות לכלבים או לאופניים</small></button></li>
-    <li><button type="button" data-tree="alone"><b>הרס או נביחה כשאני לא בבית</b><small>איך מבדילים בין שעמום למצוקה אמיתית — וזה משנה הכל</small></button></li>
-    <li><button type="button" data-tree="vomit"><b>הכלב הקיא</b><small>מיון ראשוני — מה מסתכלים עליו בבית ומתי מרימים טלפון לווטרינר</small></button></li>
-    <li><button type="button" data-tree="diarrhea"><b>לכלב יש שלשול</b><small>מיון ראשוני, כולל מה שמצריך פנייה מיידית</small></button></li>
+    <li><button type="button" data-tree="growl" data-icon="dog"><span><b>ביקשתי מהכלב לרדת מהספה והוא נהם עליי</b><small>נהמה, חשיפת שיניים, או מתח כשמתקרבים אליו</small></span></button></li>
+    <li><button type="button" data-tree="leash" data-icon="leash"><span><b>הכלב מושך ברצועה</b><small>הליכה, ציוד, ותגובתיות לכלבים או לאופניים</small></span></button></li>
+    <li><button type="button" data-tree="alone" data-icon="house"><span><b>הרס או נביחה כשאני לא בבית</b><small>איך מבדילים בין שעמום למצוקה אמיתית — וזה משנה הכל</small></span></button></li>
+    <li><button type="button" data-tree="vomit" data-icon="cross"><span><b>הכלב הקיא</b><small>מיון ראשוני — מה מסתכלים עליו בבית ומתי מרימים טלפון לווטרינר</small></span></button></li>
+    <li><button type="button" data-tree="diarrhea" data-icon="cross"><span><b>לכלב יש שלשול</b><small>מיון ראשוני, כולל מה שמצריך פנייה מיידית</small></span></button></li>
   </ul>
   <p class="j-help">בקרוב: נביחה על עוברים ושבים · פחד מרעשים · לא בא כשקוראים לו · צליעה · גירוד מוגזם</p>
 </div>
@@ -50,8 +67,11 @@
 
 <p class="sitefoot">כל התוכן באתר הוא מידע כללי בגדר המלצה בלבד. הוא אינו מהווה ייעוץ וטרינרי, אבחון רפואי או תוכנית אילוף פרטנית, ואינו מחליף בדיקה של וטרינר מורשה או ליווי של מאלף מוסמך שרואה את הכלב. במצב חירום רפואי — פנו מיד לווטרינר או לחדר מיון וטרינרי.</p>
 
+<div data-pager></div>
+
 </main>
 
+<script src="assets/nav.js" defer></script>
 <script src="assets/profile.js" defer></script>
 <script src="assets/trees.js" defer></script>
 <script src="assets/journey.js" defer></script>
@@ -67,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
     picker.hidden = true;
     box.hidden = false;
     note.hidden = !TREES[key].medical;
-    document.title = TREES[key].title + ' — ללמוד כלב';
+    document.title = TREES[key].title + ' — כלבלב';
     Journey.render(box, key);
   });
 });

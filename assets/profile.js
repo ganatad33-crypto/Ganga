@@ -106,3 +106,109 @@ var Dog = (function () {
   return { load: load, save: save, clear: clear, band: band, bands: BANDS,
            apply: apply, ageText: ageText, breedText: breedText, esc: esc };
 })();
+
+/* ===========================================================
+   "מה רלוונטי לך" — פאנל מותאם אישית לפי גיל וגזע.
+   כללי, לא אבחון: מסביר נטיות ומפנה לעמודים הרלוונטיים.
+   =========================================================== */
+
+Dog.forYou = function () {
+  var p = Dog.load();
+  if (!p || (p.months == null && !p.breedKey)) return '';
+  var b = p.months != null ? Dog.band(p.months) : null;
+  var e = Dog.esc;
+  var name = p.name ? e(p.name) : 'הכלב שלך';
+  var br  = (typeof BREEDS !== 'undefined' && p.breedKey)  ? BREEDS[p.breedKey]  : null;
+  var br2 = (typeof BREEDS !== 'undefined' && p.breedKey2) ? BREEDS[p.breedKey2] : null;
+
+  var STAGE = {
+    puppy: {
+      head: 'אתם בשלב הבנייה',
+      body: 'עד גיל חצי שנה כמעט הכל עוד פתוח. מה שנבנה עכשיו — איך ' + name + ' מרגיש עם מגע, עם זרים, עם להיות לבד — נשאר איתו הרבה מעבר לגיל הזה. זה גם השלב שבו הכי משתלם ללמוד לקרוא אותו, כי הוא כבר משדר הכל, רק בשקט.',
+      links: ['signals', 'household']
+    },
+    adolescent: {
+      head: 'אתם בשלב שהכי מפתיע בעלים',
+      body: 'בין 6 ל-18 חודשים המוח בונה את מערכת השליטה בדחפים, בזמן שהתגובה הרגשית כבר עובדת במלוא העוצמה. לכן דברים ש' + name + ' כבר ידע נשברים זמנית — הריקול נחלש, הרצועה מחמירה, מופיעה נביחה שלא הייתה. זו לא רגרסיה באילוף ולא ניסיון לבדוק אתכם. מה שעובד עכשיו זה עקביות והורדת חשיפה, לא הקשחה.',
+      links: ['signals', 'barking', 'guide']
+    },
+    adult: {
+      head: 'אתם בשלב היציב',
+      body: 'בגיל הזה מה שרואים הוא בדרך כלל מה שנבנה קודם — וזה עובד לשני הכיוונים. הרגלים ותיקים מתוקנים לאט יותר מאשר אצל גור, אבל הם מתוקנים. אם משהו השתנה לאחרונה אצל ' + name + ' בלי סיבה ברורה, שווה לחשוב מה השתנה בבית לפני כמה שבועות.',
+      links: ['guide', 'household']
+    },
+    senior: {
+      head: 'בגיל הזה, קודם רפואה ואז התנהגות',
+      body: 'כמעט כל שינוי התנהגותי חדש אצל ' + name + ' בשלב הזה מצדיק בדיקה וטרינרית לפני כל תרגיל. כאב, ירידה בשמיעה או בראייה ושינויים קוגניטיביים מתבטאים בדיוק כמו "החמרה באופי" — נהמה כשמתקרבים, נביחה בלילה, בלבול, פחות סבלנות.',
+      links: ['guide', 'signals']
+    }
+  };
+
+  var LINKS = {
+    signals:  { href: 'signals.html',   icon: 'eye',   t: 'לקרוא כלב', s: 'הסימנים המוקדמים — הבסיס לכל השאר' },
+    barking:  { href: 'barking.html',   icon: 'sound', t: 'נביחה',      s: 'שישה סוגים, ולכל אחד פתרון אחר' },
+    guide:    { href: 'guide.html',     icon: 'chat',  t: 'מה קרה?',    s: 'מסלול שאלות שמוביל לתשובה מותאמת' },
+    household:{ href: 'household.html', icon: 'users', t: 'בני הבית',   s: 'מה שקורה בבית ומגיע אל הכלב' }
+  };
+
+  var h = '<div class="foryou"><p class="fy-kicker" data-icon="bolt">מה רלוונטי ל' +
+          (p.name ? e(p.name) : 'כלב שלך') + '</p>';
+
+  var picks = [];
+  if (b) {
+    var st = STAGE[b.id];
+    h += '<h3>' + st.head + '</h3><p>' + st.body + '</p>';
+    picks = st.links.slice();
+  }
+
+  /* נטיות גזע — נאמר בזהירות, כנטייה ולא כתחזית */
+  var notes = [];
+  [br, br2].forEach(function (x) {
+    if (!x) return;
+    if (x.voice === 'high') notes.push('<strong>' + e(x.he) + '</strong> נוטה להשתמש בקול. נביחה מרובה אצלו היא לרוב חלק מהגזע ולא סימן לבעיה — אפשר להוריד את הכמות משמעותית, אבל לא לאפס.');
+    if (x.energy === 'high') notes.push('<strong>' + e(x.he) + '</strong> גודל לעבודה לאורך שעות. בלי תעסוקה מנטלית קבועה, חלק ניכר ממה שנראה כמו בעיית התנהגות הוא בעצם אנרגיה שלא מצאה לאן ללכת.');
+  });
+  if (br && br.cross) {
+    notes.push('<strong>מוצא:</strong> ' + br.cross);
+  }
+  if (br2) {
+    notes.push('<strong>ולגבי הערבוב:</strong> תערובת של שני גזעים אינה ממוצע שלהם. תכונות עוברות בירושה בנפרד, ולכן אפשר לקבל את האנרגיה של האחד יחד עם הסף הרגשי של השני.');
+    if (picks.indexOf('signals') === -1) picks.push('signals');
+  }
+  if (notes.length) {
+    h += '<h4>מה שווה לדעת על הגזע</h4><ul>';
+    notes.forEach(function (n) { h += '<li>' + n + '</li>'; });
+    h += '</ul>';
+  }
+
+  if (picks.length) {
+    h += '<ul class="fy-list">';
+    picks.forEach(function (k) {
+      var l = LINKS[k];
+      h += '<li><a href="' + l.href + '" data-icon="' + l.icon + '"><span><b>' + l.t + '</b><small>' + l.s + '</small></span></a></li>';
+    });
+    h += '</ul>';
+  }
+
+  h += '<p class="hint" style="margin-top:1rem">המידע כאן מבוסס על שלב החיים ועל נטיות גידוליות כלליות. הוא לא ראה את ' +
+       name + ' ואינו אבחון — ההבדלים בין פרטים בתוך אותו גזע גדולים לרוב מההבדלים בין הגזעים.</p></div>';
+  return h;
+};
+
+Dog.renderForYou = function () {
+  var html = Dog.forYou();
+  document.querySelectorAll('[data-foryou]').forEach(function (el) {
+    el.innerHTML = html;
+    el.hidden = !html;
+    if (html && typeof ICONS !== 'undefined') {
+      el.querySelectorAll('[data-icon]').forEach(function (n) {
+        if (!n.querySelector('svg') && ICONS[n.getAttribute('data-icon')]) {
+          n.insertAdjacentHTML('afterbegin', ICONS[n.getAttribute('data-icon')]);
+        }
+      });
+    }
+  });
+};
+
+document.addEventListener('DOMContentLoaded', Dog.renderForYou);
+document.addEventListener('dog:profile', Dog.renderForYou);

@@ -687,3 +687,85 @@ h1 { font-weight: 500; letter-spacing: -.025em; }
 .entry, .situations button, .pager a, .type, .angle, .signal {
   transition: transform .22s var(--ease), border-color .22s var(--ease), box-shadow .22s var(--ease);
 }
+
+/* ===========================================================
+   תיאורי מקרה — הקשת: פנייה → תצפית → הבנה → התערבות →
+   מפנה → המשך → דגלים
+   =========================================================== */
+
+.case {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-l);
+  padding: 1.4rem 1.4rem 1.2rem;
+  margin: 2rem 0 2.5rem;
+  box-shadow: var(--shadow-m);
+}
+.case > h3:first-child { margin-top: 0; }
+.case-meta {
+  font-size: .78rem; font-weight: 700; letter-spacing: .05em;
+  color: var(--accent); margin: 0 0 .4rem;
+  display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+}
+.case-meta svg { width: 14px; height: 14px; }
+.case-meta span { color: var(--muted); font-weight: 400; letter-spacing: 0; }
+
+.case-call {
+  font-family: var(--font-display);
+  font-size: 1.12rem; line-height: 1.6;
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  margin: 1rem 0 1.6rem;
+}
+.case-call p { margin: 0 0 .6rem; }
+.case-call p:last-child { margin-bottom: 0; }
+.case-call cite {
+  display: block; font-family: var(--font-body); font-style: normal;
+  font-size: .85rem; color: var(--muted); margin-top: .7rem;
+}
+
+.stages-list { list-style: none; padding: 0; margin: 0; }
+.case-stage {
+  position: relative;
+  padding-inline-start: 2.6rem;
+  padding-bottom: 1.4rem;
+  border-inline-start: 2px solid var(--border);
+  margin-inline-start: 13px;
+}
+.case-stage:last-child { border-inline-start-color: transparent; padding-bottom: .2rem; }
+.case-stage::before {
+  content: attr(data-n);
+  position: absolute;
+  inset-inline-start: -14px; top: 0;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--border);
+  color: var(--muted); font-size: .78rem; font-weight: 700;
+  display: grid; place-items: center;
+}
+.case-stage.turn::before { background: var(--accent-fill); border-color: var(--accent-fill); color: #fff; }
+.case-stage h4 {
+  margin: 0 0 .3rem; font-family: var(--font-display);
+  font-size: 1.06rem; line-height: 1.35;
+}
+.case-stage .lbl {
+  display: block; font-size: .72rem; font-weight: 700;
+  letter-spacing: .06em; color: var(--muted); margin-bottom: .1rem;
+}
+.case-stage p { margin: 0 0 .7rem; }
+.case-stage p:last-child { margin-bottom: 0; }
+.case-stage ul { margin: 0 0 .7rem; padding-inline-start: 1.15rem; }
+
+.case-stage.turn h4 { color: var(--accent); }
+.case-note {
+  border-top: 1px solid var(--border);
+  margin-top: 1.2rem; padding-top: .9rem;
+  font-size: .88rem; color: var(--muted);
+}
+.disclaimer-band {
+  border: 1px dashed var(--warn-border);
+  background: var(--warn-bg); color: var(--warn-text);
+  border-radius: var(--radius); padding: 1rem 1.2rem;
+  font-size: .93rem; margin: 1.5rem 0 2rem;
+}
+.disclaimer-band p:last-child { margin-bottom: 0; }

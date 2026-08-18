@@ -481,3 +481,56 @@ li { margin-bottom: .5rem; }
   font-size: .84rem;
   color: var(--muted);
 }
+
+/* ===========================================================
+   סימני שפת גוף
+   =========================================================== */
+
+.signal {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.05rem 1.2rem;
+  margin: .85rem 0;
+}
+.signal h3 { margin: 0 0 .35rem; }
+.signal p { margin: 0 0 .55rem; }
+.signal p:last-child { margin-bottom: 0; }
+.signal .means {
+  font-size: .95rem;
+  border-inline-start: 3px solid var(--accent);
+  padding-inline-start: .75rem;
+  color: var(--muted);
+}
+.signal .means b { color: var(--text); }
+
+.diagram {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .9rem;
+  margin: 1.2rem 0;
+}
+.diagram figure {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .8rem;
+  background: var(--surface);
+  text-align: center;
+}
+.diagram svg { width: 100%; height: auto; max-width: 190px; color: var(--text); }
+.diagram figcaption { font-size: .88rem; color: var(--muted); margin-top: .5rem; line-height: 1.5; }
+.diagram figcaption b { display: block; color: var(--text); font-size: .95rem; }
+
+.ladder { counter-reset: rung; list-style: none; padding: 0; margin: 1.3rem 0; }
+.ladder li {
+  border-inline-start: 3px solid var(--border);
+  padding: .1rem 0 .9rem 0;
+  padding-inline-start: 1rem;
+  margin: 0;
+  position: relative;
+}
+.ladder li b { display: block; }
+.ladder li small { color: var(--muted); }
+.ladder li.rung-late { border-inline-start-color: var(--warn-border); }
+.ladder li.rung-bite { border-inline-start-color: #c0392b; }

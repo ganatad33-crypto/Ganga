@@ -24,18 +24,24 @@ var ICONS = {
   cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg>'
 };
 
-/* סדר העמודים — קובע גם את התפריט וגם את "הקודם/הבא" */
+/* סדר העמודים — קובע את התפריט, פירורי הלחם, "הקודם/הבא" ומפת האתר.
+   inNav:false = לא בסרגל העליון, אבל כן במפה בתחתית ובניווט בין עמודים. */
 var PAGES = [
-  { file: 'index.html',     nav: 'בית',         title: 'כלבלב',              icon: 'home'  },
-  { file: 'signals.html',   nav: 'לקרוא כלב',   title: 'לקרוא כלב',          icon: 'eye'   },
-  { file: 'household.html', nav: 'בני הבית',    title: 'מה בני הבית עושים לכלב', icon: 'users' },
-  { file: 'puppy.html',     nav: 'גור חדש',     title: 'גור חדש בבית',       icon: 'paw'   },
-  { file: 'barking.html',   nav: 'נביחה',       title: 'הכלב שלי נובח',      icon: 'sound' },
-  { file: 'aggression.html',nav: 'תוקפנות',     title: 'הכלב שלי תוקפני',    icon: 'alert' },
-  { file: 'separation.html',nav: 'חרדת נטישה',  title: 'חרדת נטישה',         icon: 'house' },
-  { file: 'cases.html',     nav: 'מקרים',       title: 'שלושה מקרים',        icon: 'bolt'  },
-  { file: 'guide.html',     nav: 'מה קרה?',     title: 'מה קרה לכלב שלי',    icon: 'chat'  },
-  { file: 'profile.html',   nav: 'הכלב שלי',    title: 'פרטי הכלב שלי',      icon: 'dog'   }
+  { file: 'index.html',      nav: 'בית',        title: 'כלבלב',                  icon: 'home',  group: 'התחלה' },
+  { file: 'signals.html',    nav: 'לקרוא כלב',  title: 'לקרוא כלב',              icon: 'eye',   group: 'המסלול' },
+  { file: 'learning.html',   nav: 'להבין',      title: 'איך כלב לומד',           icon: 'bolt',  group: 'המסלול' },
+  { file: 'household.html',  nav: 'בני הבית',   title: 'מה בני הבית עושים לכלב', icon: 'users', group: 'המסלול', inNav: false },
+  { file: 'routine.html',    nav: 'לחיות',      title: 'לחיות עם כלב',           icon: 'house', group: 'המסלול' },
+  { file: 'barking.html',    nav: 'נביחה',      title: 'הכלב שלי נובח',          icon: 'sound', group: 'בעיות', inNav: false },
+  { file: 'aggression.html', nav: 'תוקפנות',    title: 'הכלב שלי תוקפני',        icon: 'alert', group: 'בעיות', inNav: false },
+  { file: 'separation.html', nav: 'חרדת נטישה', title: 'חרדת נטישה',             icon: 'house', group: 'בעיות', inNav: false },
+  { file: 'puppy.html',      nav: 'גור חדש',    title: 'גור חדש בבית',           icon: 'paw',   group: 'בעיות', inNav: false },
+  { file: 'world.html',      nav: 'בעולם',      title: 'לנוע בעולם',             icon: 'users', group: 'המסלול' },
+  { file: 'lifespan.html',   nav: 'לאורך החיים',title: 'לאורך החיים',            icon: 'dog',   group: 'המסלול', inNav: false },
+  { file: 'cases.html',      nav: 'מקרים',      title: 'שלושה מקרים',            icon: 'bolt',  group: 'כלים' },
+  { file: 'qa.html',         nav: 'שאלות',      title: 'שאלות ותשובות',          icon: 'chat',  group: 'כלים' },
+  { file: 'guide.html',      nav: 'מה קרה?',    title: 'מה קרה לכלב שלי',        icon: 'chat',  group: 'כלים' },
+  { file: 'profile.html',    nav: 'הכלב שלי',   title: 'פרטי הכלב שלי',          icon: 'dog',   group: 'כלים' }
 ];
 
 (function () {
@@ -46,7 +52,7 @@ var PAGES = [
 
   function buildTop(el) {
     var cur = here();
-    var links = PAGES.map(function (p) {
+    var links = PAGES.filter(function (p) { return p.inNav !== false; }).map(function (p) {
       return '<a href="' + p.file + '"' + (p.file === cur ? ' aria-current="page"' : '') + '>' + p.nav + '</a>';
     }).join('');
 
@@ -88,12 +94,35 @@ var PAGES = [
     el.innerHTML = h;
   }
 
+  function buildMap(el) {
+    var cur = here(), groups = {}, order = [];
+    PAGES.forEach(function (p) {
+      if (p.file === 'index.html') return;
+      if (!groups[p.group]) { groups[p.group] = []; order.push(p.group); }
+      groups[p.group].push(p);
+    });
+    var h = '<div class="wrap"><p class="map-title">כל העמודים</p><div class="map-cols">';
+    order.forEach(function (g) {
+      h += '<div><h3>' + g + '</h3><ul>';
+      groups[g].forEach(function (p) {
+        h += '<li>' + (p.file === cur
+          ? '<span aria-current="page">' + p.nav + '</span>'
+          : '<a href="' + p.file + '">' + p.nav + '</a>') + '</li>';
+      });
+      h += '</ul></div>';
+    });
+    h += '</div><p class="map-note">כלבלב · מדריך עברי לבעלי כלבים · האתר בבנייה</p></div>';
+    el.className = 'sitemap';
+    el.innerHTML = h;
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     /* מסמן שה-JS חי — רק אז אנימציות ההופעה מופעלות */
     document.documentElement.classList.add('js-on');
     document.querySelectorAll('[data-nav]').forEach(buildTop);
     document.querySelectorAll('[data-crumbs]').forEach(buildCrumbs);
     document.querySelectorAll('[data-pager]').forEach(buildPager);
+    document.querySelectorAll('[data-map]').forEach(buildMap);
 
     /* מילוי אייקונים לפי data-icon */
     document.querySelectorAll('[data-icon]').forEach(function (el) {

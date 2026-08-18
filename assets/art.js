@@ -301,6 +301,108 @@ ART.spotCase = '' +
   '</g>' +
 '</svg>';
 
+
+/* ---------- כותרת עמוד: איך כלב לומד ---------- */
+ART.spotBrain = '' +
+'<svg viewBox="0 0 320 130" role="img" aria-label="איור: התנהגות, תוצאה, וחזרה — מעגל הלמידה">' +
+  '<ellipse cx="160" cy="120" rx="118" ry="9" fill="#B5613F" opacity=".13"/>' +
+  '<g fill="none" stroke="#B5613F" stroke-width="4" stroke-linecap="round">' +
+    '<path d="M96 62a64 42 0 01128 0" />' +
+    '<path d="M224 62a64 42 0 01-128 0" stroke="#D8C6A4"/>' +
+    '<path d="M214 50l10 12-13 7"/>' +
+  '</g>' +
+  '<g fill="#F0E0CC" stroke="#9E4A26" stroke-width="4">' +
+    '<rect x="60" y="46" width="60" height="32" rx="11"/>' +
+    '<rect x="200" y="46" width="60" height="32" rx="11"/>' +
+  '</g>' +
+  '<g stroke="#9E4A26" stroke-width="4" stroke-linecap="round" fill="none">' +
+    '<path d="M76 62h28"/>' +
+    '<path d="M218 62l7 7 14-16"/>' +
+  '</g>' +
+  '<g fill="#4E5B2E" opacity=".8">' +
+    '<circle cx="90" cy="26" r="4"/><circle cx="160" cy="18" r="5"/><circle cx="232" cy="26" r="4"/>' +
+  '</g>' +
+'</svg>';
+
+/* ---------- כותרת עמוד: שגרה ---------- */
+ART.spotRoutine = '' +
+'<svg viewBox="0 0 320 130" role="img" aria-label="איור: יום של כלב — טיול, אוכל, תעסוקה ומנוחה">' +
+  '<ellipse cx="160" cy="120" rx="124" ry="9" fill="#B5613F" opacity=".13"/>' +
+  '<path d="M24 92h272" stroke="#E6DCC9" stroke-width="4" stroke-linecap="round"/>' +
+  '<g fill="#B5613F">' +
+    '<circle cx="52" cy="92" r="7"/><circle cx="132" cy="92" r="7"/><circle cx="212" cy="92" r="7"/>' +
+  '</g>' +
+  '<circle cx="284" cy="92" r="9" fill="#4E5B2E"/>' +
+  /* טיול */
+  '<g transform="translate(34,36)" fill="none" stroke="#9E4A26" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">' +
+    '<circle cx="12" cy="8" r="7"/><path d="M12 15v16M4 21h16M12 31l-6 14M12 31l6 14"/>' +
+  '</g>' +
+  /* קערה */
+  '<g transform="translate(114,52)" fill="none" stroke="#9E4A26" stroke-width="3.6" stroke-linejoin="round">' +
+    '<path d="M2 12h36l-5 16H7z"/><path d="M8 12c0-6 5-9 12-9s12 3 12 9"/>' +
+  '</g>' +
+  /* חידה */
+  '<g transform="translate(196,50)" fill="none" stroke="#9E4A26" stroke-width="3.6" stroke-linejoin="round">' +
+    '<rect x="0" y="4" width="34" height="26" rx="6"/><path d="M11 12v10M23 12v10M0 17h34"/>' +
+  '</g>' +
+  /* מנוחה */
+  '<g transform="translate(262,52)" fill="none" stroke="#4E5B2E" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M4 26h36"/><path d="M8 26c0-9 6-14 14-14s14 5 14 14"/><path d="M18 6h10l-10 8h10"/>' +
+  '</g>' +
+'</svg>';
+
+/* ---------- כותרת עמוד: בעולם ---------- */
+ART.spotWorld = '' +
+'<svg viewBox="0 0 320 130" role="img" aria-label="איור: שני כלבים ואדם נפגשים ברחוב, בקשת">' +
+  '<ellipse cx="160" cy="120" rx="126" ry="9" fill="#B5613F" opacity=".13"/>' +
+  /* מסלול הקשת */
+  '<path d="M80 100C104 56 216 56 240 100" fill="none" stroke="#D8C6A4" stroke-width="4" stroke-dasharray="7 8" stroke-linecap="round"/>' +
+  /* כלב שמאל */
+  '<g transform="translate(48,66)" fill="#B5613F">' +
+    '<ellipse cx="22" cy="20" rx="21" ry="12"/>' +
+    '<path d="M6 31v10M17 32v9M29 32v9M39 30v11" stroke="#B5613F" stroke-width="6" stroke-linecap="round"/>' +
+    '<circle cx="4" cy="8" r="11"/><path d="M-4 -1c-4-7-1-11 4-8l4 3z" fill="#9E4A26"/>' +
+    '<path d="M41 12c7-9 12-6 11 2-1 5-6 8-10 6"/>' +
+  '</g>' +
+  /* כלב ימין */
+  '<g transform="translate(226,66)" fill="#C9764B">' +
+    '<ellipse cx="22" cy="20" rx="21" ry="12"/>' +
+    '<path d="M6 31v10M17 32v9M29 32v9M39 30v11" stroke="#C9764B" stroke-width="6" stroke-linecap="round"/>' +
+    '<circle cx="40" cy="8" r="11"/><path d="M48 -1c4-7 1-11-4-8l-4 3z" fill="#9E4A26"/>' +
+    '<path d="M3 12c-7-9-12-6-11 2 1 5 6 8 10 6"/>' +
+  '</g>' +
+  /* אדם באמצע */
+  '<g transform="translate(148,42)" fill="none" stroke="#4E5B2E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">' +
+    '<circle cx="12" cy="9" r="9"/><path d="M12 19v20M3 25h18M12 39l-7 16M12 39l7 16"/>' +
+  '</g>' +
+'</svg>';
+
+/* ---------- כותרת עמוד: כלב מבוגר ---------- */
+ART.spotSenior = '' +
+'<svg viewBox="0 0 320 130" role="img" aria-label="איור: כלב מבוגר שוכב בנחת, ויד מלטפת">' +
+  '<ellipse cx="160" cy="118" rx="112" ry="10" fill="#B5613F" opacity=".13"/>' +
+  /* מזרן */
+  '<rect x="76" y="88" width="168" height="20" rx="10" fill="#E8DCC6"/>' +
+  /* כלב שוכב */
+  '<g transform="translate(96,52)">' +
+    '<ellipse cx="72" cy="42" rx="56" ry="20" fill="#B5613F"/>' +
+    '<circle cx="20" cy="26" r="19" fill="#C06E4A"/>' +
+    '<ellipse cx="4" cy="24" rx="8" ry="14" fill="#9E4A26" transform="rotate(-16 4 24)"/>' +
+    '<ellipse cx="16" cy="38" rx="11" ry="8" fill="#EBD3BC"/>' +
+    '<ellipse cx="12" cy="34" rx="4" ry="3" fill="#8E4526"/>' +
+    '<path d="M16 20h9" stroke="#3E3428" stroke-width="2.6" stroke-linecap="round"/>' +
+    '<path d="M124 36c10-4 15 0 12 6-2 5-8 6-12 4" fill="#B5613F"/>' +
+    /* שיבה */
+    '<g stroke="#F0E0CC" stroke-width="2.2" stroke-linecap="round" opacity=".9">' +
+      '<path d="M10 18l4-3M18 14l3-4M26 15l2-4"/>' +
+    '</g>' +
+  '</g>' +
+  /* יד */
+  '<g transform="translate(96,20)" fill="none" stroke="#4E5B2E" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M8 0v14c0 6 5 10 11 10h10"/><path d="M22 18l7 6-7 6"/>' +
+  '</g>' +
+'</svg>';
+
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('[data-art]').forEach(function (el) {
     var k = el.getAttribute('data-art');

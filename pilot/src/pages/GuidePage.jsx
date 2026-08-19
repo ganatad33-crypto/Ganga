@@ -13,6 +13,10 @@ const SITUATIONS = [
   { key: 'diarrhea',  icon: 'cross', t: 'לכלב יש שלשול', s: 'מיון ראשוני, כולל מה שמצריך פנייה מיידית' },
   { key: 'barkingpasser', icon: 'sound', t: 'הכלב נובח על עוברים ושבים', s: 'מהחלון, בטיול, או כשמישהו נכנס הביתה' },
   { key: 'noisefear', icon: 'alert', t: 'הכלב פוחד מרעשים', s: 'רעמים, זיקוקים, ומתי זה דורש יותר מהרגלה' },
+  { key: 'recall', icon: 'dog', t: 'הכלב לא בא כשקוראים לו', s: 'מה שקורה בפועל כשקוראים לו מסביר את הסיבה' },
+  { key: 'limping', icon: 'cross', t: 'הכלב צולע או מסרב לעלות מדרגות', s: 'מיון ראשוני — מה מצריך בדיקה היום ומה אפשר לעקוב אחריו' },
+  { key: 'scratching', icon: 'cross', t: 'הכלב מגרד יותר מדי', s: 'איפה ומתי הגירוד קורה מצמצם משמעותית את הסיבה' },
+  { key: 'marking', icon: 'house', t: 'כלב מאולף מתחיל לסמן בבית', s: 'לרוב זה לא נסיגה סתמית — יש סיבה ספציפית' },
 ]
 
 export default function GuidePage() {
@@ -38,7 +42,7 @@ export default function GuidePage() {
               </li>
             ))}
           </ul>
-          <p className="j-help">בקרוב: לא בא כשקוראים לו · צליעה · גירוד מוגזם</p>
+          <p className="j-help">בקרוב: עוד מצבים יתווספו כאן</p>
           <p>עמודי עומק בנושאים האלה: <Link to="/aggression">תוקפנות</Link> · <Link to="/separation">חרדת נטישה</Link> · <Link to="/puppy">גור חדש בבית</Link></p>
         </motion.div>
       ) : (

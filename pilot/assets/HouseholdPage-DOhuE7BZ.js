@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-DKOk1D5k.js";var n=`/Ganga/pilot/assets/household-Dfv2LwSk.webp`,r=`<h1>מה בני הבית עושים לכלב</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-D_Rz-RqH.js";var n=`/Ganga/pilot/assets/household-Dfv2LwSk.webp`,r=`<h1>מה בני הבית עושים לכלב</h1>
 
 <p class="lede dropcap">"הכלב מרגיש את מה שאתה מרגיש" זו אמירה שכולם אומרים ואף אחד לא מוכיח. אז בואו נסתכל על מה שבאמת נמדד — ומה שממנו נובע.</p>
 

@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-DKOk1D5k.js";var n=`/Ganga/pilot/assets/routine-CNy3Ac-J.webp`,r=`<h1>לחיות עם כלב</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-D_Rz-RqH.js";var n=`/Ganga/pilot/assets/routine-CNy3Ac-J.webp`,r=`<h1>לחיות עם כלב</h1>
 
 <p class="lede dropcap">רוב מה שמגיע לעמודי הבעיות באתר הזה היה נמנע בשגרה. לא שגרה צבאית — שגרה <em>ניתנת לחיזוי</em>. זה לא אותו דבר, וההבדל הוא כל העניין.</p>
 

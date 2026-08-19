@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./index-BKwqj4O4.js";import{t as n}from"./ContentPage-DKOk1D5k.js";var r=`<h1>לקרוא כלב</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./index-BNwo1Xcq.js";import{t as n}from"./ContentPage-D_Rz-RqH.js";var r=`<h1>לקרוא כלב</h1>
 
 <p class="lede dropcap">כלב לא "מתפרץ פתאום". הוא מזהיר — לרוב הרבה זמן מראש, ובקול נמוך מאוד. השלב הזה הוא הבסיס לכל השאר באתר, כי מי שלומד לראות את הסימנים המוקדמים מטפל בבעיות בזמן שהן עוד לחישה.</p>
 

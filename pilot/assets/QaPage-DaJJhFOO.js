@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-DKOk1D5k.js";var n=`<h1>שאלות ותשובות</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-D_Rz-RqH.js";var n=`<h1>שאלות ותשובות</h1>
 
 <p class="lede dropcap">שישים שאלות שבעלי כלבים באמת מקלידים, עם תשובות קצרות. כל תשובה עומדת בפני עצמה — ומי שרוצה להעמיק, יש קישור.</p>
 

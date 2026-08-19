@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-DKOk1D5k.js";var n=`/Ganga/pilot/assets/barking-pvXdaOns.webp`,r=`<h1>הכלב שלי נובח — למה זה קורה ומה באמת עוזר</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-D_Rz-RqH.js";var n=`/Ganga/pilot/assets/barking-pvXdaOns.webp`,r=`<h1>הכלב שלי נובח — למה זה קורה ומה באמת עוזר</h1>
 
 <p class="lede dropcap">רוב האנשים מחפשים איך <em>לעצור</em> את הנביחה. זו בדרך כלל הסיבה שזה לא עובד. נביחה היא לא בעיה אחת — היא כמה בעיות שונות שנשמעות אותו דבר.</p>
 

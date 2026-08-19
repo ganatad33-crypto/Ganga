@@ -74,5 +74,16 @@
         });
       }
     }
+
+    /* ---------- קפיצה ישירה לשאלה ספציפית (מהחיפוש, או קישור עם #qa12) ---------- */
+    if (location.hash) {
+      var target = document.getElementById(location.hash.slice(1));
+      if (target && target.tagName === 'DETAILS') {
+        target.open = true;
+        var group = target.closest('.qagroup');
+        if (group) group.classList.remove('onview');
+        requestAnimationFrame(function () { target.scrollIntoView({ block: 'center' }); });
+      }
+    }
   });
 })();

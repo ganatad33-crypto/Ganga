@@ -23,7 +23,8 @@ var ICONS = {
   house: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V9.5L12 4l8 5.5V20z"/><path d="M9.5 20v-5.5h5V20"/></svg>',
   cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg>',
   moon:  '<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.2A8.4 8.4 0 019.8 4a8.4 8.4 0 1010.2 10.2z"/></svg>',
-  sun:   '<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/></svg>'
+  sun:   '<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M20 20l-4.5-4.5"/></svg>'
 };
 
 /* סדר העמודים — קובע את התפריט, פירורי הלחם, "הקודם/הבא" ומפת האתר.
@@ -75,6 +76,7 @@ var PAGES = [
           '<div class="navbtns">' +
             '<button class="iconbtn" type="button" data-hist="back" aria-label="חזרה לעמוד הקודם" title="אחורה">' + ICONS.back + '</button>' +
             '<button class="iconbtn" type="button" data-hist="fwd" aria-label="קדימה" title="קדימה">' + ICONS.fwd + '</button>' +
+            '<button class="iconbtn" type="button" data-search-open aria-label="חיפוש באתר" title="חיפוש (Ctrl+K)">' + ICONS.search + '</button>' +
             '<button class="iconbtn themebtn" type="button" aria-label="החלפת תצוגה בהירה או כהה" title="תצוגה בהירה / כהה">' + ICONS.moon + ICONS.sun + '</button>' +
           '</div>' +
         '</div>' +
@@ -150,5 +152,133 @@ var PAGES = [
     if (!b) return;
     if (b.getAttribute('data-hist') === 'back') history.back();
     else history.forward();
+  });
+
+  /* ===========================================================
+     חיפוש באתר — אינדקס נבנה מראש (tools/build_search_index.py),
+     נטען פעם אחת בעצלנות בפתיחה הראשונה. חיפוש תת-מחרוזת פשוט,
+     בלי תלות חיצונית.
+     =========================================================== */
+  var TYPE_META = {
+    qa:    { icon: 'chat',  label: 'שאלה' },
+    tree:  { icon: 'bolt',  label: 'מסלול שאלות' },
+    page:  { icon: 'eye',   label: 'עמוד' },
+    breed: { icon: 'dog',   label: 'גזע' }
+  };
+
+  var searchIndex = null, searchPromise = null, modal, input, resultsEl, activeIdx = -1, curResults = [];
+
+  function ensureModal() {
+    if (modal) return modal;
+    modal = document.createElement('div');
+    modal.className = 'searchmodal';
+    modal.hidden = true;
+    modal.innerHTML =
+      '<div class="searchbackdrop" data-search-close></div>' +
+      '<div class="searchbox" role="dialog" aria-modal="true" aria-label="חיפוש באתר">' +
+        '<div class="searchhead">' +
+          ICONS.search +
+          '<input type="text" class="searchinput" placeholder="חפשו שאלה, נושא, גזע…" autocomplete="off" aria-label="חיפוש">' +
+          '<button type="button" class="iconbtn" data-search-close aria-label="סגירת חיפוש">' + ICONS.cross + '</button>' +
+        '</div>' +
+        '<div class="searchresults"></div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    input = modal.querySelector('.searchinput');
+    resultsEl = modal.querySelector('.searchresults');
+    input.addEventListener('input', function () { renderResults(input.value); });
+    return modal;
+  }
+
+  function loadIndex() {
+    if (searchPromise) return searchPromise;
+    searchPromise = fetch(ROOT + 'assets/search-index.json')
+      .then(function (r) { return r.json(); })
+      .then(function (data) { searchIndex = data; return data; })
+      .catch(function () { searchIndex = []; return []; });
+    return searchPromise;
+  }
+
+  function openSearch() {
+    ensureModal();
+    modal.hidden = false;
+    document.documentElement.classList.add('search-open');
+    input.value = '';
+    resultsEl.innerHTML = '';
+    activeIdx = -1;
+    loadIndex().then(function () { input.focus(); });
+  }
+
+  function closeSearch() {
+    if (!modal || modal.hidden) return;
+    modal.hidden = true;
+    document.documentElement.classList.remove('search-open');
+  }
+
+  function renderResults(query) {
+    query = query.trim();
+    if (!searchIndex || !query) { resultsEl.innerHTML = ''; curResults = []; activeIdx = -1; return; }
+    var q = query.toLowerCase();
+    curResults = searchIndex.filter(function (it) {
+      return it.title.toLowerCase().indexOf(q) !== -1 ||
+             (it.snippet && it.snippet.toLowerCase().indexOf(q) !== -1) ||
+             (it.group && it.group.toLowerCase().indexOf(q) !== -1);
+    }).sort(function (a, b) {
+      var ai = a.title.toLowerCase().indexOf(q), bi = b.title.toLowerCase().indexOf(q);
+      if (ai === -1) ai = 999; if (bi === -1) bi = 999;
+      return ai - bi;
+    }).slice(0, 30);
+
+    activeIdx = curResults.length ? 0 : -1;
+
+    if (!curResults.length) {
+      resultsEl.innerHTML = '<p class="search-empty">לא נמצאו תוצאות ל"' + Dog.esc(query) + '".</p>';
+      return;
+    }
+
+    resultsEl.innerHTML = curResults.map(function (it, i) {
+      var meta = TYPE_META[it.type] || TYPE_META.page;
+      return '<a class="search-result' + (i === 0 ? ' active' : '') + '" href="' + ROOT + it.url + '" data-idx="' + i + '">' +
+        '<span class="search-result-icon">' + ICONS[meta.icon] + '</span>' +
+        '<span class="search-result-text">' +
+          '<b>' + Dog.esc(it.title) + '</b>' +
+          '<small>' + Dog.esc(meta.label) + (it.group && it.type !== 'page' ? ' · ' + Dog.esc(it.group) : '') + '</small>' +
+          (it.snippet ? '<span class="search-snippet">' + Dog.esc(it.snippet) + '</span>' : '') +
+        '</span>' +
+      '</a>';
+    }).join('');
+  }
+
+  function moveActive(delta) {
+    if (!curResults.length) return;
+    var items = resultsEl.querySelectorAll('.search-result');
+    activeIdx = (activeIdx + delta + items.length) % items.length;
+    items.forEach(function (el, i) { el.classList.toggle('active', i === activeIdx); });
+    items[activeIdx].scrollIntoView({ block: 'nearest' });
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('[data-search-open]')) { openSearch(); return; }
+    if (t.closest('[data-search-close]')) { closeSearch(); return; }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    var isOpen = modal && !modal.hidden;
+    var tag = document.activeElement && document.activeElement.tagName;
+    var typing = tag === 'INPUT' || tag === 'TEXTAREA' || (document.activeElement && document.activeElement.isContentEditable);
+
+    if ((e.key === 'k' && (e.ctrlKey || e.metaKey)) || (e.key === '/' && !typing && !isOpen)) {
+      e.preventDefault(); openSearch(); return;
+    }
+    if (!isOpen) return;
+    if (e.key === 'Escape') { closeSearch(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(1); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); return; }
+    if (e.key === 'Enter' && activeIdx > -1) {
+      var el = resultsEl.querySelectorAll('.search-result')[activeIdx];
+      if (el) { e.preventDefault(); location.href = el.getAttribute('href'); }
+    }
   });
 })();

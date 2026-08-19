@@ -634,6 +634,30 @@ strong { font-weight: 700; }
 .entry b { font-family: var(--font-display); font-size:1.2rem; display: block; margin-bottom:.25rem; }
 .entry small { color: var(--muted); font-size:.95rem; line-height: 1.6; display: block; }
 
+/* כרטיס כניסה עם תמונה — לקבוצת "מאיפה מתחילים" בעמוד הבית */
+.entrys-photo { display: grid; gap:1rem; margin:1.5rem 0; grid-template-columns: 1fr 1fr; }
+@media (max-width: 30rem) { .entrys-photo { grid-template-columns: 1fr; } }
+.entry-photo { padding:0; }
+.entry-photo::before { display: none; }
+.entry-photo img {
+  display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+  border-radius: var(--radius-l) var(--radius-l) 0 0;
+}
+.entry-photo .entry-body { padding:1rem 1.1rem 1.1rem; }
+.entry-photo .entry-step {
+  display: inline-block; font-size:.75rem; font-weight: 700; color: var(--accent);
+  letter-spacing: .04em; margin-bottom:.3rem;
+}
+
+/* רשת קומפקטית — "כלים ופתרונות מהירים" */
+.entrys-compact { display: grid; gap:.6rem; margin:1.5rem 0; grid-template-columns: 1fr 1fr; }
+@media (min-width: 34rem) { .entrys-compact { grid-template-columns: repeat(4,1fr); } }
+.entrys-compact .entry { padding:.9rem .9rem; }
+.entrys-compact .entry-icon { width: 34px; height: 34px; margin-bottom:.5rem; }
+.entrys-compact .entry-icon svg { width: 18px; height: 18px; }
+.entrys-compact .entry b { font-size:1.02rem; }
+.entrys-compact .entry small { font-size:.85rem; }
+
 /* ---------- פס נתונים ---------- */
 
 .facts { display: grid; grid-template-columns: repeat(3,1fr); gap:.6rem; margin:2rem 0; }

@@ -99,7 +99,7 @@ var Dog = (function () {
     if (t.closest('[data-profile-open]')) {
       var form = document.getElementById('profile-form');
       if (form) { form.hidden = false; form.scrollIntoView({ block: 'center' }); }
-      else { location.href = 'profile.html'; }
+      else { location.href = (window.SITE_ROOT || '') + 'profile/'; }
     }
   });
 
@@ -145,10 +145,10 @@ Dog.forYou = function () {
   };
 
   var LINKS = {
-    signals:  { href: 'signals.html',   icon: 'eye',   t: 'לקרוא כלב', s: 'הסימנים המוקדמים — הבסיס לכל השאר' },
-    barking:  { href: 'barking.html',   icon: 'sound', t: 'נביחה',      s: 'שישה סוגים, ולכל אחד פתרון אחר' },
-    guide:    { href: 'guide.html',     icon: 'chat',  t: 'מה קרה?',    s: 'מסלול שאלות שמוביל לתשובה מותאמת' },
-    household:{ href: 'household.html', icon: 'users', t: 'בני הבית',   s: 'מה שקורה בבית ומגיע אל הכלב' }
+    signals:  { slug: 'signals',   icon: 'eye',   t: 'לקרוא כלב', s: 'הסימנים המוקדמים — הבסיס לכל השאר' },
+    barking:  { slug: 'barking',   icon: 'sound', t: 'נביחה',      s: 'שישה סוגים, ולכל אחד פתרון אחר' },
+    guide:    { slug: 'guide',     icon: 'chat',  t: 'מה קרה?',    s: 'מסלול שאלות שמוביל לתשובה מותאמת' },
+    household:{ slug: 'household', icon: 'users', t: 'בני הבית',   s: 'מה שקורה בבית ומגיע אל הכלב' }
   };
 
   var h = '<div class="foryou"><p class="fy-kicker" data-icon="bolt">מה רלוונטי ל' +
@@ -185,7 +185,7 @@ Dog.forYou = function () {
     h += '<ul class="fy-list">';
     picks.forEach(function (k) {
       var l = LINKS[k];
-      h += '<li><a href="' + l.href + '" data-icon="' + l.icon + '"><span><b>' + l.t + '</b><small>' + l.s + '</small></span></a></li>';
+      h += '<li><a href="' + (window.SITE_ROOT || '') + l.slug + '/" data-icon="' + l.icon + '"><span><b>' + l.t + '</b><small>' + l.s + '</small></span></a></li>';
     });
     h += '</ul>';
   }

@@ -27,41 +27,50 @@ var ICONS = {
 };
 
 /* סדר העמודים — קובע את התפריט, פירורי הלחם, "הקודם/הבא" ומפת האתר.
-   inNav:false = לא בסרגל העליון, אבל כן במפה בתחתית ובניווט בין עמודים. */
+   inNav:false = לא בסרגל העליון, אבל כן במפה בתחתית ובניווט בין עמודים.
+   slug: '' = הבית (בשורש). כל שאר הדפים חיים בתיקייה משלהם (slug/index.html)
+   כדי לקבל כתובות נקיות בלי סיומת .html. */
 var PAGES = [
-  { file: 'index.html',      nav: 'בית',        title: 'כלבלב',                  icon: 'home',  group: 'התחלה' },
-  { file: 'signals.html',    nav: 'לקרוא כלב',  title: 'לקרוא כלב',              icon: 'eye',   group: 'המסלול' },
-  { file: 'learning.html',   nav: 'להבין',      title: 'איך כלב לומד',           icon: 'bolt',  group: 'המסלול' },
-  { file: 'household.html',  nav: 'בני הבית',   title: 'מה בני הבית עושים לכלב', icon: 'users', group: 'המסלול', inNav: false },
-  { file: 'routine.html',    nav: 'לחיות',      title: 'לחיות עם כלב',           icon: 'house', group: 'המסלול' },
-  { file: 'barking.html',    nav: 'נביחה',      title: 'הכלב שלי נובח',          icon: 'sound', group: 'בעיות', inNav: false },
-  { file: 'aggression.html', nav: 'תוקפנות',    title: 'הכלב שלי תוקפני',        icon: 'alert', group: 'בעיות', inNav: false },
-  { file: 'separation.html', nav: 'חרדת נטישה', title: 'חרדת נטישה',             icon: 'house', group: 'בעיות', inNav: false },
-  { file: 'puppy.html',      nav: 'גור חדש',    title: 'גור חדש בבית',           icon: 'paw',   group: 'בעיות', inNav: false },
-  { file: 'world.html',      nav: 'בעולם',      title: 'לנוע בעולם',             icon: 'users', group: 'המסלול' },
-  { file: 'lifespan.html',   nav: 'לאורך החיים',title: 'לאורך החיים',            icon: 'dog',   group: 'המסלול', inNav: false },
-  { file: 'cases.html',      nav: 'מקרים',      title: 'שלושה מקרים',            icon: 'bolt',  group: 'כלים' },
-  { file: 'qa.html',         nav: 'שאלות',      title: 'שאלות ותשובות',          icon: 'chat',  group: 'כלים' },
-  { file: 'guide.html',      nav: 'מה קרה?',    title: 'מה קרה לכלב שלי',        icon: 'chat',  group: 'כלים' },
-  { file: 'profile.html',    nav: 'הכלב שלי',   title: 'פרטי הכלב שלי',          icon: 'dog',   group: 'כלים' }
+  { slug: '',            nav: 'בית',        title: 'כלבלב',                  icon: 'home',  group: 'התחלה' },
+  { slug: 'signals',     nav: 'לקרוא כלב',  title: 'לקרוא כלב',              icon: 'eye',   group: 'המסלול' },
+  { slug: 'learning',    nav: 'להבין',      title: 'איך כלב לומד',           icon: 'bolt',  group: 'המסלול' },
+  { slug: 'household',   nav: 'בני הבית',   title: 'מה בני הבית עושים לכלב', icon: 'users', group: 'המסלול', inNav: false },
+  { slug: 'routine',     nav: 'לחיות',      title: 'לחיות עם כלב',           icon: 'house', group: 'המסלול' },
+  { slug: 'barking',     nav: 'נביחה',      title: 'הכלב שלי נובח',          icon: 'sound', group: 'בעיות', inNav: false },
+  { slug: 'aggression',  nav: 'תוקפנות',    title: 'הכלב שלי תוקפני',        icon: 'alert', group: 'בעיות', inNav: false },
+  { slug: 'separation',  nav: 'חרדת נטישה', title: 'חרדת נטישה',             icon: 'house', group: 'בעיות', inNav: false },
+  { slug: 'puppy',       nav: 'גור חדש',    title: 'גור חדש בבית',           icon: 'paw',   group: 'בעיות', inNav: false },
+  { slug: 'world',       nav: 'בעולם',      title: 'לנוע בעולם',             icon: 'users', group: 'המסלול' },
+  { slug: 'lifespan',    nav: 'לאורך החיים',title: 'לאורך החיים',            icon: 'dog',   group: 'המסלול', inNav: false },
+  { slug: 'cases',       nav: 'מקרים',      title: 'שלושה מקרים',            icon: 'bolt',  group: 'כלים' },
+  { slug: 'qa',          nav: 'שאלות',      title: 'שאלות ותשובות',          icon: 'chat',  group: 'כלים' },
+  { slug: 'guide',       nav: 'מה קרה?',    title: 'מה קרה לכלב שלי',        icon: 'chat',  group: 'כלים' },
+  { slug: 'profile',     nav: 'הכלב שלי',   title: 'פרטי הכלב שלי',          icon: 'dog',   group: 'כלים' }
 ];
 
 (function () {
-  function here() {
-    var f = location.pathname.split('/').pop() || 'index.html';
-    return f;
+  /* data-page על ה-<html> קובע את המיקום הנוכחי (ראו migration script) —
+     בלי לנחש לפי pathname, כדי שזה יעבוד גם ב-file:// וגם מאחורי כל בסיס. */
+  var CUR_SLUG = document.documentElement.getAttribute('data-page') || '';
+  var ROOT = CUR_SLUG ? '../' : '';
+  window.SITE_ROOT = ROOT; /* profile.js משתמש באותו בסיס */
+
+  function pageHref(slug) {
+    return slug ? ROOT + slug + '/' : (ROOT || './');
   }
+
+  function here() { return CUR_SLUG; }
 
   function buildTop(el) {
     var cur = here();
     var links = PAGES.filter(function (p) { return p.inNav !== false; }).map(function (p) {
-      return '<a href="' + p.file + '"' + (p.file === cur ? ' aria-current="page"' : '') + '>' + p.nav + '</a>';
+      return '<a href="' + pageHref(p.slug) + '"' + (p.slug === cur ? ' aria-current="page"' : '') + '>' + p.nav + '</a>';
     }).join('');
 
     el.innerHTML =
       '<div class="wrap">' +
         '<div class="topbar-row">' +
-          '<a class="brand" href="index.html">' + ICONS.paw + 'כלבלב</a>' +
+          '<a class="brand" href="' + pageHref('') + '">' + ICONS.paw + 'כלבלב</a>' +
           '<span class="brand-note">בבנייה</span>' +
           '<div class="navbtns">' +
             '<button class="iconbtn" type="button" data-hist="back" aria-label="חזרה לעמוד הקודם" title="אחורה">' + ICONS.back + '</button>' +
@@ -75,21 +84,21 @@ var PAGES = [
 
   function buildCrumbs(el) {
     var cur = here();
-    var p = PAGES.filter(function (x) { return x.file === cur; })[0];
-    if (!p || p.file === 'index.html') { el.remove(); return; }
+    var p = PAGES.filter(function (x) { return x.slug === cur; })[0];
+    if (!p || p.slug === '') { el.remove(); return; }
     el.className = 'crumbs';
-    el.innerHTML = '<a href="index.html">בית</a><span>›</span>' + p.nav;
+    el.innerHTML = '<a href="' + pageHref('') + '">בית</a><span>›</span>' + p.nav;
   }
 
   function buildPager(el) {
     var cur = here();
     var i = -1;
-    PAGES.forEach(function (p, n) { if (p.file === cur) i = n; });
+    PAGES.forEach(function (p, n) { if (p.slug === cur) i = n; });
     if (i === -1) { el.remove(); return; }
     var prev = PAGES[i - 1], next = PAGES[i + 1], h = '';
-    if (prev) h += '<a class="prev" href="' + prev.file + '">' + ICONS.back +
+    if (prev) h += '<a class="prev" href="' + pageHref(prev.slug) + '">' + ICONS.back +
       '<span><small>הקודם</small><b>' + prev.title + '</b></span></a>';
-    if (next) h += '<a class="next" href="' + next.file + '">' + ICONS.fwd +
+    if (next) h += '<a class="next" href="' + pageHref(next.slug) + '">' + ICONS.fwd +
       '<span><small>הבא</small><b>' + next.title + '</b></span></a>';
     if (!h) { el.remove(); return; }
     el.className = 'pager';
@@ -100,7 +109,7 @@ var PAGES = [
   function buildMap(el) {
     var cur = here(), groups = {}, order = [];
     PAGES.forEach(function (p) {
-      if (p.file === 'index.html') return;
+      if (p.slug === '') return;
       if (!groups[p.group]) { groups[p.group] = []; order.push(p.group); }
       groups[p.group].push(p);
     });
@@ -108,9 +117,9 @@ var PAGES = [
     order.forEach(function (g) {
       h += '<div><h3>' + g + '</h3><ul>';
       groups[g].forEach(function (p) {
-        h += '<li>' + (p.file === cur
+        h += '<li>' + (p.slug === cur
           ? '<span aria-current="page">' + p.nav + '</span>'
-          : '<a href="' + p.file + '">' + p.nav + '</a>') + '</li>';
+          : '<a href="' + pageHref(p.slug) + '">' + p.nav + '</a>') + '</li>';
       });
       h += '</ul></div>';
     });

@@ -1,3 +1,8 @@
 .DS_Store
 _shot*.html
 _dbg.html
+
+pilot/node_modules
+pilot/dist
+pilot/dist-local
+_pilot/

@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>כלבלב — פיילוט</title>
+<script>
+  /* GitHub Pages אינו יודע לשרת נתיבי SPA (למשל /Ganga/pilot/signals) —
+     מפנים חזרה ל-index.html עם הנתיב המקורי מקודד ב-query string,
+     והסקריפט ב-index.html משחזר אותו לפני שהאפליקציה עולה. */
+  var pathSegmentsToKeep = 2; /* /Ganga/pilot */
+  var l = window.location;
+  l.replace(
+    l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+    l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+    l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+    (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+    l.hash
+  );
+</script>
+</head>
+<body></body>
+</html>

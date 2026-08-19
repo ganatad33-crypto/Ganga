@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./legacy-content.css";
 
 @theme {
   --color-cream:      #FBF7EF;

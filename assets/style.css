@@ -870,6 +870,27 @@ details.qa > summary:focus-visible { outline: 3px solid var(--accent-fill); outl
 .qa-body ul { margin:0 0 .6rem; padding-inline-start:1.2rem; }
 .qa-more { font-size:.85rem; color: var(--muted); border-top: 1px solid var(--border); padding-top:.6rem; margin-top:.25rem; }
 
+/* ---------- סרגל ניווט תחתון (נייד בלבד) ---------- */
+
+.bottomnav {
+  position: fixed; inset-inline: 0; inset-block-end: 0; z-index: 50;
+  display: flex;
+  background: var(--surface); border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 10px rgba(64,48,30,.06);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.bottomnav a, .bottomnav button {
+  flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap:.2rem;
+  padding:.5rem .2rem .4rem; min-height: 52px;
+  color: var(--muted); text-decoration: none; background: none; border: 0; cursor: pointer;
+  font-family: var(--font-body); font-size:.7rem; font-weight: 600;
+}
+.bottomnav svg { width: 22px; height: 22px; }
+.bottomnav a[aria-current="page"] { color: var(--accent); }
+.bottomnav a:active, .bottomnav button:active { color: var(--accent); }
+@media (min-width: 46rem) { .bottomnav { display: none; } }
+@media (max-width: 45.99rem) { body { padding-block-end: 4rem; } }
+
 /* ---------- מפת האתר בתחתית ---------- */
 
 .sitemap {

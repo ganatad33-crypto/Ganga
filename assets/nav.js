@@ -138,6 +138,25 @@ var PAGES = [
     el.innerHTML = h;
   }
 
+  /* סרגל ניווט תחתון בנייד — תמיד ברור איפה נמצאים, בלי גלילה אופקית */
+  var BOTTOM_ITEMS = [
+    { slug: '',        label: 'בית',       icon: 'home' },
+    { slug: 'guide',   label: 'מה קרה?',   icon: 'chat' },
+    { slug: 'qa',      label: 'שאלות',     icon: 'chat' },
+    { slug: 'profile', label: 'הכלב שלי',  icon: 'dog' }
+  ];
+  function buildBottomNav(el) {
+    var cur = here();
+    var h = BOTTOM_ITEMS.map(function (p) {
+      return '<a href="' + pageHref(p.slug) + '"' + (p.slug === cur ? ' aria-current="page"' : '') +
+        '>' + ICONS[p.icon] + '<span>' + p.label + '</span></a>';
+    }).join('');
+    h += '<button type="button" data-search-open aria-label="חיפוש באתר">' + ICONS.search + '<span>חיפוש</span></button>';
+    el.className = 'bottomnav';
+    el.setAttribute('aria-label', 'ניווט מהיר');
+    el.innerHTML = h;
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     /* מסמן שה-JS חי — רק אז אנימציות ההופעה מופעלות */
     document.documentElement.classList.add('js-on');
@@ -145,6 +164,7 @@ var PAGES = [
     document.querySelectorAll('[data-crumbs]').forEach(buildCrumbs);
     document.querySelectorAll('[data-pager]').forEach(buildPager);
     document.querySelectorAll('[data-map]').forEach(buildMap);
+    document.querySelectorAll('[data-bottomnav]').forEach(buildBottomNav);
 
     /* מילוי אייקונים לפי data-icon */
     document.querySelectorAll('[data-icon]').forEach(function (el) {

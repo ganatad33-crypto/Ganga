@@ -148,6 +148,10 @@ body {
   margin:.4rem -1.2rem 0; padding:0 1.2rem;
 }
 .mainnav::-webkit-scrollbar { display: none; }
+.mainnav.is-scrollable {
+  mask-image: linear-gradient(to right, transparent, #000 1.2rem, #000 calc(100% - 1.2rem), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 1.2rem, #000 calc(100% - 1.2rem), transparent);
+}
 .mainnav a {
   flex: none;
   padding:.4rem .8rem .6rem;

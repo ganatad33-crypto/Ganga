@@ -83,6 +83,13 @@ var PAGES = [
         '</div>' +
         '<nav class="mainnav" aria-label="ניווט ראשי">' + links + '</nav>' +
       '</div>';
+
+    /* בגלילה אופקית במובייל — לוודא שהעמוד הפעיל נראה, לא רק הראשון ברשימה */
+    var navEl = el.querySelector('.mainnav');
+    var activeLink = navEl.querySelector('[aria-current="page"]');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    /* רמז חזותי (דהייה בקצוות) רק כשבאמת יש מה לגלול */
+    if (navEl.scrollWidth > navEl.clientWidth + 1) navEl.classList.add('is-scrollable');
   }
 
   function buildCrumbs(el) {

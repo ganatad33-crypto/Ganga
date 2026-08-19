@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-_xFf6SSu.js";var n=`/Ganga/pilot/assets/aggression-DzYpmd_z.webp`,r=`<h1>הכלב שלי תוקפני — מה יכולות להיות הסיבות</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-CWl7MVtV.js";var n=`/Ganga/pilot/assets/aggression-DzYpmd_z.webp`,r=`<h1>הכלב שלי תוקפני — מה יכולות להיות הסיבות</h1>
 
 <p class="lede dropcap">כמעט כל מה שאנחנו קוראים לו "תוקפנות" הוא בקשה אחת: <strong>תתרחק.</strong> ורוב הכלבים שמבקשים את זה בחוזקה עושים את זה כי פחדו, כאב להם, או שאף אחד לא שמע אותם כשהם ביקשו בשקט.</p>
 

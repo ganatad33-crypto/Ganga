@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-_xFf6SSu.js";var n=`<h1>שלושה מקרים</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-CWl7MVtV.js";var n=`<h1>שלושה מקרים</h1>
 
 <p class="lede dropcap">עמודי הסבר מלמדים עקרונות. מה שהם לא מראים זה איך זה נראה כשמישהו באמת עובר את זה — מה נראה בהתחלה, איפה כולם טעו, ומתי בדיוק משהו נסדק לטובה.</p>
 

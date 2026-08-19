@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-_xFf6SSu.js";var n=`/Ganga/pilot/assets/lifespan-Cr79sLa1.webp`,r=`<h1>לאורך החיים</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-CWl7MVtV.js";var n=`/Ganga/pilot/assets/lifespan-Cr79sLa1.webp`,r=`<h1>לאורך החיים</h1>
 
 <p class="lede dropcap">כלב עובר שלוש מערכות הפעלה שונות. מה שעבד בגיל שנתיים לא בהכרח מתאים בגיל עשר — ובגיל הזה, כמעט כל שינוי התנהגותי הוא קודם כל שאלה רפואית.</p>
 

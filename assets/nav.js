@@ -32,7 +32,7 @@ var ICONS = {
    slug: '' = הבית (בשורש). כל שאר הדפים חיים בתיקייה משלהם (slug/index.html)
    כדי לקבל כתובות נקיות בלי סיומת .html. */
 var PAGES = [
-  { slug: '',            nav: 'בית',        title: 'כלבלב',                  icon: 'home',  group: 'התחלה' },
+  { slug: '',            nav: 'בית',        title: 'כלב טוב',                  icon: 'home',  group: 'התחלה' },
   { slug: 'signals',     nav: 'לקרוא כלב',  title: 'לקרוא כלב',              icon: 'eye',   group: 'המסלול' },
   { slug: 'learning',    nav: 'להבין',      title: 'איך כלב לומד',           icon: 'bolt',  group: 'המסלול' },
   { slug: 'tricks',      nav: 'טריקים',     title: 'טריקים בסיסיים',         icon: 'check', group: 'המסלול', inNav: false },
@@ -72,7 +72,7 @@ var PAGES = [
     el.innerHTML =
       '<div class="wrap">' +
         '<div class="topbar-row">' +
-          '<a class="brand" href="' + pageHref('') + '">' + ICONS.paw + 'כלבלב</a>' +
+          '<a class="brand" href="' + pageHref('') + '">' + ICONS.paw + 'כלב טוב</a>' +
           '<span class="brand-note">בבנייה</span>' +
           '<div class="navbtns">' +
             '<button class="iconbtn" type="button" data-hist="back" aria-label="חזרה לעמוד הקודם" title="אחורה">' + ICONS.back + '</button>' +
@@ -133,7 +133,7 @@ var PAGES = [
       });
       h += '</ul></div>';
     });
-    h += '</div><p class="map-note">כלבלב · מדריך עברי לבעלי כלבים · האתר בבנייה</p></div>';
+    h += '</div><p class="map-note">כלב טוב · מדריך עברי לבעלי כלבים · האתר בבנייה</p></div>';
     el.className = 'sitemap';
     el.innerHTML = h;
   }

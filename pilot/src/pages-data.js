@@ -2,7 +2,7 @@
    מקביל ל-assets/nav.js של הגרסה הסטטית. inNav:false = לא בסרגל העליון,
    אבל כן במפה בתחתית ובניווט בין עמודים. */
 export const PAGES = [
-  { path: '/',            nav: 'בית',        title: 'כלבלב',                  icon: 'home',  group: 'התחלה' },
+  { path: '/',            nav: 'בית',        title: 'כלב טוב',                  icon: 'home',  group: 'התחלה' },
   { path: '/signals',     nav: 'לקרוא כלב',  title: 'לקרוא כלב',              icon: 'eye',   group: 'המסלול' },
   { path: '/learning',    nav: 'להבין',      title: 'איך כלב לומד',           icon: 'bolt',  group: 'המסלול' },
   { path: '/household',   nav: 'בני הבית',   title: 'מה בני הבית עושים לכלב', icon: 'users', group: 'המסלול', inNav: false },

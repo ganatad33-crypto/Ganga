@@ -13,7 +13,7 @@ cat <<HEAD
 <meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="article">
-<meta property="og:site_name" content="כלבלב">
+<meta property="og:site_name" content="כלב טוב">
 <meta property="og:locale" content="he_IL">
 <meta property="og:title" content="$1">
 <meta property="og:description" content="$2">
@@ -21,7 +21,7 @@ cat <<HEAD
 <meta property="og:image" content="https://ganatad33-crypto.github.io/Ganga/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="כלבלב — להבין את הכלב שלך, צעד אחר צעד">
+<meta property="og:image:alt" content="כלב טוב — להבין את הכלב שלך, צעד אחר צעד">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

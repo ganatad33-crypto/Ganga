@@ -94,7 +94,7 @@ export default function Layout() {
             <span className="grid place-items-center w-9 h-9 rounded-xl bg-accentsoft text-accent">
               <Icon name="paw" className="w-5 h-5" />
             </span>
-            <span className="font-display font-bold text-xl">כלבלב</span>
+            <span className="font-display font-bold text-xl">כלב טוב</span>
           </Link>
           <nav className="mr-auto hidden sm:flex gap-1 text-[0.93rem]">
             {PAGES.filter((p) => p.inNav !== false && p.path !== '/').map((p) => (
@@ -170,7 +170,7 @@ export default function Layout() {
               </div>
             ))}
           </div>
-          <p className="text-[0.8rem] text-muted mt-8 pt-6 border-t border-line">כלבלב · מדריך עברי לבעלי כלבים · האתר בבנייה</p>
+          <p className="text-[0.8rem] text-muted mt-8 pt-6 border-t border-line">כלב טוב · מדריך עברי לבעלי כלבים · האתר בבנייה</p>
         </div>
       </footer>
     </>

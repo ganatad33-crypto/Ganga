@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-CWl7MVtV.js";var n=`/Ganga/pilot/assets/learning-BAz1QcCF.webp`,r=`<h1>איך כלב לומד</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-DKOk1D5k.js";var n=`/Ganga/pilot/assets/learning-BAz1QcCF.webp`,r=`<h1>איך כלב לומד</h1>
 
 <p class="lede dropcap">אין כאן שיטה ואין סוד. יש ארבעה עקרונות שחוזרים בכל בעיה שקראתם עליה באתר הזה — ומי שמבין אותם מפסיק לחפש טריקים.</p>
 

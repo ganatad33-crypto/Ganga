@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-CWl7MVtV.js";var n=`/Ganga/pilot/assets/puppy-DePZn-J7.webp`,r=`<h1>גור חדש בבית</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-DKOk1D5k.js";var n=`/Ganga/pilot/assets/puppy-DePZn-J7.webp`,r=`<h1>גור חדש בבית</h1>
 
 <p class="lede dropcap">בחודשים הראשונים לא בונים כלב מאולף. בונים כלב שהעולם לא מפחיד אותו. כל השאר — הישיבה, הרצועה, הפקודות — אפשר ללמד בכל גיל. את זה לא.</p>
 

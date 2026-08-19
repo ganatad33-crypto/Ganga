@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-CWl7MVtV.js";var n=`/Ganga/pilot/assets/separation-k8857324.webp`,r=`<h1>חרדת נטישה</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-DKOk1D5k.js";var n=`/Ganga/pilot/assets/separation-k8857324.webp`,r=`<h1>חרדת נטישה</h1>
 
 <p class="lede dropcap">ההרס ליד הדלת הוא לא נקמה. הכלב לא "כועס שיצאתם" ולא "מעניש אתכם" — הוא היה בפאניקה, וניסה לצאת אחריכם. ההבחנה הזאת היא לא סמנטיקה: היא קובעת אם מה שתעשו יעזור או יחמיר.</p>
 

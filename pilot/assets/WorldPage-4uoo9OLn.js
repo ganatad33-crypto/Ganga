@@ -1,4 +1,4 @@
-import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-CWl7MVtV.js";var n=`/Ganga/pilot/assets/world-BwgGsbXE.webp`,r=`<h1>לנוע בעולם</h1>
+import{o as e}from"./dog-CnWZmedA.js";import{t}from"./ContentPage-DKOk1D5k.js";var n=`/Ganga/pilot/assets/world-BwgGsbXE.webp`,r=`<h1>לנוע בעולם</h1>
 
 <p class="lede dropcap">עד כאן דיברנו על הכלב שלכם. השלב הזה הוא על משהו אחר: להיות בנוח בעולם שיש בו כלבים — שלכם ושל אחרים.</p>
 

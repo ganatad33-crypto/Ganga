@@ -11,6 +11,8 @@ const SITUATIONS = [
   { key: 'alone',     icon: 'house', t: 'הרס או נביחה כשאני לא בבית', s: 'איך מבדילים בין שעמום למצוקה אמיתית — וזה משנה הכל' },
   { key: 'vomit',     icon: 'cross', t: 'הכלב הקיא', s: 'מיון ראשוני — מה מסתכלים עליו בבית ומתי מרימים טלפון לווטרינר' },
   { key: 'diarrhea',  icon: 'cross', t: 'לכלב יש שלשול', s: 'מיון ראשוני, כולל מה שמצריך פנייה מיידית' },
+  { key: 'barkingpasser', icon: 'sound', t: 'הכלב נובח על עוברים ושבים', s: 'מהחלון, בטיול, או כשמישהו נכנס הביתה' },
+  { key: 'noisefear', icon: 'alert', t: 'הכלב פוחד מרעשים', s: 'רעמים, זיקוקים, ומתי זה דורש יותר מהרגלה' },
 ]
 
 export default function GuidePage() {
@@ -36,7 +38,7 @@ export default function GuidePage() {
               </li>
             ))}
           </ul>
-          <p className="j-help">בקרוב: נביחה על עוברים ושבים · פחד מרעשים · לא בא כשקוראים לו · צליעה · גירוד מוגזם</p>
+          <p className="j-help">בקרוב: לא בא כשקוראים לו · צליעה · גירוד מוגזם</p>
           <p>עמודי עומק בנושאים האלה: <Link to="/aggression">תוקפנות</Link> · <Link to="/separation">חרדת נטישה</Link> · <Link to="/puppy">גור חדש בבית</Link></p>
         </motion.div>
       ) : (

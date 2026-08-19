@@ -176,6 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
     h += '<dt>האם זו הכלאה</dt><dd>' + (b.cross || 'לא רלוונטי — אין ייעוד גידולי אחד.') + '</dd>';
     h += '<dt>למה גידלו אותו</dt><dd>' + b.built + '</dd>';
     h += '<dt>מה כדאי לדעת</dt><dd>' + b.note + '</dd>';
+    if (b.meaning) h += '<dt>מה זה אומר עבורכם ביום-יום</dt><dd>' + b.meaning + '</dd>';
     if (b.caveat) h += '<dt>הסתייגות</dt><dd>' + b.caveat + '</dd>';
     h += '</dl><div class="tags"><span class="tag">נטיית נביחה: ' + voice[b.voice] + '</span>' +
          '<span class="tag">צורך בפעילות: ' + voice[b.energy] + '</span></div></div>';

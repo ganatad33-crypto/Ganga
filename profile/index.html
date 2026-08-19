@@ -129,6 +129,16 @@ document.addEventListener('DOMContentLoaded', function () {
   selA.value = p.breedKey || '';
   if (p.breedKey2) { mixed.checked = true; wrapB.hidden = false; selB.value = p.breedKey2; }
 
+  /* קישור ישיר מהחיפוש: profile/?breed=labrador */
+  var wantedBreed = new URLSearchParams(location.search).get('breed');
+  if (wantedBreed && BREEDS[wantedBreed]) {
+    selA.value = wantedBreed;
+    requestAnimationFrame(function () {
+      var info = document.getElementById('breed-info');
+      if (info) info.scrollIntoView({ block: 'start' });
+    });
+  }
+
   mixed.addEventListener('change', function () {
     wrapB.hidden = !mixed.checked;
     if (!mixed.checked) selB.value = '';

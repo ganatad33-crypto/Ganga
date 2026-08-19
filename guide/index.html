@@ -93,16 +93,25 @@ document.addEventListener('DOMContentLoaded', function () {
   var picker = document.getElementById('picker');
   var box    = document.getElementById('journey');
   var note   = document.getElementById('medical-note');
-  picker.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-tree]');
-    if (!b) return;
-    var key = b.getAttribute('data-tree');
+
+  function start(key) {
+    if (!TREES[key]) return;
     picker.hidden = true;
     box.hidden = false;
     note.hidden = !TREES[key].medical;
     document.title = TREES[key].title + ' — כלבלב';
     Journey.render(box, key);
+  }
+
+  picker.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tree]');
+    if (!b) return;
+    start(b.getAttribute('data-tree'));
   });
+
+  /* קישור ישיר מהחיפוש: guide/?tree=growl */
+  var params = new URLSearchParams(location.search);
+  if (params.get('tree')) start(params.get('tree'));
 });
 </script>
 </body>

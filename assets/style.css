@@ -548,7 +548,7 @@ strong { font-weight: 700; }
   border: 1px solid var(--border);
   line-height: 0;
 }
-.artwrap svg { width: 100%; height: auto; display: block; }
+.artwrap svg, .artwrap img { width: 100%; height: auto; display: block; }
 
 /* איור קטן בראש עמוד תוכן */
 .spot { margin:.4rem 0 1.5rem; line-height: 0; }
@@ -688,7 +688,7 @@ h1 { font-weight: 500; letter-spacing: -.025em; }
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 88%, transparent 100%);
           mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 88%, transparent 100%);
 }
-.artfade svg { width: 100%; height: auto; display: block; }
+.artfade svg, .artfade img { width: 100%; height: auto; display: block; }
 
 /* ---------- הופעה מדורגת ---------- */
 

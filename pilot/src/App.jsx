@@ -4,6 +4,8 @@ import {
   useInView, useMotionValue, animate, useReducedMotion,
 } from 'framer-motion'
 import Lenis from 'lenis'
+import heroPhoto from './assets/img/hero.webp'
+import signalsPhoto from './assets/img/signals.webp'
 
 /* ═════════ נתונים ═════════ */
 
@@ -18,7 +20,7 @@ const STAGES = [
 ]
 
 const ENTRIES = [
-  { t: 'לקרוא כלב',      d: 'עשרה סימנים שאומרים "אני לא בנוח", והסולם שמסביר למה כלבים "נושכים בלי אזהרה".' },
+  { t: 'לקרוא כלב',      d: 'עשרה סימנים שאומרים "אני לא בנוח", והסולם שמסביר למה כלבים "נושכים בלי אזהרה".', img: signalsPhoto },
   { t: 'מה קרה לכלב שלי', d: 'תארו מה קרה, ענו על כמה שאלות, וקבלו הסבר שמתאים למצב שלכם ולגיל הכלב.' },
   { t: 'שלושה מקרים',     d: 'הקשת המלאה של תהליך — מה נראה בהתחלה, איפה כולם טעו, ומתי משהו נסדק לטובה.' },
   { t: 'שאלות ותשובות',   d: 'שלושים שאלות שבעלי כלבים באמת שואלים, עם תשובות קצרות וישירות.' },
@@ -49,58 +51,6 @@ function Reveal({ children, delay = 0, y = 26 }) {
       viewport={{ once: true, margin: '-70px' }}
       transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
     >{children}</motion.div>
-  )
-}
-
-/* ═════════ איור הפתיחה ═════════ */
-
-function HeroArt() {
-  return (
-    <svg viewBox="0 0 800 400" className="w-full h-auto" role="img" aria-label="איור: אדם והכלב שלו הולכים בשדה בשעת בין ערביים">
-      <defs>
-        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#F7DFC6" /><stop offset="55%" stopColor="#FAEDDD" /><stop offset="100%" stopColor="#FBF7EF" />
-        </linearGradient>
-        <linearGradient id="h1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#A9B486" /><stop offset="100%" stopColor="#93A171" /></linearGradient>
-        <linearGradient id="h2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#6E7C46" /><stop offset="100%" stopColor="#5A6739" /></linearGradient>
-        <clipPath id="fr"><rect width="800" height="400" rx="22" /></clipPath>
-      </defs>
-      <g clipPath="url(#fr)">
-        <rect width="800" height="400" fill="url(#sky)" />
-        <circle cx="596" cy="150" r="74" fill="#EFB98C" opacity=".55" />
-        <circle cx="596" cy="150" r="46" fill="#E8A473" opacity=".65" />
-        <g fill="#fff" opacity=".55">
-          <ellipse cx="180" cy="86" rx="58" ry="17" /><ellipse cx="214" cy="76" rx="38" ry="15" />
-          <ellipse cx="660" cy="60" rx="46" ry="13" /><ellipse cx="688" cy="52" rx="30" ry="11" />
-        </g>
-        <path d="M-20 268c120-46 224-30 318 2 96 33 190 26 288-14 62-25 130-30 234-8v170H-20z" fill="url(#h1)" />
-        <path d="M-20 316c150-40 250-16 356 10 92 22 186 12 274-20 54-20 118-22 210-2v116H-20z" fill="url(#h2)" />
-        <g>
-          <rect x="120" y="228" width="8" height="46" rx="4" fill="#6B5238" />
-          <circle cx="124" cy="218" r="28" fill="#4E5B2E" /><circle cx="105" cy="230" r="19" fill="#59683A" /><circle cx="142" cy="231" r="17" fill="#59683A" />
-          <rect x="700" y="246" width="7" height="40" rx="3.5" fill="#6B5238" />
-          <circle cx="703" cy="238" r="23" fill="#4E5B2E" /><circle cx="686" cy="248" r="15" fill="#59683A" />
-        </g>
-        <path d="M-20 400C120 356 236 344 348 348s214 20 300 52" fill="none" stroke="#E4D6BA" strokeWidth="32" strokeLinecap="round" />
-        <g transform="translate(300,196)">
-          <path d="M20 62l-8 62h13l10-46 9 46h13l-6-62z" fill="#3E3428" />
-          <path d="M12 14h30c7 0 12 6 11 13l-6 40H8L3 27C2 20 6 14 12 14z" fill="#9E4A26" />
-          <path d="M44 22c9 5 15 13 18 23" fill="none" stroke="#9E4A26" strokeWidth="9" strokeLinecap="round" />
-          <circle cx="27" cy="-2" r="15" fill="#E8C9A8" />
-          <path d="M12 -4c0-11 7-17 15-17s15 6 15 17c0 3-30 4-30 0z" fill="#3E3428" />
-        </g>
-        <path d="M363 240c30 12 52 26 74 38" fill="none" stroke="#8E4526" strokeWidth="3" strokeLinecap="round" opacity=".85" />
-        <g transform="translate(430,268)">
-          <ellipse cx="34" cy="16" rx="34" ry="19" fill="#B5613F" />
-          <path d="M8 30v22M24 32v20M46 32v20M62 29v23" stroke="#B5613F" strokeWidth="9" strokeLinecap="round" />
-          <path d="M66 8c10-12 18-9 16 2-1 8-8 12-14 10" fill="#B5613F" />
-          <circle cx="9" cy="-4" r="16" fill="#C06E4A" />
-          <path d="M-3 -16c-6-9-3-15 5-11l6 4z" fill="#9E4A26" />
-          <path d="M-6 -2c-8 1-11 5-10 9 1 4 6 5 11 3" fill="#C06E4A" />
-          <circle cx="-9" cy="1" r="2.6" fill="#3E3428" /><circle cx="10" cy="-7" r="2.4" fill="#3E3428" />
-        </g>
-      </g>
-    </svg>
   )
 }
 
@@ -249,7 +199,15 @@ export default function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: .9, delay: .3, ease: [.22, 1, .36, 1] }}
           >
-            <HeroArt />
+            <img
+              src={heroPhoto}
+              alt="אדם וכלב הולכים יחד בשביל עפר בשעת בין ערביים, על רצועה משוחררת"
+              className="w-full h-auto block"
+              width={1168}
+              height={784}
+              loading="eager"
+              fetchPriority="high"
+            />
           </motion.div>
         </section>
 
@@ -279,7 +237,13 @@ export default function App() {
                   whileHover={reduce ? {} : { y: -6, boxShadow: '0 14px 34px rgba(90,60,30,.14)', borderColor: 'var(--color-accentfill)' }}
                   transition={{ type: 'spring', stiffness: 320, damping: 22 }}
                 >
-                  <span className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-accentfill to-olive" aria-hidden="true" />
+                  {e.img ? (
+                    <div className="-m-5 mb-4 h-36 overflow-hidden">
+                      <img src={e.img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                  ) : (
+                    <span className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-accentfill to-olive" aria-hidden="true" />
+                  )}
                   <h3 className="text-[1.15rem] font-bold m-0 mb-1">{e.t}</h3>
                   <p className="text-[0.95rem] text-muted m-0 leading-relaxed">{e.d}</p>
                 </motion.a>

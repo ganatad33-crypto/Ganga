@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { TREES, NEVER_PUNISH } from './data/trees.js'
 import { md, useDogProfile } from './dog.js'
@@ -19,8 +20,27 @@ export default function Journey({ treeKey, onProfileOpen }) {
   const [path, setPath] = useState([tree.start])
   const { band } = useDogProfile()
   const reduce = useReducedMotion()
+  const navigate = useNavigate()
 
   if (!tree) return <p>לא נמצא.</p>
+
+  /* לוכד קליקים על קישורים פנימיים בתוך תוכן העץ (למשל הפניה מתוך
+     תשובה לעמוד אחר) ומנתב אותם דרך React Router. תומך גם בצורה
+     היחסית מהאתר הסטטי (../aggression/) וגם בנתיב אפליקציה מוחלט. */
+  function onTreeClick(e) {
+    const a = e.target.closest('a')
+    if (!a) return
+    const href = a.getAttribute('href')
+    if (!href) return
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === '_blank') return
+    if (href.startsWith('/') && !href.startsWith('//')) {
+      e.preventDefault()
+      navigate(href)
+    } else if (href.startsWith('../')) {
+      e.preventDefault()
+      navigate('/' + href.replace(/^(\.\.\/)+/, '').replace(/\/$/, ''))
+    }
+  }
 
   const id = path[path.length - 1]
   const node = tree.nodes[id]
@@ -50,7 +70,7 @@ export default function Journey({ treeKey, onProfileOpen }) {
   }
 
   return (
-    <div className="journey">
+    <div className="journey" onClick={onTreeClick}>
       <AnimatePresence mode="wait">
         <motion.div key={id} variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
           {node.q ? (

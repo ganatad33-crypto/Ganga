@@ -52,8 +52,11 @@ def render_text(analysis: Analysis, prompt: SunoPrompt, color: bool = True) -> s
         out.append(dim(f"    · {note}"))
 
     out.append(h("\n▸ MELODY"))
+    out.append(dim(f"  extracted by: {m.source}"))
     if m.notes:
         out.append(f"  notes found      {len(m.notes)}  ({m.notes_per_second:.1f}/s)")
+        if m.polyphony:
+            out.append(f"  polyphony        {m.polyphony:.1f} notes sounding at once")
         out.append(f"  range            {m.lowest} → {m.highest}  ({m.range_semitones} semitones)")
         out.append(f"  centre           {m.median_note}")
         out.append(f"  contour          {m.contour}")
@@ -159,6 +162,7 @@ def render_markdown(analysis: Analysis, prompt: SunoPrompt) -> str:
         f"| Roman | {' → '.join(t.roman_progression) or '—'} |",
         f"| Melodic range | {m.lowest} → {m.highest} ({m.range_semitones} st) |",
         f"| Contour | {m.contour} |",
+        f"| Melody source | {m.source} |",
         f"| Brightness | {tb.centroid_hz:.0f} Hz |",
         f"| Dynamic range | {tb.dynamic_range_db:.1f} dB |",
         f"| Texture | {inst.texture} |",
@@ -228,5 +232,10 @@ def write_outputs(
         midi_path = outdir / f"{stem}.melody.mid"
         write_midi(analysis.melody.notes, midi_path, bpm=analysis.rhythm.bpm)
         written["midi"] = midi_path
+
+        if analysis.transcription and analysis.transcription.notes:
+            full_path = outdir / f"{stem}.transcription.mid"
+            write_midi(analysis.transcription.notes, full_path, bpm=analysis.rhythm.bpm)
+            written["midi:full"] = full_path
 
     return written

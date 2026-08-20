@@ -1,3 +1,12 @@
+# Polyphonic melody transcription. Transcribes every note it hears, and the
+# lead is recovered as the top voice — far more reliable on dense mixes than
+# monophonic pitch tracking. Model weights ship inside the wheel, so nothing is
+# downloaded at runtime. Pulls in tensorflow.
+basic-pitch>=0.3
+# resampy (a basic-pitch dependency) imports pkg_resources, which is not
+# bundled with Python 3.12+.
+setuptools<81
+
 # Trained source separation. Much better stems than the built-in DSP split,
 # but it pulls in torch (~2 GB) and downloads model weights on first run.
 demucs>=4.0

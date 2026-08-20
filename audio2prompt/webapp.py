@@ -191,8 +191,10 @@ scale: ${esc(t.scale_notes.join(' '))}</pre>`, t.chord_progression.join(' - '));
   }
 
   if (m.note_count) {
+    const poly = m.polyphony ? `\npolyphony: ${m.polyphony} notes at once` : '';
     html += card('Melody', `<pre>range ${esc(m.lowest_note)} → ${esc(m.highest_note)} (${m.range_semitones} semitones)
 ${esc(m.contour)}
+extracted by: ${esc(m.source)}${esc(poly)}
 ${esc(m.note_sequence.slice(0, 24).join(' '))}</pre>`);
   }
 

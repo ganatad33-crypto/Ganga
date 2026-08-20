@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 separation = ["demucs>=4.0"]
+transcription = ["basic-pitch>=0.3", "setuptools<81"]
 
 [project.scripts]
 audio2prompt = "audio2prompt.cli:main"

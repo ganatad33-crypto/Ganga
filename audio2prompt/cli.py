@@ -47,6 +47,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--separate", choices=["auto", "dsp", "demucs", "off"], default="auto",
                         help="stem separation backend: auto uses demucs when installed, "
                              "otherwise a dependency-free DSP split")
+    parser.add_argument("--transcribe", choices=["auto", "basic-pitch", "pyin", "off"], default="auto",
+                        help="melody backend: auto uses basic-pitch (polyphonic) when installed, "
+                             "otherwise monophonic pitch tracking")
     parser.add_argument("--save-stems", action="store_true",
                         help="write the separated stems as wav files (needs --outdir)")
     parser.add_argument("--skip-melody", action="store_true",
@@ -78,7 +81,9 @@ def main(argv: list[str] | None = None) -> int:
         try:
             analysis = analyze_file(
                 path, sr=args.sr, max_seconds=max_seconds,
-                skip_melody=args.skip_melody, separation=args.separate, progress=progress,
+                skip_melody=args.skip_melody, separation=args.separate,
+                transcription="off" if args.transcribe == "pyin" else args.transcribe,
+                progress=progress,
             )
         except AudioLoadError as exc:
             print(f"error: {exc}", file=sys.stderr)

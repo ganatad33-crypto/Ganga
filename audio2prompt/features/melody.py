@@ -19,6 +19,9 @@ class Note:
     end: float
     midi: int
     velocity: int
+    #: pitch deviation within the note, in semitones — only the polyphonic
+    #: backend reports it, so it defaults to "no measured bend"
+    bend: float = 0.0
 
     @property
     def name(self) -> str:
@@ -44,9 +47,13 @@ class Melody:
     vibrato: float
     notes_per_second: float
     descriptors: list[str]
+    source: str = "pyin"
+    polyphony: float = 0.0
 
     def to_dict(self) -> dict:
         return {
+            "source": self.source,
+            "polyphony": round(self.polyphony, 2),
             "note_count": len(self.notes),
             "voiced_ratio": round(self.voiced_ratio, 3),
             "range_semitones": self.range_semitones,
@@ -182,6 +189,42 @@ def analyze_melody(
 
     notes = _segment_notes(f0, voiced, times, rms)
 
+    return describe_notes(
+        notes,
+        voiced_ratio=voiced_ratio,
+        total_time=float(times[-1]) if times.size else 1.0,
+        vibrato=_vibrato_strength(notes, times, f0),
+        source="pyin",
+        extra_descriptors=(
+            ["the most prominent melodic line sits in the bass register"] if register == "low" else []
+        ),
+    )
+
+
+def _vibrato_strength(notes: list[Note], times: np.ndarray, f0: np.ndarray) -> float:
+    """Cent-level wobble inside sustained notes."""
+    cents = librosa.hz_to_midi(np.where(np.isfinite(f0) & (f0 > 0), f0, np.nan)) * 100
+    scores: list[float] = []
+    for n in notes:
+        if n.duration < 0.25:
+            continue
+        seg = cents[(times >= n.start) & (times <= n.end)]
+        seg = seg[np.isfinite(seg)]
+        if seg.size > 6:
+            scores.append(float(np.std(seg - np.median(seg))))
+    return float(np.clip(np.mean(scores) / 45.0, 0.0, 1.0)) if scores else 0.0
+
+
+def describe_notes(
+    notes: list[Note],
+    voiced_ratio: float,
+    total_time: float,
+    vibrato: float,
+    source: str,
+    polyphony: float = 0.0,
+    extra_descriptors: list[str] | None = None,
+) -> Melody:
+    """Build the Melody summary from a note list, whatever produced it."""
     if notes:
         pitches = np.array([n.midi for n in notes])
         intervals = np.abs(np.diff(pitches)) if pitches.size > 1 else np.array([0])
@@ -194,7 +237,6 @@ def analyze_melody(
         lowest = highest = median = 60
         rng, mean_interval, leap_ratio = 0, 0.0, 0.0
 
-    # phrases = note runs separated by rests
     phrases: list[float] = []
     if notes:
         phrase_start = notes[0].start
@@ -203,29 +245,13 @@ def analyze_melody(
             if n.start - prev_end > 0.45:
                 phrases.append(prev_end - phrase_start)
                 phrase_start = n.start
-            prev_end = n.end
+            prev_end = max(prev_end, n.end)
         phrases.append(prev_end - phrase_start)
 
-    # vibrato: cent-level wobble inside sustained notes
-    vib_scores: list[float] = []
-    cents = librosa.hz_to_midi(np.where(np.isfinite(f0) & (f0 > 0), f0, np.nan)) * 100
-    for n in notes:
-        if n.duration < 0.25:
-            continue
-        mask = (times >= n.start) & (times <= n.end)
-        seg = cents[mask]
-        seg = seg[np.isfinite(seg)]
-        if seg.size > 6:
-            vib_scores.append(float(np.std(seg - np.median(seg))))
-    vibrato = float(np.clip(np.mean(vib_scores) / 45.0, 0.0, 1.0)) if vib_scores else 0.0
-
-    total_time = float(times[-1]) if times.size else 1.0
     nps = len(notes) / max(total_time, 1e-6)
 
-    descriptors: list[str] = []
-    if register == "low":
-        descriptors.append("the most prominent melodic line sits in the bass register")
-    if voiced_ratio < 0.15:
+    descriptors: list[str] = list(extra_descriptors or [])
+    if voiced_ratio < 0.15 and not notes:
         descriptors.append("no clear sustained lead line — texture/percussion driven")
     if rng > 19:
         descriptors.append("wide melodic range, over an octave and a half")
@@ -241,6 +267,10 @@ def analyze_melody(
         descriptors.append("fast, virtuosic note runs")
     elif 0 < nps < 1.2:
         descriptors.append("long sustained notes, slow melodic pacing")
+    if polyphony > 4:
+        descriptors.append("thick chordal writing, many notes sounding at once")
+    elif 0 < polyphony < 1.6:
+        descriptors.append("largely single-line, monophonic writing")
 
     return Melody(
         notes=notes,
@@ -256,6 +286,8 @@ def analyze_melody(
         vibrato=vibrato,
         notes_per_second=nps,
         descriptors=descriptors,
+        source=source,
+        polyphony=polyphony,
     )
 
 

@@ -18,6 +18,7 @@ from .features.timbre import Timbre, analyze_timbre
 from .features.tonality import Tonality, analyze_tonality
 from .genre import GenreGuess, infer_genres, mood_words
 from .separation import Stems, separate
+from .transcribe import Transcription, melody_from_transcription, transcribe
 
 HOP_LENGTH = 512
 
@@ -34,6 +35,7 @@ class Analysis:
     genres: list[GenreGuess]
     moods: list[str]
     stems: Stems | None
+    transcription: Transcription | None
     elapsed: float
 
     @property
@@ -56,6 +58,7 @@ class Analysis:
             "structure": self.structure.to_dict(),
             "instrumentation": self.instrumentation.to_dict(),
             "stems": self.stems.to_dict() if self.stems else None,
+            "transcription": self.transcription.to_dict() if self.transcription else None,
             "style": {
                 "genres": [{"name": g.name, "confidence": g.confidence, "tags": g.tags} for g in self.genres],
                 "moods": self.moods,
@@ -70,6 +73,7 @@ def analyze_file(
     max_seconds: float | None = 600.0,
     skip_melody: bool = False,
     separation: str = "auto",
+    transcription: str = "auto",
     progress=None,
 ) -> Analysis:
     """Run every feature extractor over `path` and return a combined Analysis."""
@@ -99,20 +103,30 @@ def analyze_file(
     step("key & harmony")
     tonality = analyze_tonality(clip.y, clip.sr, rhythm.beats, HOP_LENGTH, clip.duration, y_harm=y_tonal)
 
+    transcript: Transcription | None = None
     if skip_melody:
         step("melody (skipped)")
         melody = Melody(
             notes=[], voiced_ratio=0.0, range_semitones=0, lowest="-", highest="-", median_note="-",
             mean_interval=0.0, leap_ratio=0.0, contour="not analysed", phrase_lengths=[],
             vibrato=0.0, notes_per_second=0.0, descriptors=["melody extraction skipped"],
+            source="skipped",
         )
     else:
-        step("melody & note extraction")
-        melody = analyze_melody(
-            clip.y, clip.sr, HOP_LENGTH,
-            y_harm=y_tonal,
-            lead_stem=stems.get("lead") if stems else None,
-        )
+        if transcription != "off":
+            step("polyphonic transcription")
+            transcript = transcribe(clip.y, clip.sr, backend=transcription)
+
+        if transcript and transcript.notes:
+            step("lead line from transcription")
+            melody = melody_from_transcription(transcript, clip.duration)
+        else:
+            step("melody & note extraction")
+            melody = analyze_melody(
+                clip.y, clip.sr, HOP_LENGTH,
+                y_harm=y_tonal,
+                lead_stem=stems.get("lead") if stems else None,
+            )
 
     step("timbre & mix character")
     timbre = analyze_timbre(clip.y, clip.sr, clip.channels, HOP_LENGTH)
@@ -151,5 +165,6 @@ def analyze_file(
         genres=genres,
         moods=moods,
         stems=stems,
+        transcription=transcript,
         elapsed=time.perf_counter() - started,
     )

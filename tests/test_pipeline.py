@@ -17,6 +17,12 @@ from audio2prompt.features.rhythm import _fold_bpm  # noqa: E402
 from audio2prompt.features.tonality import _collapse_repeat, _dominant_loop, detect_key  # noqa: E402
 from audio2prompt.genre import infer_genres  # noqa: E402
 from audio2prompt.prompt import build_prompt  # noqa: E402
+from audio2prompt.transcribe import (  # noqa: E402
+    _trim_outliers,
+    basic_pitch_available,
+    polyphony,
+    top_voice,
+)
 from audio2prompt.webapp import parse_multipart  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parents[1] / "examples" / "fixture_120bpm_Am.wav"
@@ -34,7 +40,14 @@ def fixture_path() -> Path:
 
 @pytest.fixture(scope="module")
 def analysis(fixture_path: Path):
+    """Default pipeline — polyphonic transcription when it is installed."""
     return analyze_file(fixture_path, separation="dsp")
+
+
+@pytest.fixture(scope="module")
+def pyin_analysis(fixture_path: Path):
+    """The fallback path, so it stays tested even where basic-pitch exists."""
+    return analyze_file(fixture_path, separation="dsp", transcription="off")
 
 
 # --------------------------------------------------------------------- units
@@ -128,10 +141,55 @@ def test_chord_progression_recovers_the_written_loop(analysis) -> None:
     assert {"A", "F", "C", "G"} <= roots
 
 
-def test_melody_is_tracked_above_the_bass(analysis) -> None:
-    assert analysis.melody.notes, "expected some melodic notes"
-    pitches = [n.midi for n in analysis.melody.notes]
+def test_melody_is_tracked_above_the_bass(pyin_analysis) -> None:
+    assert pyin_analysis.melody.notes, "expected some melodic notes"
+    pitches = [n.midi for n in pyin_analysis.melody.notes]
     assert np.median(pitches) > 48, "melody tracker locked onto the bass register"
+    assert pyin_analysis.melody.source == "pyin"
+
+
+@pytest.mark.skipif(not basic_pitch_available(), reason="basic-pitch is not installed")
+def test_polyphonic_backend_finds_the_written_melody_register(analysis) -> None:
+    """The fixture's melody sits at MIDI 67-76; its chords and bass sit below.
+
+    pyin follows the loudest voice and lands on the chord bed — the top voice of
+    a polyphonic transcription should land on the lead instead.
+    """
+    assert "basic-pitch" in analysis.melody.source
+    assert analysis.melody.notes
+    median = float(np.median([n.midi for n in analysis.melody.notes]))
+    assert 64 <= median <= 79, f"lead line centred on MIDI {median}, expected the melody register"
+    assert analysis.melody.polyphony > 1.5, "a four-note fixture should read as polyphonic"
+
+
+@pytest.mark.skipif(not basic_pitch_available(), reason="basic-pitch is not installed")
+def test_transcription_is_richer_than_the_extracted_lead(analysis) -> None:
+    assert analysis.transcription is not None
+    assert len(analysis.transcription.notes) > len(analysis.melody.notes)
+
+
+def test_top_voice_takes_the_highest_sounding_pitch() -> None:
+    chord = [Note(0.0, 1.0, 60, 80), Note(0.0, 1.0, 64, 80), Note(0.0, 1.0, 67, 80)]
+    line = top_voice(chord + [Note(1.0, 2.0, 72, 80)])
+    assert [n.midi for n in line] == [67, 72]
+
+
+def test_top_voice_ignores_the_bass_register() -> None:
+    line = top_voice([Note(0.0, 1.0, 36, 80), Note(0.0, 1.0, 40, 80)], min_midi=52)
+    assert line == []
+
+
+def test_trim_outliers_drops_gap_fillers_and_brief_partials() -> None:
+    line = [Note(i * 0.5, i * 0.5 + 0.4, 69, 80) for i in range(8)]
+    line.append(Note(4.0, 4.4, 50, 80))    # chord tone showing through a rest
+    line.append(Note(5.0, 5.05, 90, 80))   # brief partial above the lead
+    kept = {n.midi for n in _trim_outliers(line)}
+    assert kept == {69}
+
+
+def test_polyphony_counts_simultaneous_notes() -> None:
+    assert polyphony([Note(0.0, 1.0, 60, 80), Note(0.0, 1.0, 64, 80)]) == pytest.approx(2.0, abs=0.05)
+    assert polyphony([]) == 0.0
 
 
 def test_structure_and_stems_are_populated(analysis) -> None:

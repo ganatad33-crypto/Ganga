@@ -17,7 +17,7 @@ Lyrics are never extracted or generated — the default output is an instrumenta
 |---|---|
 | קצב | BPM מדויק, משקל (4/4 או 3/4), מידת סווינג, כמה הגריד "מרובע" מול נגינה חיה |
 | סולם והרמוניה | טוניקה ומוד (מז'ור, מינור, דוריאן, פריגי, מינור הרמוני ועוד), רצף האקורדים והפרוגרסיה בספרות רומיות |
-| מלודיה | התווים עצמם, טווח, קונטור, פרזות — וקובץ MIDI להורדה |
+| מלודיה | התווים עצמם, טווח, קונטור, פרזות — וקובץ MIDI להורדה. עם תמלול פוליפוני מקבלים גם MIDI של **כל** התווים בטראק |
 | כלים | דירוג של הכלים שכנראה מנגנים, עם רמת ביטחון |
 | סאונד והפקה | בהירות, איזון תדרים, דחיסה, דינמיקה, תחושת lo-fi מול מודרני |
 | מבנה | חלוקה לקטעים (intro / verse / build / drop / breakdown / outro) עם זמנים ואנרגיה |
@@ -60,6 +60,7 @@ audio2prompt track.mp3 -o out/ --save-stems   # also write the separated stems
 audio2prompt album/ --json                    # whole folder, machine-readable
 audio2prompt track.mp3 --with-vocals          # build a vocal prompt instead of instrumental
 audio2prompt track.mp3 --skip-melody          # ~3x faster, drops the note/MIDI output
+audio2prompt track.mp3 --transcribe pyin      # force the monophonic melody backend
 ```
 
 ### Python
@@ -91,11 +92,39 @@ print(prompt.style_short)
   progression      Am7 → F → C → Gmaj7
   in roman         i7 → VI → III → vii7
 
+▸ MELODY
+  extracted by     basic-pitch (top voice)
+  range            C4 → C6   centre A4
+  polyphony        5.5 notes sounding at once
+
 ═══ SUNO PROMPT ═══
 Style:   deep house with progressive house influence, dark, brooding, melancholic,
          groovy, 120 BPM, A minor, instrumental, kick drum, synth bass
 Exclude: vocals, lyrics, spoken word, choir, muddy mix, abrupt ending, tempo drift
 ```
+
+## Melody extraction
+
+Two backends, picked automatically:
+
+- **`pyin`** (always available) — monophonic pitch tracking on a high-passed copy of the mix.
+  It can only follow one pitch at a time, so on a dense arrangement it reports whichever voice is
+  loudest, which is often a pad or the bassline rather than the lead.
+- **`basic-pitch`** (optional, recommended) — a polyphonic transcription model. It transcribes
+  every note it hears, and the lead is recovered as the **top voice** of that transcription, which
+  is what a listener hears as the melody:
+
+  ```bash
+  pip install -r requirements-optional.txt
+  ```
+
+  Unlike demucs there is nothing to download — the model weights ship inside the wheel. With it you
+  also get a full `.transcription.mid` alongside the lead-line `.melody.mid`, plus a polyphony
+  measurement (how many notes sound at once).
+
+On the test fixture — where the melody is written at MIDI 67–76 over chords at 48–64 — `pyin`
+centres its line on the chord bed at B3, while the polyphonic top voice centres on A4, inside the
+written melody. The regression test asserts exactly that.
 
 ## Stem separation
 
@@ -122,7 +151,7 @@ Signal analysis, not magic. What it is reliably good at, and where it guesses:
 | **Tempo** | Solid on anything with a steady beat. Half/double-time confusion is possible; `bpm_candidates` in the JSON shows the alternatives. |
 | **Key** | Good. Relative major/minor is resolved from the chord track (which chord the loop starts and rests on), not from chroma alone. Heavily processed or modulating material lowers the reported confidence. |
 | **Chords** | Triads and sevenths, decoded with a Viterbi pass so chords are held rather than flickering. Inversions and slash chords are not detected. |
-| **Melody** | Monophonic pitch tracking on the lead band. On dense polyphonic mixes it can follow a pad or a counter-line instead of the lead — this is the weakest part without demucs. |
+| **Melody** | Good with `basic-pitch` installed: the top voice of a full polyphonic transcription. On harmonically rich material the line can still pick up a partial above the lead, or a chord tone while the lead rests — outliers far from the line's pitch centre are trimmed, but not all of them. Without `basic-pitch` it falls back to monophonic tracking, which on a dense mix often follows a pad instead of the lead. |
 | **Instruments** | Heuristics over spectral evidence, reported as ranked hints with confidences, **not** classifications. Treat anything under ~50% as a suggestion. |
 | **Genre** | Rule-based matching against feature windows, weighted so narrow profiles beat catch-all ones. Top-3 with confidences. |
 | **Vocals** | A crude proxy (sustained energy in the vocal band). It will miss quiet or heavily processed vocals. |
@@ -134,10 +163,11 @@ audio2prompt/
   analyze.py       pipeline — one HPSS pass feeds every extractor
   audio_io.py      decoding, resampling, mono-folding
   separation.py    stem separation (dsp | demucs)
+  transcribe.py    polyphonic transcription and top-voice melody extraction
   features/
     rhythm.py      BPM, beat grid, meter, swing, groove
     tonality.py    key/mode detection, Viterbi chord decoding, progressions
-    melody.py      pitch tracking, note segmentation, MIDI writer
+    melody.py      monophonic pitch tracking, note segmentation, MIDI writer
     timbre.py      spectral balance, dynamics, production character
     structure.py   section segmentation and labelling
     instruments.py instrumentation hints

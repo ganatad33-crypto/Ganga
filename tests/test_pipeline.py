@@ -25,7 +25,9 @@ from audio2prompt.transcribe import (  # noqa: E402
 )
 from audio2prompt.webapp import parse_multipart  # noqa: E402
 
-FIXTURE = Path(__file__).resolve().parents[1] / "examples" / "fixture_120bpm_Am.wav"
+EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
+FIXTURE = EXAMPLES / "fixture_120bpm_Am.wav"
+SWUNG_FIXTURE = EXAMPLES / "fixture_86bpm_Fsharpm.wav"
 
 
 @pytest.fixture(scope="module")
@@ -42,6 +44,17 @@ def fixture_path() -> Path:
 def analysis(fixture_path: Path):
     """Default pipeline — polyphonic transcription when it is installed."""
     return analyze_file(fixture_path, separation="dsp")
+
+
+@pytest.fixture(scope="module")
+def swung_analysis():
+    """86 BPM, F# minor, F#m-D-A-E, heavily swung — nothing like the first fixture."""
+    if not SWUNG_FIXTURE.exists():
+        subprocess.run(
+            [sys.executable, str(Path(__file__).parent / "make_fixture2.py"), str(SWUNG_FIXTURE)],
+            check=True,
+        )
+    return analyze_file(SWUNG_FIXTURE, separation="dsp", transcription="off")
 
 
 @pytest.fixture(scope="module")
@@ -214,3 +227,21 @@ def test_analysis_serialises_to_json(analysis) -> None:
     payload = analysis.to_dict()
     payload["suno_prompt"] = build_prompt(analysis).to_dict()
     assert json.loads(json.dumps(payload, ensure_ascii=False))["rhythm"]["bpm"] > 0
+
+
+# --------------------------------------- a second, unrelated piece of material
+
+def test_swung_fixture_tempo_key_and_feel(swung_analysis) -> None:
+    """Guards against tuning that only happens to fit the first fixture."""
+    assert swung_analysis.rhythm.bpm == pytest.approx(86.0, abs=1.5)
+    assert swung_analysis.tonality.key == "F#"
+    assert swung_analysis.tonality.mode in ("minor", "dorian", "phrygian", "harmonic minor")
+    assert swung_analysis.rhythm.swing > 0.5, "written with swung off-beats, should read as shuffled"
+
+
+def test_swung_fixture_chord_progression(swung_analysis) -> None:
+    roots = {
+        c[:2] if len(c) > 1 and c[1] == "#" else c[:1]
+        for c in swung_analysis.tonality.chord_progression
+    }
+    assert {"F#", "D", "A", "E"} <= roots

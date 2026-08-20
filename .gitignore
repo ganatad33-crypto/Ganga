@@ -11,3 +11,9 @@ out/
 examples/*.wav
 examples/*.mp3
 examples/*.flac
+analysis_*/
+*.analysis.json
+*.suno.txt
+*.report.md
+*.mid
+skills/*-workspace/

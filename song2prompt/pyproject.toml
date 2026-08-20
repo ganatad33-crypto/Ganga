@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "song2prompt"
+version = "0.1.0"
+description = "Analyze a song's audio (tempo, key, structure, texture) and draft a Suno-style generation prompt."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "librosa>=0.10",
+    "numpy",
+    "scipy",
+    "soundfile",
+]
+
+[project.optional-dependencies]
+stems = ["demucs", "torch"]
+
+[project.scripts]
+song2prompt = "song2prompt.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["song2prompt*"]

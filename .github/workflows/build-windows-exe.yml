@@ -1,0 +1,58 @@
+name: Build Windows exe
+
+on:
+  push:
+    branches:
+      - claude/remotion-audio-render-5m799u
+    paths:
+      - 'song2prompt/**'
+      - '.github/workflows/build-windows-exe.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install project + build tools
+        working-directory: song2prompt
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+          pip install pyinstaller pyinstaller-hooks-contrib
+
+      - name: Build exe
+        working-directory: song2prompt
+        run: |
+          pyinstaller --onefile --name song2prompt entry_point.py
+
+      - name: Smoke test
+        working-directory: song2prompt
+        run: |
+          dist\song2prompt.exe --help
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: song2prompt-windows-exe
+          path: song2prompt/dist/song2prompt.exe
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: song2prompt
+        shell: bash
+        run: |
+          tag="song2prompt-windows-${{ github.run_number }}"
+          gh release create "$tag" dist/song2prompt.exe \
+            --repo "${{ github.repository }}" \
+            --title "song2prompt for Windows (build ${{ github.run_number }})" \
+            --notes "Standalone Windows executable — no Python install needed. Run from Command Prompt: song2prompt.exe path\\to\\song.mp3"

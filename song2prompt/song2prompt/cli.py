@@ -5,7 +5,17 @@ import sys
 from . import audio_features, prompt_builder, stems
 
 
+def _fix_windows_console_encoding():
+    if sys.platform != "win32":
+        return
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name)
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main(argv=None):
+    _fix_windows_console_encoding()
     parser = argparse.ArgumentParser(
         prog="song2prompt",
         description="מנתח קובץ אודיו (BPM, סולם, מבנה אנרגיה, טקסטורה) וכותב טיוטת פרומפט ל-Suno.",

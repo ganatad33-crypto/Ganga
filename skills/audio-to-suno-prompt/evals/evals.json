@@ -1,0 +1,42 @@
+{
+  "skill_name": "audio-to-suno-prompt",
+  "note": "Ground truth comes from the rendered fixtures in examples/, so the assertions check known-correct musical values. Run grade.py from an iteration directory laid out as <eval-name>/<config>/outputs/answer.md.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "full-request-hebrew",
+      "prompt": "יש לי הקלטה בקובץ examples/fixture_86bpm_Fsharpm.wav. תפרק לי אותה לגורמים ותבנה לי פרומפט מדויק לסונו שאוכל להדביק. בלי מילים, אינסטרומנטלי.",
+      "files": [
+        "examples/fixture_86bpm_Fsharpm.wav"
+      ],
+      "assertions": [
+        "Reports the tempo as 86 BPM",
+        "Reports the key as F# minor",
+        "Reports the F#m - D - A - E progression",
+        "Notes the shuffled/swung groove",
+        "Gives a paste-ready Suno Style field",
+        "Main Style field is under 300 chars",
+        "Gives an Exclude Styles field",
+        "Exclude field excludes vocals",
+        "Gives a structure block with section tags",
+        "Keeps hallucinated guitar/brass hints out of the Style field",
+        "Answers in Hebrew"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "key-and-bpm-question",
+      "prompt": "באיזה סולם ובאיזה BPM הקובץ examples/fixture_120bpm_Am.wav? ואיזה אקורדים יש שם?",
+      "files": [
+        "examples/fixture_120bpm_Am.wav"
+      ],
+      "assertions": [
+        "Reports the tempo as 120 BPM",
+        "Reports the key as A minor",
+        "Names the chords Am, F, C and G",
+        "Stays on the question, no full Suno prompt dump",
+        "Answers in Hebrew"
+      ]
+    }
+  ]
+}

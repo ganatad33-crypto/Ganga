@@ -31,10 +31,9 @@ def _texture_descriptor(texture):
 
 
 def build_style_line(analysis):
-    genre_guess = analysis["genre_family_guess"][0] if analysis["genre_family_guess"] else "electronic"
     texture = analysis["texture"]
     parts = [
-        genre_guess,
+        "<GENRE — fill in manually, the tool does not classify genre>",
         f"{analysis['bpm']} BPM",
         _groove_descriptor(texture),
         _bass_descriptor(texture),
@@ -104,9 +103,11 @@ def build_report(analysis, stem_presence=None):
 
     lines.append("## 4. טיוטת פרומפט ל-Suno")
     lines.append(
-        "**חשוב:** תת-הז'אנר למטה הוא ניחוש גס לפי BPM וטקסטורה בלבד, לא זיהוי אמיתי. "
-        "לפני שימוש בפועל — קח את השורות האלה ותן אותן לקלוד עם הסקיל `suno-electronic` "
-        "כדי לחדד תת-ז'אנר מדויק, תגית הבדלה מהשכן הקרוב, וניסוח גרוב נכון."
+        "**הכלי הזה לא מזהה ז'אנר.** במקום להמציא תת-ז'אנר שגוי (למשל לתייג רגאטון "
+        "כ'טכנו' רק כי ה-BPM נופל באותו טווח), הושאר placeholder מפורש בשדה הראשון. "
+        "מלא אותו לפי הידיעה האמיתית שלך על השיר, ואז — אם רוצים חידוד נוסף לתת-ז'אנר "
+        "מדויק, תגית הבדלה מהשכן הקרוב וניסוח גרוב — קח את השורות האלה ותן אותן לקלוד "
+        "עם הסקיל `suno-electronic` (רלוונטי רק אם הז'אנר בפועל הוא אלקטרוני)."
     )
     lines.append("")
     lines.append("### Style (טיוטה)")
@@ -119,7 +120,12 @@ def build_report(analysis, stem_presence=None):
     lines.append(structure_block)
     lines.append("")
 
-    lines.append("## 5. משפחות ז'אנר אפשריות לפי BPM")
+    lines.append("## 5. אם הז'אנר בפועל הוא אלקטרוני — טווחי BPM שמתאימים")
+    lines.append(
+        "**רק אם השיר הוא בכלל מוזיקה אלקטרונית.** אם מדובר ברגאטון, היפ-הופ, פופ, רוק "
+        "וכו' — הרשימה הזו לא רלוונטית בכלל, תתעלם ממנה. היא לא זיהוי ז'אנר, רק התאמת "
+        "טווח BPM לטבלת הסקיל `suno-electronic`."
+    )
     for g in analysis["genre_family_guess"]:
         lines.append(f"- {g}")
 

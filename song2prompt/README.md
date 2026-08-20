@@ -7,10 +7,13 @@
 - **טיוטת פרומפט ל-[Suno](https://suno.com)** בפורמט Style / Exclude / Structure
 
 > **חשוב להבין את הגבולות:** הכלי הזה לא מתמלל תווים ("נוטות") מדויקות מתוך אודיו מלא —
-> זו משימה שאפילו כלים מסחריים לא פותרים היטב כשיש ווקאל וכלים מעורבבים. מה שהוא כן
-> עושה טוב: BPM, מבנה אנרגיה, וזיהוי טקסטורה/כלים גסים. תת-הז'אנר בפלט הוא **ניחוש**
-> לפי BPM וטקסטורה — לא סיווג מדעי. קח את הטיוטה שהוא מפיק ותן אותה ל-Claude עם הסקיל
-> `suno-electronic` לחידוד תת-הז'אנר המדויק ותגיות ההבדלה מהשכן הקרוב.
+> זו משימה שאפילו כלים מסחריים לא פותרים היטב כשיש ווקאל וכלים מעורבבים. הוא גם **לא
+> מזהה ז'אנר** — אין כאן מודל סיווג. מה שהוא כן עושה טוב: BPM, מבנה אנרגיה, וזיהוי
+> טקסטורה/כלים גסים. משדה ה-Style בפלט מכוונת במפורש `<GENRE — fill in manually>` במקום
+> לנחש — ניחוש BPM-בלבד (למשל "128 BPM אז זה טכנו") נכשל באופן צפוי על כל דבר שהוא לא
+> מוזיקה אלקטרונית טהורה (רגאטון, היפ-הופ, פופ, רוק וכו'). מלא את הז'אנר בעצמך, ואם
+> מדובר בז'אנר אלקטרוני — קח את הטיוטה ותן אותה ל-Claude עם הסקיל `suno-electronic`
+> לחידוד תת-הז'אנר המדויק ותגיות ההבדלה מהשכן הקרוב.
 
 ## התקנה
 
@@ -62,7 +65,7 @@ song2prompt path/to/song.mp3 --json out/analysis.json
 
 ## 4. טיוטת פרומפט ל-Suno
 ### Style (טיוטה)
-techno / trance family, 128.0 BPM, percussion-forward, punchy rhythmic groove, deep rolling sub bass, dark, warm texture, wide dynamic range, strong builds
+<GENRE — fill in manually, the tool does not classify genre>, 128.0 BPM, percussion-forward, punchy rhythmic groove, deep rolling sub bass, dark, warm texture, wide dynamic range, strong builds
 
 ### Exclude (טיוטה)
 festival EDM, big room drop, generic supersaw lead

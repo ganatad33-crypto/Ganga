@@ -33,6 +33,7 @@ var ICONS = {
    כדי לקבל כתובות נקיות בלי סיומת .html. */
 var PAGES = [
   { slug: '',            nav: 'בית',        title: 'ויקיכלב',                  icon: 'home',  group: 'התחלה' },
+  { slug: 'before',      nav: 'לפני שמביאים',title: 'לפני שמביאים כלב הביתה', icon: 'house', group: 'התחלה', inNav: false },
   { slug: 'signals',     nav: 'לקרוא כלב',  title: 'לקרוא כלב',              icon: 'eye',   group: 'המסלול' },
   { slug: 'learning',    nav: 'להבין',      title: 'איך כלב לומד',           icon: 'bolt',  group: 'המסלול' },
   { slug: 'tricks',      nav: 'טריקים',     title: 'טריקים בסיסיים',         icon: 'check', group: 'המסלול', inNav: false },

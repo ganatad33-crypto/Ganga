@@ -52,6 +52,7 @@ def build_qa():
 
 
 PAGE_TITLES = {
+    'before': 'לפני שמביאים כלב הביתה',
     'signals': 'לקרוא כלב', 'learning': 'איך כלב לומד', 'tricks': 'טריקים בסיסיים', 'household': 'מה בני הבית עושים לכלב',
     'routine': 'לחיות עם כלב', 'barking': 'הכלב שלי נובח', 'aggression': 'הכלב שלי תוקפני',
     'separation': 'חרדת נטישה', 'puppy': 'גור חדש בבית', 'world': 'לנוע בעולם',

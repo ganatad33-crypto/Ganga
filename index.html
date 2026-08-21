@@ -148,6 +148,53 @@
   </a>
 </div>
 
+<div class="teasers" data-teasers>
+  <div class="teasers-head">
+    <p class="teasers-title">דברים מעניינים שכדאי לדעת</p>
+    <div class="teasers-nav">
+      <button type="button" data-teaser-prev aria-label="הקודם"></button>
+      <button type="button" data-teaser-next aria-label="הבא"></button>
+    </div>
+  </div>
+  <div class="teasers-track">
+    <a class="teaser-card" href="qa/#qa53">
+      <span class="teaser-tag">מיתוס</span>
+      <b>כלב שמכשכש בזנב תמיד ידידותי?</b>
+      <small>לא בהכרח. כיוון, גובה ומהירות הכישכוש משנים את המשמעות לגמרי.</small>
+    </a>
+    <a class="teaser-card" href="qa/#qa8">
+      <span class="teaser-tag">מיתוס</span>
+      <b>"הוא נוקם בי" כשאני יוצא?</b>
+      <small>כמעט אף פעם לא נקמה — לרוב זו מצוקה אמיתית או שעמום, ויש הבדל בטיפול.</small>
+    </a>
+    <a class="teaser-card" href="qa/#qa22">
+      <span class="teaser-tag">שאלה</span>
+      <b>מציית מושלם בבית, מתעלם ברחוב?</b>
+      <small>הוא לא "מתחצף" — הוא פשוט לא למד את הפקודה בסביבה הזאת עדיין.</small>
+    </a>
+    <a class="teaser-card" href="guide/?tree=counter">
+      <span class="teaser-tag">מה קרה?</span>
+      <b>למה גניבת אוכל כל כך עמידה?</b>
+      <small>תגמול חלקי ולא קבוע הוא הכי קשה למחוק — בדיוק כמו מכונת מזל.</small>
+    </a>
+    <a class="teaser-card" href="guide/?tree=jump">
+      <span class="teaser-tag">מה קרה?</span>
+      <b>קפיצה על אנשים = חוצפה?</b>
+      <small>כמעט תמיד ניסיון ליצור קרבה — והתגובה שלכם ברגע הזה קובעת אם זה יימשך.</small>
+    </a>
+    <a class="teaser-card" href="profile/?breed=dalmatian">
+      <span class="teaser-tag">גזע</span>
+      <b>דלמטי: הקשר בין הכתמים לחירשות</b>
+      <small>שיעור חירשות מולדת גבוה יחסית בגזע, קשור לאותו גן שאחראי לתבנית הכתמים.</small>
+    </a>
+    <a class="teaser-card" href="tricks/#touch">
+      <span class="teaser-tag">טריק</span>
+      <b>הטריק שאף אחד לא מכיר, אבל הכי שימושי</b>
+      <small>"מגע" — נגיעת אף ביד — עוזר "להוביל" כלב בלי למשוך ברצועה.</small>
+    </a>
+  </div>
+</div>
+
 <h2>התוכן מתאים את עצמו לכלב שלך</h2>
 
 <p>גור בן 9 חודשים וכלב בן 4 שעושים בדיוק את אותה התנהגות עושים אותה לרוב מסיבות שונות — אז הם לא מקבלים כאן את אותה תשובה. <a href="profile/">הזינו גיל וגזע</a> והתוכן ישתנה בהתאם, בכל האתר.</p>
@@ -205,5 +252,39 @@
 <script src="assets/ux.js" defer></script>
 <script src="assets/art.js" defer></script>
 <script src="assets/profile.js" defer></script>
+<script defer>
+document.addEventListener('DOMContentLoaded', function () {
+  var wrap = document.querySelector('[data-teasers]');
+  if (!wrap) return;
+  var track = wrap.querySelector('.teasers-track');
+  var cards = Array.prototype.slice.call(track.children);
+  var prevBtn = wrap.querySelector('[data-teaser-prev]');
+  var nextBtn = wrap.querySelector('[data-teaser-next]');
+  prevBtn.innerHTML = ICONS.back;  /* "הקודם" מצביע ימינה, כמו בדפדוף הרגיל באתר */
+  nextBtn.innerHTML = ICONS.fwd;
+  var i = 0, timer = null;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function go(delta) {
+    i = (i + delta + cards.length) % cards.length;
+    cards[i].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+  }
+  function stop() { if (timer) { clearInterval(timer); timer = null; } }
+  function start() {
+    if (reduce) return;
+    stop();
+    timer = setInterval(function () { go(1); }, 5000);
+  }
+
+  prevBtn.addEventListener('click', function () { stop(); go(-1); });
+  nextBtn.addEventListener('click', function () { stop(); go(1); });
+  /* גלילה ידנית (החלקה/עכבר) עוצרת את ההתקדמות האוטומטית לצמיתות */
+  track.addEventListener('pointerdown', stop, { once: true });
+  track.addEventListener('wheel', stop, { once: true, passive: true });
+  wrap.addEventListener('mouseenter', stop);
+
+  start();
+});
+</script>
 </body>
 </html>

@@ -37,6 +37,8 @@ var PAGES = [
   { slug: 'signals',     nav: 'לקרוא כלב',  title: 'לקרוא כלב',              icon: 'eye',   group: 'המסלול' },
   { slug: 'learning',    nav: 'להבין',      title: 'איך כלב לומד',           icon: 'bolt',  group: 'המסלול' },
   { slug: 'tricks',      nav: 'טריקים',     title: 'טריקים בסיסיים',         icon: 'check', group: 'המסלול', inNav: false },
+  { slug: 'potty',       nav: 'עשיית צרכים',title: 'לימוד עשיית צרכים בחוץ', icon: 'house', group: 'המסלול', inNav: false },
+  { slug: 'enrichment',  nav: 'העשרה',      title: 'העשרה מנטלית לכלב',      icon: 'bolt',  group: 'המסלול', inNav: false },
   { slug: 'household',   nav: 'בני הבית',   title: 'מה בני הבית עושים לכלב', icon: 'users', group: 'המסלול', inNav: false },
   { slug: 'routine',     nav: 'לחיות',      title: 'לחיות עם כלב',           icon: 'house', group: 'המסלול' },
   { slug: 'barking',     nav: 'נביחה',      title: 'הכלב שלי נובח',          icon: 'sound', group: 'בעיות', inNav: false },

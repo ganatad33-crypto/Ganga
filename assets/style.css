@@ -649,6 +649,15 @@ strong { font-weight: 700; }
   letter-spacing: .04em; margin-bottom:.3rem;
 }
 
+/* כרטיס מוביל — הצעד הראשון, בולט יותר משאר הכרטיסים */
+.entry-photo-lead { grid-column: 1 / -1; }
+.entry-photo-lead b { font-size:1.35rem; }
+@media (min-width: 30rem) {
+  .entry-photo-lead { display: flex; align-items: stretch; }
+  .entry-photo-lead img { flex: 0 0 42%; width: 42%; height: auto; aspect-ratio: auto; align-self: stretch; object-fit: cover; border-start-start-radius: var(--radius-l); border-start-end-radius: 0; border-end-end-radius: 0; border-end-start-radius: var(--radius-l); }
+  .entry-photo-lead .entry-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+}
+
 /* רשת קומפקטית — "כלים ופתרונות מהירים" */
 .entrys-compact { display: grid; gap:.6rem; margin:1.5rem 0; grid-template-columns: 1fr 1fr; }
 @media (min-width: 34rem) { .entrys-compact { grid-template-columns: repeat(4,1fr); } }

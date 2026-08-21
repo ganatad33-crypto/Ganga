@@ -879,6 +879,43 @@ details.qa > summary:focus-visible { outline: 3px solid var(--accent-fill); outl
 .qa-body ul { margin:0 0 .6rem; padding-inline-start:1.2rem; }
 .qa-more { font-size:.85rem; color: var(--muted); border-top: 1px solid var(--border); padding-top:.6rem; margin-top:.25rem; }
 
+/* ---------- קרוסלת "דברים מעניינים" ---------- */
+
+.teasers { margin:2rem 0; }
+.teasers-head { display: flex; align-items: center; justify-content: space-between; margin-bottom:.8rem; }
+.teasers-title { font-family: var(--font-display); font-weight: 700; font-size:1.1rem; margin:0; }
+.teasers-nav { display: flex; gap:.4rem; }
+.teasers-nav button {
+  width: 36px; height: 36px; display: grid; place-items: center;
+  border: 1px solid var(--border); background: var(--surface); border-radius: 999px;
+  color: var(--ink); cursor: pointer; padding:0;
+  transition: background .15s var(--ease), border-color .15s var(--ease);
+}
+.teasers-nav button:hover { background: var(--accent-soft); border-color: var(--accent-fill); }
+.teasers-nav svg { width: 18px; height: 18px; }
+.teasers-track {
+  display: flex; gap:.9rem; overflow-x: auto; scroll-snap-type: x mandatory;
+  scrollbar-width: none; margin:0 -1.2rem; padding:.2rem 1.2rem 1rem;
+}
+.teasers-track::-webkit-scrollbar { display: none; }
+.teaser-card {
+  flex: 0 0 82%; scroll-snap-align: start;
+  display: block; text-decoration: none; color: var(--ink);
+  border: 1px solid var(--border); border-radius: var(--radius-l);
+  background: var(--surface); padding:1.1rem 1.2rem;
+  box-shadow: var(--shadow-s);
+  transition: transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
+}
+@media (min-width: 34rem) { .teaser-card { flex-basis: 45%; } }
+@media (min-width: 60rem) { .teaser-card { flex-basis: 30%; } }
+.teaser-card:hover { transform: translateY(-2px); border-color: var(--accent-fill); box-shadow: var(--shadow-m); }
+.teaser-card b { font-family: var(--font-display); font-size:1.05rem; display: block; margin-bottom:.4rem; }
+.teaser-card small { color: var(--muted); font-size:.9rem; line-height: 1.6; display: block; }
+.teaser-tag {
+  display: inline-block; font-size:.7rem; font-weight: 700; color: var(--accent);
+  letter-spacing: .04em; margin-bottom:.4rem;
+}
+
 /* ---------- סרגל ניווט תחתון (נייד בלבד) ---------- */
 
 .bottomnav {

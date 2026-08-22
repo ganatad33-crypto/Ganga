@@ -6,8 +6,9 @@
 <title>מלך לוח הכפל</title>
 <style>
   :root{
-    --bg1:#fff3d6; --bg2:#ffe0a3;
-    --wood:#8b5a2b; --wood-dark:#6b4420;
+    --bg1:#8fd3f4; --bg2:#fce8b8;
+    --wood:#8b5a2b; --wood-dark:#5a3718; --wood-light:#a9713f;
+    --awning1:#c0392b; --awning2:#fdf1dc;
     --accent:#ff8c3b; --accent-dark:#e06a1a;
     --green:#2fae5b; --green-dark:#1f8a45;
     --red:#e74c3c;
@@ -18,20 +19,50 @@
   html,body{height:100%;}
   body{
     margin:0; font-family:"Segoe UI","Arial Hebrew","Heebo",Arial,sans-serif;
-    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    background:linear-gradient(180deg,var(--bg1) 0%, var(--bg1) 30%, var(--bg2) 100%);
     color:var(--ink); min-height:100vh; display:flex; flex-direction:column;
-    overflow-x:hidden; user-select:none;
+    overflow-x:hidden; user-select:none; position:relative;
   }
-  .screen{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; text-align:center; }
+
+  /* ===== decorative falafel-stand scene (fixed backdrop, purely visual) ===== */
+  .scene{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .awning-strip{
+    position:absolute; top:0; left:0; right:0; height:38px;
+    background:repeating-linear-gradient(90deg, var(--awning1) 0 34px, var(--awning2) 34px 68px);
+    box-shadow:0 3px 6px rgba(0,0,0,.2);
+  }
+  .awning-scallops{ position:absolute; top:38px; left:0; right:0; height:16px; display:flex; }
+  .awning-scallops span{
+    flex:1 0 34px; height:16px; border-radius:0 0 50% 50%; margin:0 -1px;
+  }
+  .awning-scallops span:nth-child(odd){ background:var(--awning1); }
+  .awning-scallops span:nth-child(even){ background:var(--awning2); }
+  .counter{
+    position:absolute; left:0; right:0; bottom:0; height:84px;
+    background:
+      linear-gradient(180deg, var(--wood-light) 0 6px, transparent 6px),
+      repeating-linear-gradient(90deg, var(--wood) 0 28px, var(--wood-dark) 28px 30px);
+    box-shadow:0 -4px 10px rgba(0,0,0,.25);
+  }
+  .jars{ position:absolute; top:-14px; left:0; right:0; display:flex; justify-content:space-evenly; }
+  .jar{ width:26px; height:26px; border-radius:50%; border:2px solid rgba(0,0,0,.15); box-shadow:inset 0 -4px 6px rgba(0,0,0,.2), 0 2px 3px rgba(0,0,0,.2); }
+  .jar::after{ content:""; }
+
+  .screen{ position:relative; z-index:1; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; padding-bottom:70px; text-align:center; }
   .hidden{ display:none !important; }
 
-  h1{ font-size:2.1em; margin:0 0 4px; color:var(--wood-dark); text-shadow:1px 1px 0 #fff8; }
-  .subtitle{ font-size:1.05em; opacity:.8; margin-bottom:22px; }
+  h1{
+    display:inline-block; font-size:1.7em; margin:0 0 4px; padding:10px 22px;
+    background:var(--wood-dark); color:#ffe9b8; border-radius:8px;
+    box-shadow:0 5px 0 var(--wood), 0 8px 14px rgba(0,0,0,.25);
+    border:2px solid #4a2c12;
+  }
+  .subtitle{ font-size:1.05em; opacity:.85; margin:16px 0 22px; max-width:380px; }
 
   .card{
     background:var(--card); border-radius:20px; padding:22px 20px;
     box-shadow:0 8px 0 #d8c39a, 0 10px 24px rgba(0,0,0,.15);
-    max-width:420px; width:100%;
+    max-width:420px; width:100%; border:2px solid #e8d3a8;
   }
 
   .range-options{ display:flex; gap:10px; justify-content:center; margin:16px 0; flex-wrap:wrap; }
@@ -52,10 +83,11 @@
   .highscore{ margin-top:14px; font-size:.95em; opacity:.75; }
 
   /* ===== Game screen ===== */
-  #game{ padding:0; justify-content:flex-start; }
+  #game{ padding:0; padding-bottom:0; justify-content:flex-start; }
   .topbar{
     width:100%; display:flex; justify-content:space-between; align-items:center;
-    padding:10px 16px; background:var(--wood); color:#fff; font-weight:700; font-size:1.05em;
+    padding:10px 16px; background:var(--wood-dark); color:#fff; font-weight:700; font-size:1.05em;
+    position:relative; z-index:2; box-shadow:0 2px 6px rgba(0,0,0,.25);
   }
   .stat{ display:flex; align-items:center; gap:6px; }
   .hearts{ letter-spacing:2px; }
@@ -63,51 +95,62 @@
   .stand{
     flex:1; width:100%; max-width:520px; margin:0 auto;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:10px 14px 20px; gap:10px; position:relative;
+    padding:6px 14px 100px; gap:10px; position:relative;
   }
 
   .day-banner{
     background:var(--accent); color:#fff; padding:6px 16px; border-radius:999px;
-    font-weight:700; margin-top:8px; box-shadow:0 3px 0 var(--accent-dark);
+    font-weight:700; margin-top:4px; box-shadow:0 3px 0 var(--accent-dark);
   }
 
-  .customer-area{ position:relative; display:flex; flex-direction:column; align-items:center; margin-top:6px; }
-  .avatar{ font-size:5.2em; line-height:1; filter:drop-shadow(0 6px 4px rgba(0,0,0,.15)); transition:transform .15s; }
+  .customer-area{ position:relative; display:flex; flex-direction:column; align-items:center; margin-top:2px; }
+  .avatar{ font-size:5.6em; line-height:1; filter:drop-shadow(0 6px 4px rgba(0,0,0,.2)); transition:transform .15s; }
   .avatar.shake{ animation:shake .35s; }
   @keyframes shake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);} 60%{transform:translateX(-6px);} 80%{transform:translateX(6px);} }
   .avatar.leave{ animation:leaveAway .5s forwards; }
   @keyframes leaveAway{ to{ transform:translateY(-40px); opacity:0; } }
 
-  .mood{ position:absolute; top:-6px; left:50%; transform:translateX(38px); font-size:1.7em; }
-
-  .bubble{
-    background:#fff; border:3px solid var(--wood); border-radius:16px;
-    padding:10px 18px; font-size:1.6em; font-weight:800; margin-bottom:6px;
-    position:relative; box-shadow:0 4px 10px rgba(0,0,0,.12);
+  .mood{
+    position:absolute; top:-10px; left:50%; transform:translateX(40px); font-size:1.5em;
+    background:#fff; border-radius:50%; padding:2px; border:2px solid var(--wood);
+    box-shadow:0 2px 4px rgba(0,0,0,.2);
   }
-  .bubble::after{
-    content:""; position:absolute; bottom:-14px; left:50%; margin-left:-10px;
-    border-width:14px 10px 0 10px; border-style:solid; border-color:var(--wood) transparent transparent transparent;
+
+  /* order-ticket style bubble, like a note pinned above the stand */
+  .bubble{
+    direction:ltr; unicode-bidi:isolate;
+    background:#fffdf5;
+    background-image:repeating-linear-gradient(#fffdf5 0 27px, #f1e6c8 27px 28px);
+    border-radius:4px; padding:12px 22px 10px; font-size:1.6em; font-weight:800; margin-bottom:14px;
+    position:relative; box-shadow:0 6px 12px rgba(0,0,0,.25);
+    transform:rotate(-2deg);
+    border-inline-start:4px solid var(--red);
   }
   .bubble::before{
-    content:""; position:absolute; bottom:-9px; left:50%; margin-left:-7px; z-index:1;
-    border-width:11px 7px 0 7px; border-style:solid; border-color:#fff transparent transparent transparent;
+    content:"📌"; position:absolute; top:-16px; left:50%; transform:translateX(-50%) rotate(15deg);
+    font-size:1.1em;
   }
 
-  .patience-wrap{ width:180px; height:10px; background:#f0d9b0; border-radius:6px; overflow:hidden; margin-top:14px; border:2px solid var(--wood); }
+  .patience-wrap{
+    width:190px; height:14px; background:#3a2c1a; border-radius:999px; overflow:hidden;
+    margin-top:16px; border:2px solid var(--wood-dark); position:relative; display:flex; align-items:center;
+  }
   .patience-bar{ height:100%; background:var(--green); width:100%; transition:width .25s, background .25s; }
+  .patience-wrap::after{ content:"🔥"; position:absolute; left:-4px; font-size:1.1em; filter:drop-shadow(0 0 2px #000a); }
 
   .choices{
-    display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:360px; margin-top:22px;
+    display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; max-width:340px; margin-top:24px;
+    position:relative; z-index:2;
   }
   .choice-btn{
-    padding:18px 8px; font-size:1.5em; font-weight:800; border-radius:16px;
-    border:none; background:#fff; color:var(--wood-dark); cursor:pointer;
-    box-shadow:0 5px 0 #d8c39a; border:2px solid #e8d3a8;
+    aspect-ratio:1; border-radius:50%; font-size:1.5em; font-weight:800; cursor:pointer;
+    color:#4a2c12;
+    background:radial-gradient(circle at 35% 30%, #f6d98a, #d9a441 70%, #b97f28);
+    border:3px solid #8b5a2b; box-shadow:0 6px 0 #7a4a1f, 0 8px 14px rgba(0,0,0,.25);
   }
-  .choice-btn:active{ transform:translateY(3px); box-shadow:0 2px 0 #d8c39a; }
-  .choice-btn.correct{ background:var(--green); color:#fff; box-shadow:0 5px 0 var(--green-dark); }
-  .choice-btn.wrong{ background:var(--red); color:#fff; box-shadow:0 5px 0 #a83226; }
+  .choice-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 #7a4a1f; }
+  .choice-btn.correct{ background:radial-gradient(circle at 35% 30%, #7bdf9f, var(--green) 70%, var(--green-dark)); color:#fff; box-shadow:0 6px 0 var(--green-dark); }
+  .choice-btn.wrong{ background:radial-gradient(circle at 35% 30%, #f29a90, var(--red) 70%, #a83226); color:#fff; box-shadow:0 6px 0 #a83226; }
   .choice-btn:disabled{ opacity:.55; }
 
   .float-coin{
@@ -119,10 +162,27 @@
   #gameover .card{ }
   .fact-list{ text-align:right; font-size:.9em; max-height:120px; overflow-y:auto; margin:10px 0; background:#fff6e5; border-radius:10px; padding:8px 14px; }
 
-  footer{ text-align:center; font-size:.8em; opacity:.55; padding:8px; }
+  footer{ position:relative; z-index:2; text-align:center; font-size:.8em; opacity:.7; padding:8px; background:var(--wood-dark); color:#ffe9b8; }
 </style>
 </head>
 <body>
+
+  <div class="scene" aria-hidden="true">
+    <div class="awning-strip"></div>
+    <div class="awning-scallops">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="counter">
+      <div class="jars">
+        <div class="jar" style="background:#c0392b"></div>
+        <div class="jar" style="background:#3a9d4a"></div>
+        <div class="jar" style="background:#e8c46a"></div>
+        <div class="jar" style="background:#6b3fa0"></div>
+        <div class="jar" style="background:#f2eadf"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Start screen -->
   <div id="start" class="screen">

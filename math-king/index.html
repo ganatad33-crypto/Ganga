@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>מלך לוח הכפל</title>
+<style>
+  :root{
+    --bg1:#fff3d6; --bg2:#ffe0a3;
+    --wood:#8b5a2b; --wood-dark:#6b4420;
+    --accent:#ff8c3b; --accent-dark:#e06a1a;
+    --green:#2fae5b; --green-dark:#1f8a45;
+    --red:#e74c3c;
+    --ink:#3a2c1a;
+    --card:#fffaf0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; font-family:"Segoe UI","Arial Hebrew","Heebo",Arial,sans-serif;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    color:var(--ink); min-height:100vh; display:flex; flex-direction:column;
+    overflow-x:hidden; user-select:none;
+  }
+  .screen{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; text-align:center; }
+  .hidden{ display:none !important; }
+
+  h1{ font-size:2.1em; margin:0 0 4px; color:var(--wood-dark); text-shadow:1px 1px 0 #fff8; }
+  .subtitle{ font-size:1.05em; opacity:.8; margin-bottom:22px; }
+
+  .card{
+    background:var(--card); border-radius:20px; padding:22px 20px;
+    box-shadow:0 8px 0 #d8c39a, 0 10px 24px rgba(0,0,0,.15);
+    max-width:420px; width:100%;
+  }
+
+  .range-options{ display:flex; gap:10px; justify-content:center; margin:16px 0; flex-wrap:wrap; }
+  .range-btn{
+    padding:14px 18px; border-radius:14px; border:3px solid var(--wood);
+    background:#fff; font-size:1.1em; font-weight:700; cursor:pointer; color:var(--wood-dark);
+    min-width:84px;
+  }
+  .range-btn.selected{ background:var(--accent); color:#fff; border-color:var(--accent-dark); }
+
+  .big-btn{
+    margin-top:18px; padding:16px 32px; font-size:1.3em; font-weight:800;
+    border:none; border-radius:16px; background:var(--green); color:#fff;
+    box-shadow:0 6px 0 var(--green-dark); cursor:pointer;
+  }
+  .big-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 var(--green-dark); }
+
+  .highscore{ margin-top:14px; font-size:.95em; opacity:.75; }
+
+  /* ===== Game screen ===== */
+  #game{ padding:0; justify-content:flex-start; }
+  .topbar{
+    width:100%; display:flex; justify-content:space-between; align-items:center;
+    padding:10px 16px; background:var(--wood); color:#fff; font-weight:700; font-size:1.05em;
+  }
+  .stat{ display:flex; align-items:center; gap:6px; }
+  .hearts{ letter-spacing:2px; }
+
+  .stand{
+    flex:1; width:100%; max-width:520px; margin:0 auto;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:10px 14px 20px; gap:10px; position:relative;
+  }
+
+  .day-banner{
+    background:var(--accent); color:#fff; padding:6px 16px; border-radius:999px;
+    font-weight:700; margin-top:8px; box-shadow:0 3px 0 var(--accent-dark);
+  }
+
+  .customer-area{ position:relative; display:flex; flex-direction:column; align-items:center; margin-top:6px; }
+  .avatar{ font-size:5.2em; line-height:1; filter:drop-shadow(0 6px 4px rgba(0,0,0,.15)); transition:transform .15s; }
+  .avatar.shake{ animation:shake .35s; }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);} 60%{transform:translateX(-6px);} 80%{transform:translateX(6px);} }
+  .avatar.leave{ animation:leaveAway .5s forwards; }
+  @keyframes leaveAway{ to{ transform:translateY(-40px); opacity:0; } }
+
+  .mood{ position:absolute; top:-6px; left:50%; transform:translateX(38px); font-size:1.7em; }
+
+  .bubble{
+    background:#fff; border:3px solid var(--wood); border-radius:16px;
+    padding:10px 18px; font-size:1.6em; font-weight:800; margin-bottom:6px;
+    position:relative; box-shadow:0 4px 10px rgba(0,0,0,.12);
+  }
+  .bubble::after{
+    content:""; position:absolute; bottom:-14px; left:50%; margin-left:-10px;
+    border-width:14px 10px 0 10px; border-style:solid; border-color:var(--wood) transparent transparent transparent;
+  }
+  .bubble::before{
+    content:""; position:absolute; bottom:-9px; left:50%; margin-left:-7px; z-index:1;
+    border-width:11px 7px 0 7px; border-style:solid; border-color:#fff transparent transparent transparent;
+  }
+
+  .patience-wrap{ width:180px; height:10px; background:#f0d9b0; border-radius:6px; overflow:hidden; margin-top:14px; border:2px solid var(--wood); }
+  .patience-bar{ height:100%; background:var(--green); width:100%; transition:width .25s, background .25s; }
+
+  .choices{
+    display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:360px; margin-top:22px;
+  }
+  .choice-btn{
+    padding:18px 8px; font-size:1.5em; font-weight:800; border-radius:16px;
+    border:none; background:#fff; color:var(--wood-dark); cursor:pointer;
+    box-shadow:0 5px 0 #d8c39a; border:2px solid #e8d3a8;
+  }
+  .choice-btn:active{ transform:translateY(3px); box-shadow:0 2px 0 #d8c39a; }
+  .choice-btn.correct{ background:var(--green); color:#fff; box-shadow:0 5px 0 var(--green-dark); }
+  .choice-btn.wrong{ background:var(--red); color:#fff; box-shadow:0 5px 0 #a83226; }
+  .choice-btn:disabled{ opacity:.55; }
+
+  .float-coin{
+    position:absolute; font-weight:800; font-size:1.3em; color:var(--green-dark);
+    animation:floatUp .8s forwards; pointer-events:none;
+  }
+  @keyframes floatUp{ to{ transform:translateY(-46px); opacity:0; } }
+
+  #gameover .card{ }
+  .fact-list{ text-align:right; font-size:.9em; max-height:120px; overflow-y:auto; margin:10px 0; background:#fff6e5; border-radius:10px; padding:8px 14px; }
+
+  footer{ text-align:center; font-size:.8em; opacity:.55; padding:8px; }
+</style>
+</head>
+<body>
+
+  <!-- Start screen -->
+  <div id="start" class="screen">
+    <h1>👑 מלך לוח הכפל 👑</h1>
+    <div class="subtitle">עמדת דוכן — כל לקוח מבקש תשובה ללוח הכפל. תענו נכון ותקבלו מטבעות, תטעו יותר מדי — והלקוח יעצבן וילך!</div>
+    <div class="card">
+      <div><strong>עד כמה בלוח הכפל?</strong></div>
+      <div class="range-options">
+        <button class="range-btn" data-range="5">עד 5</button>
+        <button class="range-btn selected" data-range="10">עד 10</button>
+        <button class="range-btn" data-range="12">עד 12</button>
+      </div>
+      <button class="big-btn" id="startBtn">בואו נתחיל! 🥙</button>
+      <div class="highscore" id="highscoreLine"></div>
+    </div>
+  </div>
+
+  <!-- Game screen -->
+  <div id="game" class="screen hidden">
+    <div class="topbar">
+      <div class="stat">🪙 <span id="coins">0</span></div>
+      <div class="stat hearts" id="hearts">❤️❤️❤️</div>
+    </div>
+    <div class="stand">
+      <div class="day-banner" id="dayBanner">יום 1</div>
+      <div class="customer-area">
+        <div class="bubble" id="question">7 × 8 = ?</div>
+        <div style="position:relative;">
+          <span class="avatar" id="avatar">🧑</span>
+          <span class="mood" id="mood">🙂</span>
+        </div>
+        <div class="patience-wrap"><div class="patience-bar" id="patienceBar"></div></div>
+      </div>
+      <div class="choices" id="choices"></div>
+    </div>
+  </div>
+
+  <!-- Game over screen -->
+  <div id="gameover" class="screen hidden">
+    <h1>הדוכן נסגר...</h1>
+    <div class="card">
+      <div style="font-size:1.3em;">🪙 סיימת עם <strong id="finalCoins">0</strong> מטבעות</div>
+      <div id="worstFacts" style="margin-top:10px;"></div>
+      <button class="big-btn" id="restartBtn">שחקו שוב</button>
+    </div>
+  </div>
+
+  <footer>מלך לוח הכפל — בהשראת מלך הפלאפל הקלאסי 🥙</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var HIGH_KEY = "mathKingHighScore";
+  var MAX_MISTAKES = 3;      // wrong tries allowed before a customer storms off
+  var LIVES_START = 3;
+  var CUSTOMERS_PER_DAY = 8;
+  var CUSTOMER_EMOJIS = ["🧑","👩","👨","🧕","👴","👵","🧑‍🦱","👩‍🦰","🧔","👱"];
+  var MOODS = ["🙂","😐","😠","🤬"]; // index = mistakes so far for current customer
+
+  var els = {
+    start: document.getElementById("start"),
+    game: document.getElementById("game"),
+    gameover: document.getElementById("gameover"),
+    startBtn: document.getElementById("startBtn"),
+    restartBtn: document.getElementById("restartBtn"),
+    coins: document.getElementById("coins"),
+    hearts: document.getElementById("hearts"),
+    dayBanner: document.getElementById("dayBanner"),
+    question: document.getElementById("question"),
+    avatar: document.getElementById("avatar"),
+    mood: document.getElementById("mood"),
+    patienceBar: document.getElementById("patienceBar"),
+    choices: document.getElementById("choices"),
+    finalCoins: document.getElementById("finalCoins"),
+    worstFacts: document.getElementById("worstFacts"),
+    highscoreLine: document.getElementById("highscoreLine"),
+    stand: document.querySelector(".stand")
+  };
+
+  var range = 10;
+  document.querySelectorAll(".range-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll(".range-btn").forEach(function(b){ b.classList.remove("selected"); });
+      btn.classList.add("selected");
+      range = parseInt(btn.dataset.range, 10);
+    });
+  });
+
+  function loadHighScore(){
+    var v = parseInt(localStorage.getItem(HIGH_KEY) || "0", 10);
+    return isNaN(v) ? 0 : v;
+  }
+  function saveHighScoreIfBetter(v){
+    if(v > loadHighScore()) localStorage.setItem(HIGH_KEY, String(v));
+  }
+  els.highscoreLine.textContent = "השיא שלך: " + loadHighScore() + " מטבעות";
+
+  // ---- audio (no external files, tiny beeps) ----
+  var actx = null;
+  function tone(freq, dur, type, delay){
+    try{
+      if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      var t0 = actx.currentTime + (delay||0);
+      var osc = actx.createOscillator();
+      var gain = actx.createGain();
+      osc.type = type || "sine";
+      osc.frequency.setValueAtTime(freq, t0);
+      gain.gain.setValueAtTime(0.001, t0);
+      gain.gain.linearRampToValueAtTime(0.15, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+      osc.connect(gain).connect(actx.destination);
+      osc.start(t0); osc.stop(t0 + dur + 0.02);
+    }catch(e){ /* audio not available, ignore */ }
+  }
+  function playCorrect(){ tone(660,0.12,"sine",0); tone(880,0.16,"sine",0.1); }
+  function playWrong(){ tone(180,0.2,"sawtooth",0); }
+  function playStorm(){ tone(140,0.25,"square",0); tone(100,0.3,"square",0.1); }
+
+  // ---- game state ----
+  var state = null;
+
+  function factKey(a,b){ return a<=b ? a+"x"+b : b+"x"+a; }
+
+  function buildFactPool(r){
+    var pool = [];
+    for(var a=1; a<=r; a++){
+      for(var b=a; b<=r; b++){ pool.push([a,b]); }
+    }
+    return pool;
+  }
+
+  function pickNextFact(){
+    var pool = state.factPool;
+    var weights = state.weights;
+    var last = state.lastFactKey;
+    var total = 0;
+    var usable = pool.filter(function(f){ return pool.length===1 || factKey(f[0],f[1]) !== last; });
+    usable.forEach(function(f){ total += weights[factKey(f[0],f[1])] || 1; });
+    var r = Math.random() * total;
+    for(var i=0;i<usable.length;i++){
+      var f = usable[i];
+      var w = weights[factKey(f[0],f[1])] || 1;
+      if(r < w) return f;
+      r -= w;
+    }
+    return usable[usable.length-1];
+  }
+
+  function bumpWeight(a,b,ok){
+    var k = factKey(a,b);
+    var w = state.weights[k] || 1;
+    state.weights[k] = ok ? Math.max(1, w - 1) : w + 3;
+  }
+
+  function genChoices(a,b,correct){
+    var set = new Set();
+    var candidates = [
+      a*(b+1), a*(b>1?b-1:b+2), (a+1)*b, (a>1?a-1:a+2)*b,
+      a+b, correct+a, correct-a, correct+b, correct-b,
+      correct + (Math.random()<0.5?1:-1) * (1+Math.floor(Math.random()*4))
+    ];
+    candidates.forEach(function(v){ if(v>0 && v!==correct) set.add(v); });
+    var arr = Array.from(set);
+    // shuffle
+    for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+    var wrongs = arr.slice(0,3);
+    while(wrongs.length<3){
+      var v = correct + (wrongs.length+1)*(Math.random()<0.5?1:-1);
+      if(v>0 && v!==correct && wrongs.indexOf(v)===-1) wrongs.push(v);
+    }
+    var choices = wrongs.concat([correct]);
+    for(var k=choices.length-1;k>0;k--){ var j2=Math.floor(Math.random()*(k+1)); var t2=choices[k]; choices[k]=choices[j2]; choices[j2]=t2; }
+    return choices;
+  }
+
+  function updateHeader(){
+    els.coins.textContent = state.coins;
+    els.hearts.textContent = "❤️".repeat(state.lives) + "🖤".repeat(LIVES_START - state.lives);
+    els.dayBanner.textContent = "יום " + state.day;
+  }
+
+  function newCustomer(){
+    var fact = pickNextFact();
+    var a = fact[0], b = fact[1];
+    if(Math.random()<0.5){ var tmp=a; a=b; b=tmp; }
+    state.lastFactKey = factKey(a,b);
+    state.current = { a:a, b:b, correct:a*b, mistakes:0 };
+
+    els.avatar.textContent = CUSTOMER_EMOJIS[Math.floor(Math.random()*CUSTOMER_EMOJIS.length)];
+    els.avatar.className = "avatar";
+    els.mood.textContent = MOODS[0];
+    els.question.textContent = a + " × " + b + " = ?";
+    els.patienceBar.style.width = "100%";
+    els.patienceBar.style.background = "";
+    renderChoices();
+  }
+
+  function renderChoices(){
+    var c = state.current;
+    var choices = genChoices(c.a, c.b, c.correct);
+    els.choices.innerHTML = "";
+    choices.forEach(function(val){
+      var btn = document.createElement("button");
+      btn.className = "choice-btn";
+      btn.textContent = val;
+      btn.addEventListener("click", function(){ onAnswer(val, btn); });
+      els.choices.appendChild(btn);
+    });
+  }
+
+  function flashCoins(amount){
+    var f = document.createElement("div");
+    f.className = "float-coin";
+    f.textContent = "+" + amount + " 🪙";
+    var rect = els.avatar.getBoundingClientRect();
+    var standRect = els.stand.getBoundingClientRect();
+    f.style.left = (rect.left - standRect.left + rect.width/2 - 20) + "px";
+    f.style.top = (rect.top - standRect.top) + "px";
+    els.stand.appendChild(f);
+    setTimeout(function(){ f.remove(); }, 800);
+  }
+
+  function onAnswer(val, btn){
+    var c = state.current;
+    var buttons = Array.prototype.slice.call(els.choices.children);
+    buttons.forEach(function(b){ b.disabled = true; });
+
+    if(val === c.correct){
+      btn.classList.add("correct");
+      playCorrect();
+      bumpWeight(c.a, c.b, true);
+      var reward = Math.max(2, 10 - c.mistakes * 3);
+      state.coins += reward;
+      flashCoins(reward);
+      state.servedToday++;
+      if(state.servedToday >= CUSTOMERS_PER_DAY){
+        state.servedToday = 0;
+        state.day++;
+        state.coins += 5;
+      }
+      updateHeader();
+      els.avatar.classList.add("leave");
+      setTimeout(function(){
+        if(state.gameOver) return;
+        newCustomer();
+      }, 550);
+    } else {
+      btn.classList.add("wrong");
+      playWrong();
+      c.mistakes++;
+      bumpWeight(c.a, c.b, false);
+      els.avatar.classList.add("shake");
+      setTimeout(function(){ els.avatar.classList.remove("shake"); }, 350);
+
+      if(c.mistakes >= MAX_MISTAKES){
+        playStorm();
+        els.mood.textContent = MOODS[3];
+        els.patienceBar.style.width = "0%";
+        state.lives--;
+        updateHeader();
+        els.avatar.classList.add("leave");
+        setTimeout(function(){
+          if(state.lives <= 0){ endGame(); }
+          else { newCustomer(); }
+        }, 650);
+      } else {
+        els.mood.textContent = MOODS[c.mistakes];
+        var pct = Math.max(0, 100 - (c.mistakes/MAX_MISTAKES)*100);
+        els.patienceBar.style.width = pct + "%";
+        els.patienceBar.style.background = c.mistakes===1 ? "#e0a83a" : "#e05a3a";
+        setTimeout(function(){ renderChoices(); }, 500);
+      }
+    }
+  }
+
+  function endGame(){
+    state.gameOver = true;
+    saveHighScoreIfBetter(state.coins);
+    els.finalCoins.textContent = state.coins;
+
+    var worst = Object.keys(state.weights)
+      .filter(function(k){ return state.weights[k] > 1; })
+      .sort(function(x,y){ return state.weights[y] - state.weights[x]; })
+      .slice(0,5)
+      .map(function(k){ return k.replace("x"," × "); });
+
+    els.worstFacts.innerHTML = worst.length
+      ? "<div style='font-size:.9em;opacity:.8;'>כדאי לתרגל עוד:</div><div class='fact-list'>" + worst.join(" · ") + "</div>"
+      : "";
+
+    els.game.classList.add("hidden");
+    els.gameover.classList.remove("hidden");
+  }
+
+  function startGame(){
+    state = {
+      coins: 0, lives: LIVES_START, day: 1, servedToday: 0,
+      factPool: buildFactPool(range), weights: {}, lastFactKey: null,
+      gameOver: false
+    };
+    updateHeader();
+    els.start.classList.add("hidden");
+    els.gameover.classList.add("hidden");
+    els.game.classList.remove("hidden");
+    newCustomer();
+  }
+
+  els.startBtn.addEventListener("click", startGame);
+  els.restartBtn.addEventListener("click", function(){
+    els.highscoreLine.textContent = "השיא שלך: " + loadHighScore() + " מטבעות";
+    els.gameover.classList.add("hidden");
+    els.start.classList.remove("hidden");
+  });
+
+})();
+</script>
+</body>
+</html>

@@ -120,21 +120,55 @@
     transform:translateY(10px);
   }
 
-  .customer-figure{ position:relative; display:flex; flex-direction:column; align-items:center; }
-  .torso{
-    position:absolute; bottom:-4px; width:104px; height:54px; border-radius:46px 46px 4px 4px;
-    z-index:0; box-shadow:inset 0 6px 10px rgba(255,255,255,.25), inset 0 -8px 10px rgba(0,0,0,.2);
+  .customer-figure{
+    position:relative; display:flex; flex-direction:column; align-items:center;
+    animation:idleBounce 1.6s ease-in-out infinite;
   }
-  .avatar{ position:relative; z-index:1; font-size:5.6em; line-height:1; filter:drop-shadow(0 6px 4px rgba(0,0,0,.2)); transition:transform .15s; }
+  @keyframes idleBounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+  .torso{
+    position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
+    width:64px; height:16px; border-radius:50%;
+    background:rgba(0,0,0,.28); filter:blur(2px); z-index:0;
+  }
+  .avatar{
+    position:relative; z-index:1; width:118px; height:118px;
+    filter:drop-shadow(0 6px 4px rgba(0,0,0,.2)); transition:transform .15s;
+  }
+  .avatar svg{ width:100%; height:100%; display:block; }
   .avatar.shake{ animation:shake .35s; }
   @keyframes shake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);} 60%{transform:translateX(-6px);} 80%{transform:translateX(6px);} }
   .avatar.leave{ animation:leaveAway .5s forwards; }
   @keyframes leaveAway{ to{ transform:translateY(-40px); opacity:0; } }
+  .avatar.pop{ animation:popAnswer .4s ease-out; }
+  @keyframes popAnswer{ 0%{transform:scale(1);} 35%{transform:scale(1.25,0.8);} 65%{transform:scale(0.92,1.1);} 100%{transform:scale(1);} }
+
+  .name-tag{
+    margin-top:2px; font-size:.85em; font-weight:700; color:var(--wood-dark);
+    background:#fff; padding:1px 10px; border-radius:999px; border:1px solid #d8c39a;
+  }
 
   .mood{
-    position:absolute; top:-10px; left:50%; transform:translateX(40px); font-size:1.5em; z-index:2;
+    position:absolute; top:-8px; right:-6px; font-size:1.5em; z-index:2;
     background:#fff; border-radius:50%; padding:2px; border:2px solid var(--wood);
     box-shadow:0 2px 4px rgba(0,0,0,.2);
+  }
+
+  /* juicy correct-answer feedback: confetti + big praise text */
+  .confetti-piece{
+    position:absolute; width:9px; height:9px; border-radius:2px; pointer-events:none;
+    animation:confettiPop .7s ease-out forwards; z-index:6;
+  }
+  @keyframes confettiPop{ to{ transform:translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity:0; } }
+  .praise-text{
+    position:absolute; left:50%; top:38%; transform:translate(-50%,-50%) scale(0);
+    font-size:1.8em; font-weight:900; color:#fff; text-shadow:0 3px 0 var(--wood-dark), 0 5px 10px rgba(0,0,0,.3);
+    animation:praisePop .9s ease-out forwards; pointer-events:none; z-index:7; white-space:nowrap;
+  }
+  @keyframes praisePop{
+    0%{ transform:translate(-50%,-50%) scale(0); opacity:0; }
+    30%{ transform:translate(-50%,-55%) scale(1.2); opacity:1; }
+    55%{ transform:translate(-50%,-60%) scale(1); opacity:1; }
+    100%{ transform:translate(-50%,-95%) scale(0.9); opacity:0; }
   }
 
   /* vertical segmented patience meter, like a thermometer next to the customer */
@@ -249,6 +283,7 @@
   <div id="game" class="screen hidden">
     <div class="topbar">
       <div class="stat">🪙 <span id="coins">0</span></div>
+      <div class="stat" id="streakStat" style="display:none;">🔥 <span id="streakCount">0</span></div>
       <div class="stat hearts" id="hearts">❤️❤️❤️</div>
     </div>
     <div class="stand">
@@ -259,8 +294,9 @@
           <span class="queue-customer" id="queueLeft">👵</span>
           <div class="customer-figure">
             <span class="torso" id="torso"></span>
-            <span class="avatar" id="avatar">🧑</span>
+            <div class="avatar" id="avatar"></div>
             <span class="mood" id="mood">🙂</span>
+            <span class="name-tag" id="nameTag">רובי</span>
           </div>
           <div class="patience-wrap"><div class="patience-bar" id="patienceBar"></div></div>
           <span class="queue-customer" id="queueRight">🧔</span>
@@ -292,9 +328,47 @@
   var LIVES_START = 3;
   var CUSTOMERS_PER_DAY = 8;
   var CUSTOMER_EMOJIS = ["🧑","👩","👨","🧕","👴","👵","🧑‍🦱","👩‍🦰","🧔","👱"];
-  var TORSO_COLORS = ["#e07a5f","#3d84a8","#8a5a83","#5b8c5a","#c9a13b","#4a6fa5","#a15c5c"];
   var BIN_COLORS = ["#c0392b","#3a9d4a","#e8c46a","#8a5a3c"];
   var MOODS = ["🙂","😐","😠","🤬"]; // index = mistakes so far for current customer
+  var PRAISE = ["מעולה!","וואו!","כל הכבוד!","מושלם!","יש!!","אלוף/ה!","נכון!"];
+  var CONFETTI_COLORS = ["#ff8c3b","#2fae5b","#3d84a8","#e74c3c","#ffd93d","#b18cd9"];
+
+  var CHIBI_CHARS = [
+    { name:"רובי", svg:
+      '<svg viewBox="0 0 120 120"><ellipse cx="60" cy="70" rx="40" ry="42" fill="#cfd8e6" stroke="#1e293b" stroke-width="5"/>'+
+      '<rect x="34" y="52" width="52" height="34" rx="10" fill="#2b3a55" stroke="#1e293b" stroke-width="4"/>'+
+      '<circle cx="48" cy="69" r="7" fill="#5fe3ff"/><circle cx="72" cy="69" r="7" fill="#5fe3ff"/>'+
+      '<line x1="60" y1="28" x2="60" y2="14" stroke="#1e293b" stroke-width="5" stroke-linecap="round"/>'+
+      '<circle cx="60" cy="10" r="7" fill="#e74c3c" stroke="#1e293b" stroke-width="4"/>'+
+      '<ellipse cx="26" cy="80" rx="9" ry="12" fill="#cfd8e6" stroke="#1e293b" stroke-width="4"/>'+
+      '<ellipse cx="94" cy="80" rx="9" ry="12" fill="#cfd8e6" stroke="#1e293b" stroke-width="4"/></svg>' },
+    { name:"מיצי", svg:
+      '<svg viewBox="0 0 120 120"><path d="M35 30 L45 5 L58 32 Z" fill="#f2a444" stroke="#1e293b" stroke-width="5" stroke-linejoin="round"/>'+
+      '<path d="M85 30 L75 5 L62 32 Z" fill="#f2a444" stroke="#1e293b" stroke-width="5" stroke-linejoin="round"/>'+
+      '<ellipse cx="60" cy="68" rx="42" ry="40" fill="#f2a444" stroke="#1e293b" stroke-width="5"/>'+
+      '<circle cx="46" cy="64" r="6" fill="#1e293b"/><circle cx="74" cy="64" r="6" fill="#1e293b"/>'+
+      '<path d="M55 80 Q60 86 65 80" fill="none" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>'+
+      '<path d="M60 74 L54 78 M60 74 L66 78" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>'+
+      '<line x1="20" y1="70" x2="40" y2="72" stroke="#fff" stroke-width="2"/><line x1="20" y1="78" x2="40" y2="78" stroke="#fff" stroke-width="2"/>'+
+      '<line x1="80" y1="72" x2="100" y2="70" stroke="#fff" stroke-width="2"/><line x1="80" y1="78" x2="100" y2="78" stroke="#fff" stroke-width="2"/></svg>' },
+    { name:"בלוני", svg:
+      '<svg viewBox="0 0 120 120"><path d="M20 70 Q20 20 60 20 Q100 20 100 70 L100 95 Q92 88 84 95 Q76 102 68 95 Q60 88 52 95 Q44 102 36 95 Q28 88 20 95 Z" fill="#b18cd9" stroke="#1e293b" stroke-width="5" stroke-linejoin="round"/>'+
+      '<line x1="60" y1="20" x2="60" y2="6" stroke="#1e293b" stroke-width="4"/>'+
+      '<polygon points="60,6 50,20 70,20" fill="#ffd93d" stroke="#1e293b" stroke-width="4" stroke-linejoin="round"/>'+
+      '<circle cx="60" cy="4" r="5" fill="#ff6b6b" stroke="#1e293b" stroke-width="3"/>'+
+      '<circle cx="46" cy="58" r="6" fill="#1e293b"/><circle cx="74" cy="58" r="6" fill="#1e293b"/>'+
+      '<path d="M50 70 Q60 78 70 70" fill="none" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>'+
+      '<circle cx="38" cy="66" r="6" fill="#f49ac1" opacity=".7"/><circle cx="82" cy="66" r="6" fill="#f49ac1" opacity=".7"/></svg>' },
+    { name:"דינו", svg:
+      '<svg viewBox="0 0 120 120"><polygon points="45,22 52,8 59,22" fill="#3a9d6b" stroke="#1e293b" stroke-width="4"/>'+
+      '<polygon points="58,18 65,4 72,18" fill="#3a9d6b" stroke="#1e293b" stroke-width="4"/>'+
+      '<polygon points="71,22 78,8 85,22" fill="#3a9d6b" stroke="#1e293b" stroke-width="4"/>'+
+      '<ellipse cx="60" cy="70" rx="42" ry="40" fill="#57c48a" stroke="#1e293b" stroke-width="5"/>'+
+      '<circle cx="50" cy="64" r="10" fill="#fff" stroke="#1e293b" stroke-width="3"/><circle cx="52" cy="66" r="4" fill="#1e293b"/>'+
+      '<circle cx="76" cy="66" r="6" fill="#1e293b"/>'+
+      '<path d="M50 82 Q60 90 72 82" fill="none" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>'+
+      '<ellipse cx="22" cy="82" rx="8" ry="10" fill="#57c48a" stroke="#1e293b" stroke-width="4"/></svg>' }
+  ];
 
   var els = {
     start: document.getElementById("start"),
@@ -309,9 +383,12 @@
     torso: document.getElementById("torso"),
     avatar: document.getElementById("avatar"),
     mood: document.getElementById("mood"),
+    nameTag: document.getElementById("nameTag"),
     queueLeft: document.getElementById("queueLeft"),
     queueRight: document.getElementById("queueRight"),
     binsRow: document.getElementById("binsRow"),
+    streakStat: document.getElementById("streakStat"),
+    streakCount: document.getElementById("streakCount"),
     patienceBar: document.getElementById("patienceBar"),
     choices: document.getElementById("choices"),
     finalCoins: document.getElementById("finalCoins"),
@@ -433,6 +510,8 @@
     els.coins.textContent = state.coins;
     els.hearts.textContent = "❤️".repeat(state.lives) + "🖤".repeat(LIVES_START - state.lives);
     els.dayBanner.textContent = "יום " + state.day;
+    els.streakCount.textContent = state.streak;
+    els.streakStat.style.display = state.streak >= 2 ? "flex" : "none";
   }
 
   function newCustomer(){
@@ -442,9 +521,10 @@
     state.lastFactKey = factKey(a,b);
     state.current = { a:a, b:b, correct:a*b, mistakes:0 };
 
-    els.avatar.textContent = CUSTOMER_EMOJIS[Math.floor(Math.random()*CUSTOMER_EMOJIS.length)];
+    var character = CHIBI_CHARS[Math.floor(Math.random()*CHIBI_CHARS.length)];
+    els.avatar.innerHTML = character.svg;
     els.avatar.className = "avatar";
-    els.torso.style.background = TORSO_COLORS[Math.floor(Math.random()*TORSO_COLORS.length)];
+    els.nameTag.textContent = character.name;
     els.queueLeft.textContent = CUSTOMER_EMOJIS[Math.floor(Math.random()*CUSTOMER_EMOJIS.length)];
     els.queueRight.textContent = CUSTOMER_EMOJIS[Math.floor(Math.random()*CUSTOMER_EMOJIS.length)];
     els.mood.textContent = MOODS[0];
@@ -452,6 +532,43 @@
     els.patienceBar.style.height = "100%";
     els.patienceBar.style.background = "";
     renderChoices();
+  }
+
+  function spawnConfetti(){
+    var rect = els.avatar.getBoundingClientRect();
+    var standRect = els.stand.getBoundingClientRect();
+    var cx = rect.left - standRect.left + rect.width/2;
+    var cy = rect.top - standRect.top + rect.height/2;
+    for(var i=0;i<14;i++){
+      var p = document.createElement("div");
+      p.className = "confetti-piece";
+      p.style.background = CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)];
+      p.style.left = (cx - 4) + "px";
+      p.style.top = (cy - 4) + "px";
+      var angle = Math.random()*Math.PI*2;
+      var dist = 50 + Math.random()*60;
+      p.style.setProperty("--dx", Math.cos(angle)*dist + "px");
+      p.style.setProperty("--dy", Math.sin(angle)*dist - 20 + "px");
+      p.style.setProperty("--rot", (Math.random()*540-270) + "deg");
+      els.stand.appendChild(p);
+      (function(el){ setTimeout(function(){ el.remove(); }, 750); })(p);
+    }
+  }
+
+  function spawnPraise(text){
+    var p = document.createElement("div");
+    p.className = "praise-text";
+    p.textContent = text;
+    els.stand.appendChild(p);
+    setTimeout(function(){ p.remove(); }, 950);
+  }
+
+  function celebrate(reward, bigStreak){
+    flashCoins(reward);
+    spawnConfetti();
+    spawnPraise(bigStreak ? ("רצף אש! 🔥×" + state.streak) : PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+    els.avatar.classList.add("pop");
+    setTimeout(function(){ els.avatar.classList.remove("pop"); }, 400);
   }
 
   function renderChoices(){
@@ -489,8 +606,10 @@
       playCorrect();
       bumpWeight(c.a, c.b, true);
       var reward = Math.max(2, 10 - c.mistakes * 3);
+      state.streak = (c.mistakes === 0) ? state.streak + 1 : 0;
+      var streakMilestone = state.streak > 0 && state.streak % 5 === 0;
+      if(streakMilestone) reward += 10;
       state.coins += reward;
-      flashCoins(reward);
       state.servedToday++;
       if(state.servedToday >= CUSTOMERS_PER_DAY){
         state.servedToday = 0;
@@ -498,6 +617,7 @@
         state.coins += 5;
       }
       updateHeader();
+      celebrate(reward, streakMilestone);
       els.avatar.classList.add("leave");
       setTimeout(function(){
         if(state.gameOver) return;
@@ -516,6 +636,7 @@
         els.mood.textContent = MOODS[3];
         els.patienceBar.style.height = "0%";
         state.lives--;
+        state.streak = 0;
         updateHeader();
         els.avatar.classList.add("leave");
         setTimeout(function(){
@@ -553,7 +674,7 @@
 
   function startGame(){
     state = {
-      coins: 0, lives: LIVES_START, day: 1, servedToday: 0,
+      coins: 0, lives: LIVES_START, day: 1, servedToday: 0, streak: 0,
       factPool: buildFactPool(range), weights: {}, lastFactKey: null,
       gameOver: false
     };

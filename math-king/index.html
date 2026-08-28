@@ -153,12 +153,20 @@
     box-shadow:0 2px 4px rgba(0,0,0,.2);
   }
 
-  /* juicy correct-answer feedback: confetti + big praise text */
-  .confetti-piece{
-    position:absolute; width:9px; height:9px; border-radius:2px; pointer-events:none;
-    animation:confettiPop .7s ease-out forwards; z-index:6;
+  /* juicy correct-answer feedback: shoots the answer's own quantity of balls + big praise text */
+  .shot-ball{
+    position:absolute; width:13px; height:13px; border-radius:50%; pointer-events:none; z-index:6;
+    background:radial-gradient(circle at 35% 30%, #f6d98a, #d9a441 70%, #b97f28);
+    border:1.5px solid #7a4a1f;
+    animation:shotFly .55s ease-out forwards;
   }
-  @keyframes confettiPop{ to{ transform:translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity:0; } }
+  @keyframes shotFly{ to{ transform:translate(var(--dx), var(--dy)) scale(.5); opacity:0; } }
+  .shot-counter{
+    position:absolute; left:50%; top:26%; transform:translate(-50%,-50%);
+    font-size:1.7em; font-weight:900; color:#fff;
+    text-shadow:0 3px 0 var(--wood-dark), 0 5px 10px rgba(0,0,0,.3);
+    z-index:8; pointer-events:none; white-space:nowrap;
+  }
   .praise-text{
     position:absolute; left:50%; top:38%; transform:translate(-50%,-50%) scale(0);
     font-size:1.8em; font-weight:900; color:#fff; text-shadow:0 3px 0 var(--wood-dark), 0 5px 10px rgba(0,0,0,.3);
@@ -331,7 +339,6 @@
   var BIN_COLORS = ["#c0392b","#3a9d4a","#e8c46a","#8a5a3c"];
   var MOODS = ["🙂","😐","😠","🤬"]; // index = mistakes so far for current customer
   var PRAISE = ["מעולה!","וואו!","כל הכבוד!","מושלם!","יש!!","אלוף/ה!","נכון!"];
-  var CONFETTI_COLORS = ["#ff8c3b","#2fae5b","#3d84a8","#e74c3c","#ffd93d","#b18cd9"];
 
   var CHIBI_CHARS = [
     { name:"רובי", svg:
@@ -534,25 +541,40 @@
     renderChoices();
   }
 
-  function spawnConfetti(){
+  // shoots exactly `count` little falafel-ball projectiles from the customer —
+  // count = the multiplication answer itself, so kids *see* the quantity
+  function shootAnswerBalls(count){
     var rect = els.avatar.getBoundingClientRect();
     var standRect = els.stand.getBoundingClientRect();
-    var cx = rect.left - standRect.left + rect.width/2;
-    var cy = rect.top - standRect.top + rect.height/2;
-    for(var i=0;i<14;i++){
-      var p = document.createElement("div");
-      p.className = "confetti-piece";
-      p.style.background = CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)];
-      p.style.left = (cx - 4) + "px";
-      p.style.top = (cy - 4) + "px";
-      var angle = Math.random()*Math.PI*2;
-      var dist = 50 + Math.random()*60;
-      p.style.setProperty("--dx", Math.cos(angle)*dist + "px");
-      p.style.setProperty("--dy", Math.sin(angle)*dist - 20 + "px");
-      p.style.setProperty("--rot", (Math.random()*540-270) + "deg");
-      els.stand.appendChild(p);
-      (function(el){ setTimeout(function(){ el.remove(); }, 750); })(p);
+    var ox = rect.left - standRect.left + rect.width/2;
+    var oy = rect.top - standRect.top + rect.height/2;
+
+    var counter = document.createElement("div");
+    counter.className = "shot-counter";
+    counter.textContent = "0";
+    els.stand.appendChild(counter);
+
+    var totalDuration = Math.min(1100, Math.max(350, count * 20));
+    var interval = totalDuration / count;
+
+    for(var i=0;i<count;i++){
+      (function(idx){
+        setTimeout(function(){
+          var b = document.createElement("div");
+          b.className = "shot-ball";
+          b.style.left = (ox - 6) + "px";
+          b.style.top = (oy - 6) + "px";
+          var dx = (Math.random()*220 - 110);
+          var dy = -(50 + Math.random()*120);
+          b.style.setProperty("--dx", dx + "px");
+          b.style.setProperty("--dy", dy + "px");
+          els.stand.appendChild(b);
+          counter.textContent = idx + 1;
+          setTimeout(function(){ b.remove(); }, 600);
+        }, idx * interval);
+      })(i);
     }
+    setTimeout(function(){ counter.remove(); }, totalDuration + 700);
   }
 
   function spawnPraise(text){
@@ -563,9 +585,9 @@
     setTimeout(function(){ p.remove(); }, 950);
   }
 
-  function celebrate(reward, bigStreak){
+  function celebrate(reward, bigStreak, correctValue){
     flashCoins(reward);
-    spawnConfetti();
+    shootAnswerBalls(correctValue);
     spawnPraise(bigStreak ? ("רצף אש! 🔥×" + state.streak) : PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     els.avatar.classList.add("pop");
     setTimeout(function(){ els.avatar.classList.remove("pop"); }, 400);
@@ -617,7 +639,7 @@
         state.coins += 5;
       }
       updateHeader();
-      celebrate(reward, streakMilestone);
+      celebrate(reward, streakMilestone, c.correct);
       els.avatar.classList.add("leave");
       setTimeout(function(){
         if(state.gameOver) return;

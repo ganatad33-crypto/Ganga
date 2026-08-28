@@ -1,0 +1,152 @@
+@font-face { font-family: 'Heebo'; font-weight: 400; font-display: swap;
+  src: url('../fonts/heebo-hebrew-400-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+@font-face { font-family: 'Heebo'; font-weight: 500; font-display: swap;
+  src: url('../fonts/heebo-hebrew-500-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+@font-face { font-family: 'Heebo'; font-weight: 700; font-display: swap;
+  src: url('../fonts/heebo-hebrew-700-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+@font-face { font-family: 'Rubik'; font-weight: 600; font-display: swap;
+  src: url('../fonts/rubik-hebrew-500-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+@font-face { font-family: 'Rubik'; font-weight: 800; font-display: swap;
+  src: url('../fonts/rubik-hebrew-700-normal.woff2') format('woff2'); unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+
+:root{
+  --sky1:#7ec8e3; --sky2:#bfe8f5; --wood:#a5672f; --wood-d:#7d4b21;
+  --tent1:#e0483e; --tent2:#f6e27a; --ink:#173047; --paper:#fff8ec;
+  --ok:#3aa65b; --bad:#e0483e; --gold:#f0a92e;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;overscroll-behavior:none}
+body{
+  font-family:'Heebo',sans-serif;
+  background:linear-gradient(180deg,var(--sky1),var(--sky2) 55%,#eaf7fb);
+  color:var(--ink);
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;flex-direction:column;
+  touch-action:none;
+}
+
+header{
+  background:repeating-linear-gradient(135deg,var(--tent1) 0 24px,var(--tent2) 24px 48px);
+  box-shadow:0 3px 0 var(--wood-d), 0 4px 10px rgba(0,0,0,.25);
+  padding:10px 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  position:relative;z-index:20;
+}
+header h1{
+  font-family:'Rubik',sans-serif;font-weight:800;font-size:17px;
+  color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35);
+  white-space:nowrap;
+}
+.hleft,.hright{display:flex;align-items:center;gap:6px}
+.iconbtn{
+  background:rgba(255,255,255,.9);border:2px solid var(--wood-d);border-radius:12px;
+  width:38px;height:38px;font-size:18px;cursor:pointer;line-height:1;
+}
+.iconbtn:active{transform:scale(.9)}
+.pill{
+  background:#fff;border:2px solid var(--wood-d);border-radius:999px;
+  padding:5px 12px;font-size:13px;font-weight:600;white-space:nowrap;
+  display:flex;align-items:center;gap:4px;
+}
+.pill b{font-family:'Rubik',sans-serif;font-weight:800;font-size:15px;color:var(--ink)}
+
+@media (max-width:380px){
+  header{padding:8px 8px;gap:3px}
+  header h1{font-size:13px}
+  .iconbtn{width:32px;height:32px;font-size:14px;border-radius:10px}
+  .pill{padding:4px 8px;font-size:11px;gap:2px}
+  .pill b{font-size:12px}
+  .hleft,.hright{gap:4px}
+}
+
+.streakRow{
+  display:flex;justify-content:center;gap:6px;padding:6px 8px 0;
+  font-size:18px;min-height:20px;
+}
+.streakRow .dot{opacity:.35;transition:transform .25s, opacity .25s}
+.streakRow .dot.on{opacity:1;transform:scale(1.15)}
+
+.question{
+  display:flex;justify-content:center;padding:8px 12px 4px;
+}
+.qsign{
+  background:var(--paper);
+  border:4px solid var(--wood-d);
+  border-radius:16px;
+  padding:8px 22px;
+  box-shadow:0 4px 0 var(--wood-d), inset 0 0 0 2px #fff;
+  font-family:'Rubik',sans-serif;font-weight:800;
+  font-size:clamp(26px,7vw,40px);
+  display:flex;align-items:center;gap:.35em;
+  color:var(--ink);
+}
+.qop,.qeq{color:var(--tent1)}
+.qhuh{color:var(--gold);font-size:1.1em}
+#qA,#qB{min-width:1.1ch;text-align:center;display:inline-block}
+.qsign.pulse{animation:qpulse .5s ease}
+@keyframes qpulse{0%{transform:scale(1)}30%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+.stage{
+  position:relative;flex:1;min-height:0;
+  margin:6px 8px 0;
+  border-radius:18px;
+  overflow:hidden;
+  border:4px solid var(--wood-d);
+  box-shadow:0 5px 0 var(--wood-d);
+  touch-action:none;
+}
+#gameCanvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+
+.toast{
+  position:absolute;top:10%;left:50%;transform:translate(-50%,-8px);
+  background:rgba(23,48,71,.92);color:#fff;
+  padding:10px 20px;border-radius:14px;
+  font-weight:700;font-size:clamp(15px,4vw,20px);
+  opacity:0;pointer-events:none;transition:opacity .18s, transform .18s;
+  white-space:nowrap;z-index:5;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.levelup{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:6px;
+  pointer-events:none;opacity:0;z-index:6;
+  font-family:'Rubik',sans-serif;font-weight:800;
+  text-shadow:0 3px 0 rgba(0,0,0,.3);
+  color:#fff;text-align:center;
+}
+.levelup.show{animation:lvlpop 1.6s ease forwards}
+.levelup .big{font-size:clamp(28px,9vw,48px)}
+.levelup .small{font-size:clamp(15px,4vw,20px);font-weight:600}
+@keyframes lvlpop{
+  0%{opacity:0;transform:scale(.6)}
+  15%{opacity:1;transform:scale(1.05)}
+  25%{transform:scale(1)}
+  80%{opacity:1}
+  100%{opacity:0}
+}
+
+.foot{padding:6px 12px 10px;text-align:center}
+.foot p{font-size:12.5px;color:var(--ink);opacity:.75}
+
+.startOverlay{
+  position:fixed;inset:0;background:rgba(23,48,71,.85);
+  display:flex;align-items:center;justify-content:center;z-index:50;
+  padding:20px;
+}
+.startCard{
+  background:var(--paper);border-radius:20px;padding:26px 22px;
+  max-width:400px;text-align:center;
+  border:4px solid var(--wood-d);box-shadow:0 6px 0 var(--wood-d);
+}
+.startEmoji{font-size:40px;margin-bottom:6px}
+.startCard h2{font-family:'Rubik',sans-serif;font-weight:800;font-size:20px;margin-bottom:10px}
+.startCard p{font-size:14px;line-height:1.7;color:var(--ink);opacity:.85;margin-bottom:16px}
+#startBtn{
+  background:var(--ok);color:#fff;border:none;border-radius:14px;
+  padding:14px 26px;font-size:17px;font-weight:800;font-family:'Rubik',sans-serif;
+  cursor:pointer;box-shadow:0 4px 0 #237c40;
+}
+#startBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #237c40}
+.startOverlay.hidden{display:none}

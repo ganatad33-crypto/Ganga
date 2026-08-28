@@ -1,0 +1,602 @@
+'use strict';
+/* דוכן הכפל — משחק ירי בברווזים לתרגול לוח הכפל.
+ * הרעיון: ברווזים שטים בבריכה, כל אחד נושא מספר. למעלה מוצג תרגיל כפל.
+ * לוחצים על הברווז עם התשובה הנכונה. הרמה עולה ויורדת אוטומטית לפי הפגיעות. */
+
+// ===== DOM refs =====
+const stage = document.getElementById('stage');
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const qAEl = document.getElementById('qA');
+const qBEl = document.getElementById('qB');
+const questionBox = document.getElementById('questionBox');
+const qsignEl = questionBox.querySelector('.qsign');
+const scoreEl = document.getElementById('scoreVal');
+const levelEl = document.getElementById('levelVal');
+const streakRow = document.getElementById('streakRow');
+const toastEl = document.getElementById('toast');
+const levelUpEl = document.getElementById('levelUp');
+const soundBtn = document.getElementById('soundBtn');
+const restartBtn = document.getElementById('restartBtn');
+const startOverlay = document.getElementById('startOverlay');
+const startBtn = document.getElementById('startBtn');
+
+// ===== persistence =====
+const LS = {
+  score: 'duckhunt.score', level: 'duckhunt.level',
+  best: 'duckhunt.best', sound: 'duckhunt.sound'
+};
+function loadNum(key, def) { const v = parseInt(localStorage.getItem(key), 10); return Number.isFinite(v) ? v : def; }
+function persist() {
+  try {
+    localStorage.setItem(LS.score, String(state.score));
+    localStorage.setItem(LS.level, String(state.level));
+    localStorage.setItem(LS.best, String(Math.max(state.best, state.score)));
+  } catch (e) { /* אחסון לא זמין — לא נורא */ }
+}
+
+// ===== game state =====
+const state = {
+  score: loadNum(LS.score, 0),
+  level: Math.min(10, Math.max(1, loadNum(LS.level, 1))),
+  best: loadNum(LS.best, 0),
+  correctStreak: 0,
+  wrongStreak: 0,
+  muted: localStorage.getItem(LS.sound) === '0',
+  started: false,
+};
+state.best = Math.max(state.best, state.score);
+
+let question = { a: 2, b: 2, answer: 4 };
+let ducks = [];
+let particles = [];
+let logicalW = 300, logicalH = 400;
+let lastTs = 0;
+let pointer = { x: null, y: null };
+let shots = []; // muzzle/impact flash effects
+let gunRecoil = 0;
+let pendingTimers = [];
+let duckIdSeq = 1;
+
+const COLORS = ['#f4c542', '#f28c28', '#5ac8fa', '#8ee06f', '#ff7fa8', '#c9a0ff'];
+
+// ===== utils =====
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = randInt(0, i);[a[i], a[j]] = [a[j], a[i]]; } return a; }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function schedule(fn, ms) { const id = setTimeout(fn, ms); pendingTimers.push(id); return id; }
+function clearTimers() { pendingTimers.forEach(clearTimeout); pendingTimers = []; }
+
+// ===== audio (WebAudio, ללא קבצים חיצוניים) =====
+let actx = null;
+function ensureAudio() {
+  if (!actx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) actx = new AC();
+  }
+  if (actx && actx.state === 'suspended') actx.resume();
+}
+function tone(freq, dur, type, delay, vol) {
+  if (state.muted || !actx) return;
+  const t0 = actx.currentTime + (delay || 0);
+  const osc = actx.createOscillator();
+  const gain = actx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, t0);
+  gain.gain.setValueAtTime(0, t0);
+  gain.gain.linearRampToValueAtTime(vol == null ? 0.15 : vol, t0 + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(gain).connect(actx.destination);
+  osc.start(t0); osc.stop(t0 + dur + 0.03);
+}
+const sfx = {
+  shoot() { tone(120, 0.05, 'square', 0, 0.10); },
+  splash() { tone(200, 0.12, 'sine', 0, 0.05); },
+  correct() { tone(523.25, 0.11, 'triangle', 0, 0.16); tone(659.25, 0.11, 'triangle', 0.08, 0.16); tone(880, 0.18, 'triangle', 0.16, 0.18); },
+  wrong() { tone(220, 0.15, 'sawtooth', 0, 0.10); tone(160, 0.2, 'sawtooth', 0.1, 0.10); },
+  levelUp() { tone(523, 0.1, 'triangle', 0, 0.16); tone(659, 0.1, 'triangle', 0.1, 0.16); tone(784, 0.1, 'triangle', 0.2, 0.16); tone(1046, 0.28, 'triangle', 0.3, 0.2); },
+  levelDown() { tone(392, 0.16, 'sine', 0, 0.10); tone(311, 0.22, 'sine', 0.12, 0.10); },
+};
+
+// ===== difficulty model =====
+function levelTables(level) {
+  if (level <= 2) return [1, 2, 5, 10];
+  if (level <= 4) return [1, 2, 3, 4, 5, 10];
+  if (level <= 6) return [1, 2, 3, 4, 5, 6, 7, 10];
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+}
+function duckCountForLevel(level) { return clamp(3 + Math.floor((level - 1) / 2), 3, 7); }
+function speedFactorForLevel(level) { return 1 + (level - 1) * 0.09; }
+function distractorSharpness(level) { return level >= 7 ? 'close' : (level >= 4 ? 'mid' : 'wide'); }
+
+function generateQuestion() {
+  const tables = levelTables(state.level);
+  const a = pick(tables);
+  const b = randInt(1, 10);
+  return { a, b, answer: a * b };
+}
+
+function generateDistractors(q, count, exclude) {
+  const used = new Set(exclude || []);
+  used.add(q.answer);
+  const out = [];
+  const sharp = distractorSharpness(state.level);
+  const candidates = shuffle([
+    () => q.a * (q.b + 1),
+    () => q.a * (q.b - 1),
+    () => (q.a + 1) * q.b,
+    () => (q.a - 1 > 0 ? (q.a - 1) * q.b : q.a * (q.b + 2)),
+    () => q.a * (q.b + 2),
+    () => (q.a + 2) * q.b,
+    () => q.answer + (Math.random() < 0.5 ? -1 : 1) * randInt(1, sharp === 'close' ? 4 : (sharp === 'mid' ? 6 : 9)),
+    () => q.answer + (Math.random() < 0.5 ? -1 : 1) * randInt(2, 12),
+  ]);
+  let guard = 0;
+  while (out.length < count && guard < 60) {
+    guard++;
+    for (const fn of candidates) {
+      if (out.length >= count) break;
+      const v = fn();
+      if (Number.isFinite(v) && v > 0 && v <= 121 && !used.has(v)) {
+        used.add(v); out.push(v);
+      }
+    }
+  }
+  // מילוי בטוח אם עדיין חסר
+  while (out.length < count) {
+    const v = clamp(q.answer + randInt(-15, 15), 1, 121);
+    if (!used.has(v)) { used.add(v); out.push(v); }
+  }
+  return out;
+}
+
+// ===== ducks =====
+function poolBounds() {
+  return { top: logicalH * 0.40, bottom: logicalH * 0.92 };
+}
+function spawnDucks(q) {
+  const count = duckCountForLevel(state.level);
+  const values = shuffle([q.answer, ...generateDistractors(q, count - 1, [])]);
+  const { top, bottom } = poolBounds();
+  const margin = 44;
+  ducks = values.map((val, i) => {
+    const lane = (i + 0.5) * ((bottom - top) / count);
+    const baseY = top + lane + randInt(-6, 6);
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    const speed = (46 + randInt(0, 34)) * speedFactorForLevel(state.level);
+    return {
+      id: duckIdSeq++,
+      x: randInt(margin, Math.max(margin + 1, logicalW - margin)),
+      baseY, y: baseY,
+      vx: speed * dir,
+      facing: dir,
+      phase: Math.random() * Math.PI * 2,
+      bobFreq: 2 + Math.random(),
+      amp: 6 + Math.random() * 5,
+      val, isCorrect: val === q.answer,
+      color: pick(COLORS),
+      state: 'alive', // alive | hit | wrong | gone
+      t0: 0,
+    };
+  });
+}
+function respawnSingleDuck(duck) {
+  if (!ducks.includes(duck)) return;
+  const others = ducks.filter(d => d !== duck).map(d => d.val);
+  const [v] = generateDistractors(question, 1, others);
+  duck.val = v;
+  duck.isCorrect = v === question.answer;
+  duck.state = 'alive';
+}
+
+// ===== particles =====
+function burst(x, y, colors, count, spread) {
+  for (let i = 0; i < count; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const spd = (spread || 90) * (0.4 + Math.random() * 0.8);
+    particles.push({
+      x, y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd - 40,
+      g: 220, life: 0.6 + Math.random() * 0.4, age: 0,
+      r: 2 + Math.random() * 3, color: pick(colors),
+    });
+  }
+}
+function floatText(x, y, text, color) {
+  particles.push({ x, y, vx: 0, vy: -38, g: 0, life: 0.9, age: 0, text, color: color || '#173047', isText: true });
+}
+
+// ===== UI helpers =====
+let toastTimer = null;
+function showToast(text, dur) {
+  toastEl.textContent = text;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), dur || 1100);
+}
+function showLevelUp(big, small) {
+  levelUpEl.innerHTML = `<div class="big">${big}</div><div class="small">${small}</div>`;
+  levelUpEl.classList.remove('show');
+  void levelUpEl.offsetWidth;
+  levelUpEl.classList.add('show');
+}
+function updateHUD() {
+  scoreEl.textContent = state.score;
+  levelEl.textContent = state.level;
+}
+function updateStreakDots() {
+  streakRow.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const d = document.createElement('span');
+    d.className = 'dot' + (i < state.correctStreak ? ' on' : '');
+    d.textContent = '⭐';
+    streakRow.appendChild(d);
+  }
+}
+function pulseQuestion() {
+  qsignEl.classList.remove('pulse');
+  void qsignEl.offsetWidth;
+  qsignEl.classList.add('pulse');
+}
+
+const PRAISE = ['כל הכבוד! 🎉', 'מעולה! 👏', 'בול פגיעה! 🎯', 'אלוף! 🌟', 'יפה מאוד! 😄', 'ישר בול! 🦆'];
+const TRY_AGAIN = ['כמעט! נסה שוב 🙂', 'לא נורא, עוד ניסיון 💪', 'קרוב מאוד! 🔁', 'שים לב לתרגיל למעלה 👀'];
+
+// ===== round flow =====
+function newQuestion() {
+  question = generateQuestion();
+  qAEl.textContent = question.a;
+  qBEl.textContent = question.b;
+  pulseQuestion();
+  spawnDucks(question);
+}
+
+function correctHit(duck) {
+  duck.state = 'hit'; duck.t0 = performance.now();
+  burst(duck.x, duck.y, ['#bfe8f5', '#ffffff', '#5ac8fa'], 14, 130);
+  const gained = 10 + state.level * 2;
+  floatText(duck.x, duck.y - 20, '+' + gained, '#2e7d46');
+  sfx.correct();
+  state.score += gained;
+  state.best = Math.max(state.best, state.score);
+  state.correctStreak++; state.wrongStreak = 0;
+  updateStreakDots(); updateHUD(); persist();
+  showToast(pick(PRAISE));
+  if (state.correctStreak >= 3) {
+    state.correctStreak = 0;
+    state.level = Math.min(10, state.level + 1);
+    sfx.levelUp();
+    showLevelUp(`🎉 רמה ${state.level}! 🎉`, 'הברווזים שוחים מהר יותר עכשיו!');
+    updateStreakDots(); persist();
+  }
+  schedule(() => newQuestion(), 750);
+}
+
+function wrongHit(duck) {
+  duck.state = 'wrong'; duck.t0 = performance.now();
+  sfx.wrong();
+  state.correctStreak = 0; state.wrongStreak++;
+  updateStreakDots(); persist();
+  showToast(pick(TRY_AGAIN));
+  if (state.wrongStreak >= 2) {
+    state.wrongStreak = 0;
+    if (state.level > 1) {
+      state.level -= 1;
+      sfx.levelDown();
+      showToast('בואו ננסה קצת יותר לאט, אתה מצליח! 💪', 1400);
+    }
+    persist();
+  }
+  schedule(() => respawnSingleDuck(duck), 550);
+}
+
+function missShot(x, y) {
+  burst(x, y, ['#bfe8f5', '#ffffff'], 6, 70);
+  sfx.splash();
+}
+
+// ===== rendering =====
+function resizeCanvas() {
+  const rect = stage.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  logicalW = Math.max(1, rect.width);
+  logicalH = Math.max(1, rect.height);
+  canvas.width = Math.round(logicalW * dpr);
+  canvas.height = Math.round(logicalH * dpr);
+  canvas.style.width = logicalW + 'px';
+  canvas.style.height = logicalH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function drawBackground(t) {
+  // שמיים
+  const sky = ctx.createLinearGradient(0, 0, 0, logicalH * 0.5);
+  sky.addColorStop(0, '#8fd3ef'); sky.addColorStop(1, '#d8f2fa');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, logicalW, logicalH * 0.45);
+
+  // עננים נעים
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  for (let i = 0; i < 3; i++) {
+    const cx = ((t * 8 + i * 160) % (logicalW + 160)) - 80;
+    const cy = 20 + i * 22;
+    cloud(cx, cy, 26 + i * 4);
+  }
+
+  // גדר עץ
+  const fenceTop = logicalH * 0.36, fenceBot = poolBounds().top + 4;
+  ctx.fillStyle = '#b5732f';
+  ctx.fillRect(0, fenceTop, logicalW, fenceBot - fenceTop);
+  ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 2;
+  for (let x = -((t * 4) % 26); x < logicalW; x += 26) {
+    ctx.beginPath(); ctx.moveTo(x, fenceTop); ctx.lineTo(x, fenceBot); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(0,0,0,.12)';
+  ctx.fillRect(0, fenceTop, logicalW, 4);
+
+  // בריכה
+  const { top, bottom } = poolBounds();
+  const pond = ctx.createLinearGradient(0, top, 0, logicalH);
+  pond.addColorStop(0, '#2f9fd0'); pond.addColorStop(1, '#1c6f9c');
+  ctx.fillStyle = pond;
+  ctx.fillRect(0, top, logicalW, logicalH - top);
+
+  ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 2;
+  for (let row = 0; row < 5; row++) {
+    const y = top + 14 + row * ((bottom - top) / 5);
+    ctx.beginPath();
+    for (let x = 0; x <= logicalW; x += 10) {
+      const yy = y + Math.sin(x * 0.05 + t * 1.6 + row) * 3;
+      if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+  }
+}
+function cloud(x, y, s) {
+  ctx.beginPath();
+  ctx.ellipse(x, y, s, s * 0.6, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + s * 0.7, y + s * 0.15, s * 0.7, s * 0.45, 0, 0, Math.PI * 2);
+  ctx.ellipse(x - s * 0.6, y + s * 0.2, s * 0.55, s * 0.4, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawDuck(duck, t) {
+  const hitAnim = duck.state === 'hit' ? clamp((performance.now() - duck.t0) / 600, 0, 1) : 0;
+  const wrongAnim = duck.state === 'wrong' ? (performance.now() - duck.t0) / 400 : 0;
+  ctx.save();
+  const wiggle = duck.state === 'wrong' ? Math.sin(wrongAnim * 40) * 6 * Math.max(0, 1 - wrongAnim) : 0;
+  ctx.translate(duck.x + wiggle, duck.y + hitAnim * 26);
+  const scale = 1 - hitAnim * 0.5;
+  ctx.globalAlpha = 1 - hitAnim;
+  ctx.scale(duck.facing < 0 ? -scale : scale, scale);
+  if (hitAnim > 0) ctx.rotate(hitAnim * 0.9);
+
+  // גל קטן מתחת
+  ctx.fillStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.ellipse(0, 20, 24, 5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // גוף
+  ctx.fillStyle = duck.color;
+  ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(0, 4, 22, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // כנף
+  ctx.fillStyle = 'rgba(0,0,0,.12)';
+  ctx.beginPath(); ctx.ellipse(-2, 6, 10, 7, 0.3, 0, Math.PI * 2); ctx.fill();
+  // ראש
+  ctx.fillStyle = duck.color;
+  ctx.beginPath(); ctx.ellipse(14, -8, 11, 10, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // מקור
+  ctx.fillStyle = '#f0a92e';
+  ctx.beginPath(); ctx.moveTo(22, -8); ctx.lineTo(34, -6); ctx.lineTo(22, -3); ctx.closePath(); ctx.fill();
+  // עין
+  ctx.fillStyle = '#173047';
+  ctx.beginPath(); ctx.arc(17, -10, 2, 0, Math.PI * 2); ctx.fill();
+
+  ctx.restore();
+
+  if (hitAnim >= 1) return;
+  // שלט מספר
+  ctx.save();
+  ctx.globalAlpha = 1 - hitAnim;
+  ctx.translate(duck.x, duck.y - 30 + hitAnim * 26);
+  const label = String(duck.val);
+  const w = Math.max(34, 16 + label.length * 13);
+  roundRect(ctx, -w / 2, -13, w, 26, 8);
+  ctx.fillStyle = '#fff8ec';
+  ctx.fill();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = '#7d4b21'; ctx.stroke();
+  ctx.fillStyle = '#173047';
+  ctx.font = "800 17px Rubik, 'Heebo', sans-serif";
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(label, 0, 1);
+  ctx.restore();
+}
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function drawParticles(dt) {
+  particles = particles.filter(p => p.age < p.life);
+  for (const p of particles) {
+    p.age += dt;
+    p.vy += (p.g || 0) * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    const a = clamp(1 - p.age / p.life, 0, 1);
+    ctx.save();
+    ctx.globalAlpha = a;
+    if (p.isText) {
+      ctx.fillStyle = p.color;
+      ctx.font = "800 16px Rubik, 'Heebo', sans-serif";
+      ctx.textAlign = 'center';
+      ctx.fillText(p.text, p.x, p.y);
+    } else {
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+function drawGunAndCrosshair() {
+  const gx = logicalW / 2, gy = logicalH - 34;
+  const tx = pointer.x == null ? gx : pointer.x;
+  const ty = pointer.y == null ? gy - 120 : pointer.y;
+  const ang = Math.atan2(ty - gy, tx - gx);
+
+  ctx.save();
+  ctx.translate(gx, gy);
+  ctx.rotate(ang + Math.PI / 2);
+  const rec = gunRecoil * 6;
+  ctx.translate(0, rec);
+  // קת עץ
+  ctx.fillStyle = '#6b4020';
+  ctx.strokeStyle = '#3d2410'; ctx.lineWidth = 2;
+  roundRect(ctx, -11, 4, 22, 30, 7); ctx.fill(); ctx.stroke();
+  // הדק
+  ctx.strokeStyle = '#3d2410'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0, 16, 6, 0.2, Math.PI * 1.6); ctx.stroke();
+  // קנה מתכת
+  const bg = ctx.createLinearGradient(-6, 0, 6, 0);
+  bg.addColorStop(0, '#8b939a'); bg.addColorStop(0.5, '#eef2f4'); bg.addColorStop(1, '#6b7378');
+  ctx.fillStyle = bg;
+  ctx.strokeStyle = '#3a3f43'; ctx.lineWidth = 1.5;
+  roundRect(ctx, -6, -62, 12, 68, 5); ctx.fill(); ctx.stroke();
+  // פס אדום קרנבלי
+  ctx.fillStyle = '#e0483e';
+  ctx.fillRect(-6, -16, 12, 6);
+  // קצה הקנה
+  ctx.fillStyle = '#2b2b2b';
+  ctx.beginPath(); ctx.ellipse(0, -62, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  if (pointer.x != null) {
+    ctx.save();
+    ctx.translate(pointer.x, pointer.y);
+    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = 'rgba(224,72,62,.9)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(-10, 0); ctx.moveTo(10, 0); ctx.lineTo(26, 0);
+    ctx.moveTo(0, -26); ctx.lineTo(0, -10); ctx.moveTo(0, 10); ctx.lineTo(0, 26);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // אפקטי ירי
+  const now = performance.now();
+  shots = shots.filter(s => now - s.t < 260);
+  for (const s of shots) {
+    const p = (now - s.t) / 260;
+    ctx.save();
+    ctx.globalAlpha = 1 - p;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(s.x, s.y, 8 + p * 26, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function update(dt, t) {
+  const margin = 44;
+  for (const d of ducks) {
+    if (d.state === 'gone') continue;
+    if (d.state === 'alive') {
+      d.x += d.vx * dt;
+      if (d.x < margin) { d.x = margin; d.vx = Math.abs(d.vx); d.facing = 1; }
+      if (d.x > logicalW - margin) { d.x = logicalW - margin; d.vx = -Math.abs(d.vx); d.facing = -1; }
+      d.y = d.baseY + Math.sin(t * d.bobFreq + d.phase) * d.amp;
+    }
+    if (d.state === 'hit' && performance.now() - d.t0 > 620) d.state = 'gone';
+  }
+  gunRecoil = Math.max(0, gunRecoil - dt * 4);
+}
+
+function render(t) {
+  ctx.clearRect(0, 0, logicalW, logicalH);
+  drawBackground(t);
+  for (const d of ducks) if (d.state !== 'gone') drawDuck(d, t);
+  drawParticles(1 / 60);
+  drawGunAndCrosshair();
+}
+
+function loop(ts) {
+  if (!lastTs) lastTs = ts;
+  const dt = Math.min((ts - lastTs) / 1000, 0.05);
+  lastTs = ts;
+  const t = ts / 1000;
+  if (state.started) update(dt, t);
+  render(t);
+  requestAnimationFrame(loop);
+}
+
+// ===== input =====
+function canvasPoint(e) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+function onPointerMove(e) {
+  const p = canvasPoint(e);
+  pointer.x = p.x; pointer.y = p.y;
+}
+function fireShot(x, y) {
+  if (!state.started) return;
+  gunRecoil = 1;
+  shots.push({ x, y, t: performance.now() });
+  sfx.shoot();
+  let best = null, bestDist = Infinity;
+  for (const d of ducks) {
+    if (d.state !== 'alive') continue;
+    const dx = x - d.x, dy = y - (d.y - 6);
+    const dist = Math.hypot(dx, dy);
+    if (dist < 42 && dist < bestDist) { best = d; bestDist = dist; }
+  }
+  if (best) {
+    if (best.isCorrect) correctHit(best); else wrongHit(best);
+  } else {
+    missShot(x, y);
+  }
+}
+function onPointerDown(e) {
+  e.preventDefault();
+  ensureAudio();
+  const p = canvasPoint(e);
+  pointer.x = p.x; pointer.y = p.y;
+  fireShot(p.x, p.y);
+}
+
+canvas.addEventListener('pointerdown', onPointerDown);
+canvas.addEventListener('pointermove', onPointerMove);
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+
+// ===== controls =====
+soundBtn.addEventListener('click', () => {
+  state.muted = !state.muted;
+  soundBtn.textContent = state.muted ? '🔇' : '🔊';
+  localStorage.setItem(LS.sound, state.muted ? '0' : '1');
+  if (!state.muted) ensureAudio();
+});
+restartBtn.addEventListener('click', () => {
+  clearTimers();
+  state.score = 0; state.level = 1; state.correctStreak = 0; state.wrongStreak = 0;
+  updateHUD(); updateStreakDots(); persist();
+  showToast('מתחילים מחדש! 🔄');
+  newQuestion();
+});
+startBtn.addEventListener('click', () => {
+  ensureAudio();
+  startOverlay.classList.add('hidden');
+  state.started = true;
+  newQuestion();
+});
+
+// ===== init =====
+soundBtn.textContent = state.muted ? '🔇' : '🔊';
+updateHUD();
+updateStreakDots();
+resizeCanvas();
+requestAnimationFrame(loop);

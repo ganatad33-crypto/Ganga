@@ -45,8 +45,29 @@
     box-shadow:0 -4px 10px rgba(0,0,0,.25);
   }
   .jars{ position:absolute; top:-14px; left:0; right:0; display:flex; justify-content:space-evenly; }
-  .jar{ width:26px; height:26px; border-radius:50%; border:2px solid rgba(0,0,0,.15); box-shadow:inset 0 -4px 6px rgba(0,0,0,.2), 0 2px 3px rgba(0,0,0,.2); }
-  .jar::after{ content:""; }
+  .jar{
+    width:26px; height:26px; border-radius:50%; border:2px solid rgba(0,0,0,.15);
+    box-shadow:inset 0 -4px 6px rgba(0,0,0,.2), 0 2px 3px rgba(0,0,0,.2);
+    animation:jarBob 2.4s ease-in-out infinite;
+  }
+  .jar:nth-child(1){ animation-delay:0s; }
+  .jar:nth-child(2){ animation-delay:.2s; }
+  .jar:nth-child(3){ animation-delay:.4s; }
+  .jar:nth-child(4){ animation-delay:.6s; }
+  .jar:nth-child(5){ animation-delay:.8s; }
+  @keyframes jarBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
+
+  /* ambient floating motes drifting up through the scene, for a bit of life */
+  .floaty{
+    position:absolute; bottom:-20px; border-radius:50%; background:rgba(255,255,255,.55);
+    animation:floatUpSky linear infinite;
+  }
+  @keyframes floatUpSky{
+    0%{ transform:translateY(0) translateX(0); opacity:0; }
+    10%{ opacity:.8; }
+    90%{ opacity:.4; }
+    100%{ transform:translateY(-70vh) translateX(20px); opacity:0; }
+  }
 
   /* faint road + crosswalk glimpsed behind the stand, like an alley market stall */
   .road{
@@ -141,6 +162,24 @@
   @keyframes leaveAway{ to{ transform:translateY(-40px); opacity:0; } }
   .avatar.pop{ animation:popAnswer .4s ease-out; }
   @keyframes popAnswer{ 0%{transform:scale(1);} 35%{transform:scale(1.25,0.8);} 65%{transform:scale(0.92,1.1);} 100%{transform:scale(1);} }
+  .avatar.golden{ animation:goldGlow 1s ease-in-out infinite alternate; }
+  @keyframes goldGlow{
+    from{ filter:drop-shadow(0 6px 4px rgba(0,0,0,.2)) drop-shadow(0 0 5px #ffd93d); }
+    to{ filter:drop-shadow(0 6px 4px rgba(0,0,0,.2)) drop-shadow(0 0 18px #ffd93d); }
+  }
+
+  .toast{
+    position:fixed; left:50%; top:54px; transform:translateX(-50%) translateY(-20px); opacity:0;
+    background:var(--wood-dark); color:#ffe9b8; padding:9px 20px; border-radius:999px;
+    font-weight:800; z-index:30; box-shadow:0 4px 10px rgba(0,0,0,.35);
+    animation:toastPop 2.6s ease-out forwards; white-space:nowrap;
+  }
+  @keyframes toastPop{
+    0%{ opacity:0; transform:translateX(-50%) translateY(-20px); }
+    12%{ opacity:1; transform:translateX(-50%) translateY(0); }
+    82%{ opacity:1; transform:translateX(-50%) translateY(0); }
+    100%{ opacity:0; transform:translateX(-50%) translateY(-10px); }
+  }
 
   .name-tag{
     margin-top:2px; font-size:.85em; font-weight:700; color:var(--wood-dark);
@@ -254,6 +293,11 @@
 <body>
 
   <div class="scene" aria-hidden="true">
+    <div class="floaty" style="left:12%; width:7px; height:7px; animation-duration:10s; animation-delay:0s;"></div>
+    <div class="floaty" style="left:30%; width:5px; height:5px; animation-duration:13s; animation-delay:2s;"></div>
+    <div class="floaty" style="left:55%; width:8px; height:8px; animation-duration:11s; animation-delay:4s;"></div>
+    <div class="floaty" style="left:75%; width:6px; height:6px; animation-duration:14s; animation-delay:1s;"></div>
+    <div class="floaty" style="left:88%; width:5px; height:5px; animation-duration:9s; animation-delay:6s;"></div>
     <div class="awning-strip"></div>
     <div class="awning-scallops">
       <span></span><span></span><span></span><span></span><span></span><span></span>
@@ -315,6 +359,16 @@
     </div>
   </div>
 
+  <!-- Day complete screen -->
+  <div id="dayComplete" class="screen hidden">
+    <h1 id="dayCompleteTitle">🎉 יום 1 הושלם!</h1>
+    <div class="card">
+      <div id="dayStars" style="font-size:2.4em; letter-spacing:4px;">⭐⭐⭐</div>
+      <div style="margin-top:10px; font-size:1.1em;">🪙 בונוס יום: +5</div>
+      <button class="big-btn" id="nextDayBtn">יום הבא ▶</button>
+    </div>
+  </div>
+
   <!-- Game over screen -->
   <div id="gameover" class="screen hidden">
     <h1>הדוכן נסגר...</h1>
@@ -341,7 +395,7 @@
   var PRAISE = ["מעולה!","וואו!","כל הכבוד!","מושלם!","יש!!","אלוף/ה!","נכון!"];
 
   var CHIBI_CHARS = [
-    { name:"רובי", svg:
+    { name:"רובי", unlockAt:0, svg:
       '<svg viewBox="0 0 120 120"><defs>'+
       '<radialGradient id="gRobotBody" cx="38%" cy="30%" r="75%"><stop offset="0%" stop-color="#eef2f8"/><stop offset="60%" stop-color="#cfd8e6"/><stop offset="100%" stop-color="#a3b1c6"/></radialGradient>'+
       '<linearGradient id="gRobotScreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3d5075"/><stop offset="100%" stop-color="#1c2536"/></linearGradient>'+
@@ -356,7 +410,7 @@
       '<circle cx="60" cy="10" r="7" fill="#ff6b5b" stroke="#1e293b" stroke-width="4"/><circle cx="58" cy="8" r="2" fill="#fff" opacity=".7"/>'+
       '<ellipse cx="26" cy="80" rx="9" ry="12" fill="url(#gRobotBody)" stroke="#1e293b" stroke-width="4"/>'+
       '<ellipse cx="94" cy="80" rx="9" ry="12" fill="url(#gRobotBody)" stroke="#1e293b" stroke-width="4"/></svg>' },
-    { name:"מיצי", svg:
+    { name:"מיצי", unlockAt:0, svg:
       '<svg viewBox="0 0 120 120"><defs>'+
       '<radialGradient id="gCatBody" cx="38%" cy="28%" r="75%"><stop offset="0%" stop-color="#ffd8a0"/><stop offset="55%" stop-color="#f2a444"/><stop offset="100%" stop-color="#cf7e22"/></radialGradient>'+
       '<linearGradient id="gCatEar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f7b968"/><stop offset="100%" stop-color="#d98a2c"/></linearGradient>'+
@@ -373,7 +427,7 @@
       '<path d="M60 73 L54 77 M60 73 L66 77" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>'+
       '<line x1="18" y1="70" x2="40" y2="72" stroke="#fff" stroke-width="2"/><line x1="18" y1="78" x2="40" y2="78" stroke="#fff" stroke-width="2"/>'+
       '<line x1="80" y1="72" x2="102" y2="70" stroke="#fff" stroke-width="2"/><line x1="80" y1="78" x2="102" y2="78" stroke="#fff" stroke-width="2"/></svg>' },
-    { name:"בלוני", svg:
+    { name:"בלוני", unlockAt:40, svg:
       '<svg viewBox="0 0 120 120"><defs>'+
       '<radialGradient id="gBlobBody" cx="38%" cy="25%" r="80%"><stop offset="0%" stop-color="#e6d6f7"/><stop offset="55%" stop-color="#b18cd9"/><stop offset="100%" stop-color="#8763b8"/></radialGradient>'+
       '<linearGradient id="gBlobHat" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe98a"/><stop offset="100%" stop-color="#e8b93a"/></linearGradient>'+
@@ -387,7 +441,7 @@
       '<circle cx="44" cy="56" r="2" fill="#fff"/><circle cx="72" cy="56" r="2" fill="#fff"/>'+
       '<path d="M50 70 Q60 78 70 70" fill="none" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>'+
       '<circle cx="38" cy="66" r="6" fill="#f49ac1" opacity=".7"/><circle cx="82" cy="66" r="6" fill="#f49ac1" opacity=".7"/></svg>' },
-    { name:"דינו", svg:
+    { name:"דינו", unlockAt:120, svg:
       '<svg viewBox="0 0 120 120"><defs>'+
       '<radialGradient id="gDinoBody" cx="38%" cy="28%" r="78%"><stop offset="0%" stop-color="#a8f0c6"/><stop offset="55%" stop-color="#57c48a"/><stop offset="100%" stop-color="#2f9662"/></radialGradient>'+
       '<linearGradient id="gDinoSpike" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6bd99b"/><stop offset="100%" stop-color="#2f8a5c"/></linearGradient>'+
@@ -403,7 +457,7 @@
       '<ellipse cx="40" cy="78" rx="6" ry="4" fill="#ff9db8" opacity=".5"/>'+
       '<path d="M50 82 Q60 90 72 82" fill="none" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>'+
       '<ellipse cx="22" cy="82" rx="8" ry="10" fill="url(#gDinoBody)" stroke="#1e293b" stroke-width="4"/></svg>' },
-    { name:"ברקי", svg:
+    { name:"ברקי", unlockAt:250, svg:
       '<svg viewBox="0 0 120 120"><defs>'+
       '<radialGradient id="gHeroBody" cx="38%" cy="28%" r="78%"><stop offset="0%" stop-color="#8ff7e9"/><stop offset="55%" stop-color="#2dd4bf"/><stop offset="100%" stop-color="#0f9a89"/></radialGradient>'+
       '<linearGradient id="gHeroVisor" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#fff0b0"/><stop offset="100%" stop-color="#e8b93a"/></linearGradient>'+
@@ -422,6 +476,10 @@
     start: document.getElementById("start"),
     game: document.getElementById("game"),
     gameover: document.getElementById("gameover"),
+    dayComplete: document.getElementById("dayComplete"),
+    dayCompleteTitle: document.getElementById("dayCompleteTitle"),
+    dayStars: document.getElementById("dayStars"),
+    nextDayBtn: document.getElementById("nextDayBtn"),
     startBtn: document.getElementById("startBtn"),
     restartBtn: document.getElementById("restartBtn"),
     coins: document.getElementById("coins"),
@@ -457,6 +515,48 @@
       els.binsRow.appendChild(bin);
     });
   })();
+
+  // ---- persistent progression: lifetime coins unlock new characters forever ----
+  var LIFETIME_KEY = "mathKingLifetimeCoins";
+  var UNLOCK_KEY = "mathKingUnlocked";
+
+  function loadLifetimeCoins(){
+    var v = parseInt(localStorage.getItem(LIFETIME_KEY) || "0", 10);
+    return isNaN(v) ? 0 : v;
+  }
+  function loadUnlocked(){
+    try{
+      var raw = localStorage.getItem(UNLOCK_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){ /* ignore corrupt storage */ }
+    return CHIBI_CHARS.filter(function(c){ return c.unlockAt === 0; }).map(function(c){ return c.name; });
+  }
+  function saveUnlocked(){ localStorage.setItem(UNLOCK_KEY, JSON.stringify(unlockedNames)); }
+
+  var lifetimeCoins = loadLifetimeCoins();
+  var unlockedNames = loadUnlocked();
+
+  function spawnToast(text){
+    var t = document.createElement("div");
+    t.className = "toast";
+    var stacked = document.querySelectorAll(".toast").length;
+    t.style.top = (54 + stacked * 46) + "px";
+    t.textContent = text;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 2700);
+  }
+
+  function addLifetimeCoins(amount){
+    lifetimeCoins += amount;
+    localStorage.setItem(LIFETIME_KEY, String(lifetimeCoins));
+    CHIBI_CHARS.forEach(function(c){
+      if(c.unlockAt > 0 && unlockedNames.indexOf(c.name) === -1 && lifetimeCoins >= c.unlockAt){
+        unlockedNames.push(c.name);
+        saveUnlocked();
+        spawnToast("🎉 נפתחה דמות חדשה: " + c.name + "!");
+      }
+    });
+  }
 
   var range = 10;
   document.querySelectorAll(".range-btn").forEach(function(btn){
@@ -533,7 +633,12 @@
     state.weights[k] = ok ? Math.max(1, w - 1) : w + 3;
   }
 
-  function genChoices(a,b,correct){
+  function shuffled(arr){
+    for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+    return arr;
+  }
+
+  function genProductChoices(a,b,correct){
     var set = new Set();
     var candidates = [
       a*(b+1), a*(b>1?b-1:b+2), (a+1)*b, (a>1?a-1:a+2)*b,
@@ -541,17 +646,32 @@
       correct + (Math.random()<0.5?1:-1) * (1+Math.floor(Math.random()*4))
     ];
     candidates.forEach(function(v){ if(v>0 && v!==correct) set.add(v); });
-    var arr = Array.from(set);
-    // shuffle
-    for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+    var arr = shuffled(Array.from(set));
     var wrongs = arr.slice(0,3);
     while(wrongs.length<3){
       var v = correct + (wrongs.length+1)*(Math.random()<0.5?1:-1);
       if(v>0 && v!==correct && wrongs.indexOf(v)===-1) wrongs.push(v);
     }
-    var choices = wrongs.concat([correct]);
-    for(var k=choices.length-1;k>0;k--){ var j2=Math.floor(Math.random()*(k+1)); var t2=choices[k]; choices[k]=choices[j2]; choices[j2]=t2; }
-    return choices;
+    return shuffled(wrongs.concat([correct]));
+  }
+
+  // for "? × b = product" style questions — the answer is a small factor, not a product
+  function genFactorChoices(correct){
+    var set = new Set();
+    [correct-1, correct+1, correct-2, correct+2, correct-3, correct+3].forEach(function(v){
+      if(v >= 1 && v <= range && v !== correct) set.add(v);
+    });
+    var guard = 0;
+    while(set.size < 6 && guard++ < 30){
+      var v = 1 + Math.floor(Math.random()*range);
+      if(v !== correct) set.add(v);
+    }
+    var wrongs = shuffled(Array.from(set)).slice(0,3);
+    return shuffled(wrongs.concat([correct]));
+  }
+
+  function genChoices(c){
+    return c.mode === "missing" ? genFactorChoices(c.correct) : genProductChoices(c.a, c.b, c.correct);
   }
 
   function updateHeader(){
@@ -567,19 +687,30 @@
     var a = fact[0], b = fact[1];
     if(Math.random()<0.5){ var tmp=a; a=b; b=tmp; }
     state.lastFactKey = factKey(a,b);
-    state.current = { a:a, b:b, correct:a*b, mistakes:0 };
 
-    var character = CHIBI_CHARS[Math.floor(Math.random()*CHIBI_CHARS.length)];
+    var product = a*b;
+    var mode = Math.random() < 0.35 ? "missing" : "direct";
+    var hideFirst = Math.random() < 0.5;
+    var correct = mode === "missing" ? (hideFirst ? a : b) : product;
+    var golden = Math.random() < 0.125;
+    state.current = { a:a, b:b, product:product, correct:correct, mode:mode, mistakes:0, golden:golden };
+
+    var unlockedPool = CHIBI_CHARS.filter(function(c){ return unlockedNames.indexOf(c.name) !== -1; });
+    var character = unlockedPool[Math.floor(Math.random()*unlockedPool.length)];
     els.avatar.innerHTML = character.svg;
-    els.avatar.className = "avatar";
+    els.avatar.className = "avatar" + (golden ? " golden" : "");
     els.nameTag.textContent = character.name;
     els.queueLeft.textContent = CUSTOMER_EMOJIS[Math.floor(Math.random()*CUSTOMER_EMOJIS.length)];
     els.queueRight.textContent = CUSTOMER_EMOJIS[Math.floor(Math.random()*CUSTOMER_EMOJIS.length)];
     els.mood.textContent = MOODS[0];
-    els.question.textContent = a + " × " + b + " = ?";
+    els.question.textContent = mode === "missing"
+      ? (hideFirst ? ("? × " + b + " = " + product) : (a + " × ? = " + product))
+      : (a + " × " + b + " = ?");
     els.patienceBar.style.height = "100%";
     els.patienceBar.style.background = "";
     renderChoices();
+
+    if(golden) spawnToast("✨ לקוח מוזהב — מטבעות כפולים!");
   }
 
   // shoots exactly `count` little falafel-ball projectiles from the customer —
@@ -636,7 +767,7 @@
 
   function renderChoices(){
     var c = state.current;
-    var choices = genChoices(c.a, c.b, c.correct);
+    var choices = genChoices(c);
     els.choices.innerHTML = "";
     choices.forEach(function(val){
       var btn = document.createElement("button");
@@ -672,20 +803,32 @@
       state.streak = (c.mistakes === 0) ? state.streak + 1 : 0;
       var streakMilestone = state.streak > 0 && state.streak % 5 === 0;
       if(streakMilestone) reward += 10;
+      if(c.golden) reward *= 2;
       state.coins += reward;
+      addLifetimeCoins(reward);
+      if(c.mistakes === 0) state.dayClean++;
       state.servedToday++;
+      updateHeader();
+      celebrate(reward, streakMilestone, c.product);
+      els.avatar.classList.add("leave");
+
       if(state.servedToday >= CUSTOMERS_PER_DAY){
+        var completedDay = state.day;
+        var starsEarned = state.dayClean >= Math.ceil(CUSTOMERS_PER_DAY*0.875) ? 3
+          : (state.dayClean >= Math.ceil(CUSTOMERS_PER_DAY*0.5) ? 2 : 1);
         state.servedToday = 0;
+        state.dayClean = 0;
         state.day++;
         state.coins += 5;
+        addLifetimeCoins(5);
+        updateHeader();
+        setTimeout(function(){ showDayComplete(completedDay, starsEarned); }, 550);
+      } else {
+        setTimeout(function(){
+          if(state.gameOver) return;
+          newCustomer();
+        }, 550);
       }
-      updateHeader();
-      celebrate(reward, streakMilestone, c.correct);
-      els.avatar.classList.add("leave");
-      setTimeout(function(){
-        if(state.gameOver) return;
-        newCustomer();
-      }, 550);
     } else {
       btn.classList.add("wrong");
       playWrong();
@@ -735,20 +878,33 @@
     els.gameover.classList.remove("hidden");
   }
 
+  function showDayComplete(completedDay, stars){
+    els.dayCompleteTitle.textContent = "🎉 יום " + completedDay + " הושלם!";
+    els.dayStars.textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+    els.game.classList.add("hidden");
+    els.dayComplete.classList.remove("hidden");
+  }
+
   function startGame(){
     state = {
-      coins: 0, lives: LIVES_START, day: 1, servedToday: 0, streak: 0,
+      coins: 0, lives: LIVES_START, day: 1, servedToday: 0, streak: 0, dayClean: 0,
       factPool: buildFactPool(range), weights: {}, lastFactKey: null,
       gameOver: false
     };
     updateHeader();
     els.start.classList.add("hidden");
     els.gameover.classList.add("hidden");
+    els.dayComplete.classList.add("hidden");
     els.game.classList.remove("hidden");
     newCustomer();
   }
 
   els.startBtn.addEventListener("click", startGame);
+  els.nextDayBtn.addEventListener("click", function(){
+    els.dayComplete.classList.add("hidden");
+    els.game.classList.remove("hidden");
+    newCustomer();
+  });
   els.restartBtn.addEventListener("click", function(){
     els.highscoreLine.textContent = "השיא שלך: " + loadHighScore() + " מטבעות";
     els.gameover.classList.add("hidden");

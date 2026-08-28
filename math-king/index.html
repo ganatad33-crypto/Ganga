@@ -132,41 +132,42 @@
     font-weight:700; margin-top:4px; box-shadow:0 3px 0 var(--accent-dark);
   }
 
-  .customer-area{ position:relative; display:flex; flex-direction:column; align-items:center; margin-top:2px; }
-
-  /* row: waiting queue (decorative) — active customer + meter — waiting queue (decorative) */
-  .customer-row{ display:flex; align-items:flex-end; justify-content:center; gap:10px; }
-  .queue-customer{
-    font-size:2.6em; opacity:.45; filter:grayscale(.4) drop-shadow(0 4px 3px rgba(0,0,0,.15));
-    transform:translateY(10px);
+  /* ===== shooting-gallery play area ===== */
+  .pond{
+    position:relative; width:100%; max-width:380px; height:250px; margin:10px auto 4px;
+    background:linear-gradient(180deg,#bfe8ff,#8fd3f4 70%,#6fc0e8);
+    border:3px solid var(--wood-dark); border-radius:16px; overflow:hidden;
+    box-shadow:inset 0 6px 16px rgba(0,0,0,.18); cursor:crosshair;
   }
+  .duck{
+    position:absolute; transform:translate(-50%,-50%); cursor:pointer; user-select:none;
+    display:flex; flex-direction:column; align-items:center; z-index:2;
+  }
+  .duck-emoji{ font-size:2.3em; filter:drop-shadow(0 3px 3px rgba(0,0,0,.3)); line-height:1; }
+  .duck-tag{
+    background:#fff; border:2px solid var(--wood-dark); border-radius:8px;
+    padding:0 7px; font-weight:800; font-size:.92em; margin-top:-6px; white-space:nowrap;
+  }
+  .duck.golden .duck-emoji{ filter:drop-shadow(0 0 4px #ffd93d) drop-shadow(0 0 10px #ffd93d) drop-shadow(0 3px 3px rgba(0,0,0,.3)); }
+  .duck.hit{ animation:duckHit .5s forwards; pointer-events:none; z-index:3; }
+  @keyframes duckHit{ to{ transform:translate(-50%,-50%) translateY(70px) rotate(200deg); opacity:0; } }
+  .duck.miss{ animation:duckMiss .3s; }
+  @keyframes duckMiss{ 0%,100%{ transform:translate(-50%,-50%); } 50%{ transform:translate(-50%,-50%) scale(.82) rotate(-12deg); } }
 
-  .customer-figure{
-    position:relative; display:flex; flex-direction:column; align-items:center;
+  .shooter-row{ display:flex; justify-content:center; margin-top:8px; position:relative; }
+  .shooter-figure{
+    position:relative; width:112px; height:112px;
     animation:idleBounce 1.6s ease-in-out infinite;
   }
-  @keyframes idleBounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
-  .torso{
-    position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
-    width:64px; height:16px; border-radius:50%;
-    background:rgba(0,0,0,.28); filter:blur(2px); z-index:0;
-  }
-  .avatar{
-    position:relative; z-index:1; width:118px; height:118px;
-    filter:drop-shadow(0 6px 4px rgba(0,0,0,.2)); transition:transform .15s;
-  }
+  @keyframes idleBounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+  .shooter-figure .avatar{ width:100%; height:100%; }
   .avatar svg{ width:100%; height:100%; display:block; }
-  .avatar.shake{ animation:shake .35s; }
-  @keyframes shake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);} 60%{transform:translateX(-6px);} 80%{transform:translateX(6px);} }
-  .avatar.leave{ animation:leaveAway .5s forwards; }
-  @keyframes leaveAway{ to{ transform:translateY(-40px); opacity:0; } }
-  .avatar.pop{ animation:popAnswer .4s ease-out; }
-  @keyframes popAnswer{ 0%{transform:scale(1);} 35%{transform:scale(1.25,0.8);} 65%{transform:scale(0.92,1.1);} 100%{transform:scale(1);} }
-  .avatar.golden{ animation:goldGlow 1s ease-in-out infinite alternate; }
-  @keyframes goldGlow{
-    from{ filter:drop-shadow(0 6px 4px rgba(0,0,0,.2)) drop-shadow(0 0 5px #ffd93d); }
-    to{ filter:drop-shadow(0 6px 4px rgba(0,0,0,.2)) drop-shadow(0 0 18px #ffd93d); }
+  .gun{
+    position:absolute; bottom:8px; right:-8px; font-size:1.9em; transform:rotate(-18deg);
+    filter:drop-shadow(0 3px 2px rgba(0,0,0,.3));
   }
+  .shooter-figure.recoil{ animation:recoil .15s; }
+  @keyframes recoil{ 0%,100%{ transform:translateX(0); } 50%{ transform:translateX(-6px) rotate(-3deg); } }
 
   .toast{
     position:fixed; left:50%; top:54px; transform:translateX(-50%) translateY(-20px); opacity:0;
@@ -179,17 +180,6 @@
     12%{ opacity:1; transform:translateX(-50%) translateY(0); }
     82%{ opacity:1; transform:translateX(-50%) translateY(0); }
     100%{ opacity:0; transform:translateX(-50%) translateY(-10px); }
-  }
-
-  .name-tag{
-    margin-top:2px; font-size:.85em; font-weight:700; color:var(--wood-dark);
-    background:#fff; padding:1px 10px; border-radius:999px; border:1px solid #d8c39a;
-  }
-
-  .mood{
-    position:absolute; top:-8px; right:-6px; font-size:1.5em; z-index:2;
-    background:#fff; border-radius:50%; padding:2px; border:2px solid var(--wood);
-    box-shadow:0 2px 4px rgba(0,0,0,.2);
   }
 
   /* juicy correct-answer feedback: shoots the answer's own quantity of balls + big praise text */
@@ -218,21 +208,6 @@
     100%{ transform:translate(-50%,-95%) scale(0.9); opacity:0; }
   }
 
-  /* vertical segmented patience meter, like a thermometer next to the customer */
-  .patience-wrap{
-    width:22px; height:112px; background:#241a0e; border-radius:6px;
-    border:2px solid var(--wood-dark); position:relative; overflow:hidden;
-    display:flex; align-items:flex-end; align-self:flex-end; margin-bottom:2px;
-  }
-  .patience-bar{ width:100%; background:var(--green); height:100%; transition:height .25s, background .25s; }
-  .patience-wrap::before{
-    content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
-    background:repeating-linear-gradient(0deg, transparent 0 19px, rgba(0,0,0,.4) 19px 21px);
-  }
-  .patience-wrap::after{
-    content:"🔥"; position:absolute; top:-15px; left:50%; transform:translateX(-50%); font-size:1em;
-  }
-
   /* order-ticket style bubble, like a note pinned above the stand */
   .bubble{
     direction:ltr; unicode-bidi:isolate;
@@ -247,36 +222,6 @@
     content:"📌"; position:absolute; top:-16px; left:50%; transform:translateX(-50%) rotate(15deg);
     font-size:1.1em;
   }
-
-  .bins-row{ display:flex; gap:12px; justify-content:center; margin-top:20px; }
-  .bin{
-    width:44px; height:30px; border-radius:6px 6px 3px 3px; position:relative;
-    box-shadow:inset 0 -8px 8px rgba(0,0,0,.3), 0 2px 3px rgba(0,0,0,.25);
-  }
-  .bin .flag{
-    position:absolute; top:-20px; left:50%; transform:translateX(-50%);
-    background:#fff; border:1px solid #99a; font-size:.7em; font-weight:800;
-    padding:1px 5px; border-radius:2px; white-space:nowrap;
-  }
-  .bin .flag::after{
-    content:""; position:absolute; bottom:-9px; left:50%; margin-left:-1px;
-    width:2px; height:9px; background:#7a99b8;
-  }
-
-  .choices{
-    display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; max-width:340px; margin-top:24px;
-    position:relative; z-index:2;
-  }
-  .choice-btn{
-    aspect-ratio:1; border-radius:50%; font-size:1.5em; font-weight:800; cursor:pointer;
-    color:#4a2c12;
-    background:radial-gradient(circle at 35% 30%, #f6d98a, #d9a441 70%, #b97f28);
-    border:3px solid #8b5a2b; box-shadow:0 6px 0 #7a4a1f, 0 8px 14px rgba(0,0,0,.25);
-  }
-  .choice-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 #7a4a1f; }
-  .choice-btn.correct{ background:radial-gradient(circle at 35% 30%, #7bdf9f, var(--green) 70%, var(--green-dark)); color:#fff; box-shadow:0 6px 0 var(--green-dark); }
-  .choice-btn.wrong{ background:radial-gradient(circle at 35% 30%, #f29a90, var(--red) 70%, #a83226); color:#fff; box-shadow:0 6px 0 #a83226; }
-  .choice-btn:disabled{ opacity:.55; }
 
   .float-coin{
     position:absolute; font-weight:800; font-size:1.3em; color:var(--green-dark);
@@ -318,7 +263,7 @@
   <!-- Start screen -->
   <div id="start" class="screen">
     <h1>👑 מלך לוח הכפל 👑</h1>
-    <div class="subtitle">עמדת דוכן — כל לקוח מבקש תשובה ללוח הכפל. תענו נכון ותקבלו מטבעות, תטעו יותר מדי — והלקוח יעצבן וילך!</div>
+    <div class="subtitle">מטווח ברווזים! כל ברווז נושא תשובה אחרת לתרגיל שלמעלה — תפגעו בברווז עם התשובה הנכונה. פגיעה בברווז הלא נכון עולה חיים!</div>
     <div class="card">
       <div><strong>עד כמה בלוח הכפל?</strong></div>
       <div class="range-options">
@@ -326,7 +271,7 @@
         <button class="range-btn selected" data-range="10">עד 10</button>
         <button class="range-btn" data-range="12">עד 12</button>
       </div>
-      <button class="big-btn" id="startBtn">בואו נתחיל! 🥙</button>
+      <button class="big-btn" id="startBtn">בואו נתחיל! 🎯</button>
       <div class="highscore" id="highscoreLine"></div>
     </div>
   </div>
@@ -340,22 +285,14 @@
     </div>
     <div class="stand">
       <div class="day-banner" id="dayBanner">יום 1</div>
-      <div class="customer-area">
-        <div class="bubble" id="question">7 × 8 = ?</div>
-        <div class="customer-row">
-          <span class="queue-customer" id="queueLeft">👵</span>
-          <div class="customer-figure">
-            <span class="torso" id="torso"></span>
-            <div class="avatar" id="avatar"></div>
-            <span class="mood" id="mood">🙂</span>
-            <span class="name-tag" id="nameTag">רובי</span>
-          </div>
-          <div class="patience-wrap"><div class="patience-bar" id="patienceBar"></div></div>
-          <span class="queue-customer" id="queueRight">🧔</span>
+      <div class="bubble" id="question">7 × 8 = ?</div>
+      <div class="pond" id="pond"></div>
+      <div class="shooter-row">
+        <div class="shooter-figure" id="shooterFigure">
+          <div class="avatar" id="shooterAvatar"></div>
+          <span class="gun">🔫</span>
         </div>
       </div>
-      <div class="choices" id="choices"></div>
-      <div class="bins-row" id="binsRow"></div>
     </div>
   </div>
 
@@ -386,12 +323,9 @@
   "use strict";
 
   var HIGH_KEY = "mathKingHighScore";
-  var MAX_MISTAKES = 3;      // wrong tries allowed before a customer storms off
-  var LIVES_START = 3;
-  var CUSTOMERS_PER_DAY = 8;
-  var CUSTOMER_EMOJIS = ["🧑","👩","👨","🧕","👴","👵","🧑‍🦱","👩‍🦰","🧔","👱"];
-  var BIN_COLORS = ["#c0392b","#3a9d4a","#e8c46a","#8a5a3c"];
-  var MOODS = ["🙂","😐","😠","🤬"]; // index = mistakes so far for current customer
+  var LIVES_START = 5;      // each wrong duck costs a life directly, so give a bit more room
+  var CUSTOMERS_PER_DAY = 8; // rounds per "day"
+  var DUCK_LANES = [16, 39, 62, 85]; // % from top of the pond
   var PRAISE = ["מעולה!","וואו!","כל הכבוד!","מושלם!","יש!!","אלוף/ה!","נכון!"];
 
   var CHIBI_CHARS = [
@@ -486,35 +420,16 @@
     hearts: document.getElementById("hearts"),
     dayBanner: document.getElementById("dayBanner"),
     question: document.getElementById("question"),
-    torso: document.getElementById("torso"),
-    avatar: document.getElementById("avatar"),
-    mood: document.getElementById("mood"),
-    nameTag: document.getElementById("nameTag"),
-    queueLeft: document.getElementById("queueLeft"),
-    queueRight: document.getElementById("queueRight"),
-    binsRow: document.getElementById("binsRow"),
+    pond: document.getElementById("pond"),
+    shooterFigure: document.getElementById("shooterFigure"),
+    shooterAvatar: document.getElementById("shooterAvatar"),
     streakStat: document.getElementById("streakStat"),
     streakCount: document.getElementById("streakCount"),
-    patienceBar: document.getElementById("patienceBar"),
-    choices: document.getElementById("choices"),
     finalCoins: document.getElementById("finalCoins"),
     worstFacts: document.getElementById("worstFacts"),
     highscoreLine: document.getElementById("highscoreLine"),
     stand: document.querySelector(".stand")
   };
-
-  (function populateBins(){
-    BIN_COLORS.forEach(function(color){
-      var bin = document.createElement("div");
-      bin.className = "bin";
-      bin.style.background = color;
-      var flag = document.createElement("div");
-      flag.className = "flag";
-      flag.textContent = String(1 + Math.floor(Math.random()*3));
-      bin.appendChild(flag);
-      els.binsRow.appendChild(bin);
-    });
-  })();
 
   // ---- persistent progression: lifetime coins unlock new characters forever ----
   var LIFETIME_KEY = "mathKingLifetimeCoins";
@@ -595,7 +510,6 @@
   }
   function playCorrect(){ tone(660,0.12,"sine",0); tone(880,0.16,"sine",0.1); }
   function playWrong(){ tone(180,0.2,"sawtooth",0); }
-  function playStorm(){ tone(140,0.25,"square",0); tone(100,0.3,"square",0.1); }
 
   // ---- game state ----
   var state = null;
@@ -682,7 +596,56 @@
     els.streakStat.style.display = state.streak >= 2 ? "flex" : "none";
   }
 
-  function newCustomer(){
+  // ---- duck movement loop ----
+  var duckLoopId = null;
+  var duckLoopStart = null;
+
+  function stopDuckLoop(){
+    if(duckLoopId) cancelAnimationFrame(duckLoopId);
+    duckLoopId = null;
+    duckLoopStart = null;
+  }
+
+  function animateDucks(ts){
+    if(!duckLoopStart) duckLoopStart = ts;
+    var t = (ts - duckLoopStart) / 1000;
+    state.ducks.forEach(function(d){
+      var x = d.baseX + d.amplitude * Math.sin(t * d.speed + d.phase);
+      d.el.style.left = x + "%";
+    });
+    duckLoopId = requestAnimationFrame(animateDucks);
+  }
+
+  function spawnDucks(values, correct){
+    stopDuckLoop();
+    els.pond.innerHTML = "";
+    state.ducks = [];
+    var goldenIndex = Math.random() < 0.125 ? Math.floor(Math.random()*values.length) : -1;
+
+    values.forEach(function(val, i){
+      var amplitude = 14 + Math.random()*14;
+      var baseX = amplitude + 6 + Math.random() * (88 - 2*amplitude - 12);
+      var speed = 0.5 + Math.random()*0.5;
+      var phase = Math.random()*Math.PI*2;
+      var golden = i === goldenIndex;
+
+      var el = document.createElement("div");
+      el.className = "duck" + (golden ? " golden" : "");
+      el.style.top = DUCK_LANES[i] + "%";
+      el.style.left = baseX + "%";
+      el.innerHTML = '<span class="duck-emoji">🦆</span><span class="duck-tag">' + val + '</span>';
+      el.addEventListener("click", function(){ onDuckHit(val, el, golden); });
+      els.pond.appendChild(el);
+
+      state.ducks.push({ el:el, baseX:baseX, amplitude:amplitude, speed:speed, phase:phase });
+    });
+
+    if(goldenIndex !== -1) spawnToast("✨ ברווז מוזהב — פגיעה בו משלמת כפול!");
+    duckLoopId = requestAnimationFrame(animateDucks);
+  }
+
+  function newRound(){
+    state.roundLocked = false;
     var fact = pickNextFact();
     var a = fact[0], b = fact[1];
     if(Math.random()<0.5){ var tmp=a; a=b; b=tmp; }
@@ -692,31 +655,23 @@
     var mode = Math.random() < 0.35 ? "missing" : "direct";
     var hideFirst = Math.random() < 0.5;
     var correct = mode === "missing" ? (hideFirst ? a : b) : product;
-    var golden = Math.random() < 0.125;
-    state.current = { a:a, b:b, product:product, correct:correct, mode:mode, mistakes:0, golden:golden };
+    state.current = { a:a, b:b, product:product, correct:correct, mode:mode, mistakes:0 };
 
-    var unlockedPool = CHIBI_CHARS.filter(function(c){ return unlockedNames.indexOf(c.name) !== -1; });
-    var character = unlockedPool[Math.floor(Math.random()*unlockedPool.length)];
-    els.avatar.innerHTML = character.svg;
-    els.avatar.className = "avatar" + (golden ? " golden" : "");
-    els.nameTag.textContent = character.name;
-    els.queueLeft.textContent = CUSTOMER_EMOJIS[Math.floor(Math.random()*CUSTOMER_EMOJIS.length)];
-    els.queueRight.textContent = CUSTOMER_EMOJIS[Math.floor(Math.random()*CUSTOMER_EMOJIS.length)];
-    els.mood.textContent = MOODS[0];
     els.question.textContent = mode === "missing"
       ? (hideFirst ? ("? × " + b + " = " + product) : (a + " × ? = " + product))
       : (a + " × " + b + " = ?");
-    els.patienceBar.style.height = "100%";
-    els.patienceBar.style.background = "";
-    renderChoices();
 
-    if(golden) spawnToast("✨ לקוח מוזהב — מטבעות כפולים!");
+    var unlockedPool = CHIBI_CHARS.filter(function(c){ return unlockedNames.indexOf(c.name) !== -1; });
+    var character = unlockedPool[Math.floor(Math.random()*unlockedPool.length)];
+    els.shooterAvatar.innerHTML = character.svg;
+
+    spawnDucks(genChoices(state.current), correct);
   }
 
-  // shoots exactly `count` little falafel-ball projectiles from the customer —
-  // count = the multiplication answer itself, so kids *see* the quantity
-  function shootAnswerBalls(count){
-    var rect = els.avatar.getBoundingClientRect();
+  // bursts `count` little reward projectiles from an element — count = the
+  // multiplication answer itself, so kids *see* the quantity, not just the digits
+  function burstFromElement(originEl, count){
+    var rect = originEl.getBoundingClientRect();
     var standRect = els.stand.getBoundingClientRect();
     var ox = rect.left - standRect.left + rect.width/2;
     var oy = rect.top - standRect.top + rect.height/2;
@@ -757,32 +712,11 @@
     setTimeout(function(){ p.remove(); }, 950);
   }
 
-  function celebrate(reward, bigStreak, correctValue){
-    flashCoins(reward);
-    shootAnswerBalls(correctValue);
-    spawnPraise(bigStreak ? ("רצף אש! 🔥×" + state.streak) : PRAISE[Math.floor(Math.random()*PRAISE.length)]);
-    els.avatar.classList.add("pop");
-    setTimeout(function(){ els.avatar.classList.remove("pop"); }, 400);
-  }
-
-  function renderChoices(){
-    var c = state.current;
-    var choices = genChoices(c);
-    els.choices.innerHTML = "";
-    choices.forEach(function(val){
-      var btn = document.createElement("button");
-      btn.className = "choice-btn";
-      btn.textContent = val;
-      btn.addEventListener("click", function(){ onAnswer(val, btn); });
-      els.choices.appendChild(btn);
-    });
-  }
-
-  function flashCoins(amount){
+  function flashCoinsAt(amount, originEl){
     var f = document.createElement("div");
     f.className = "float-coin";
     f.textContent = "+" + amount + " 🪙";
-    var rect = els.avatar.getBoundingClientRect();
+    var rect = originEl.getBoundingClientRect();
     var standRect = els.stand.getBoundingClientRect();
     f.style.left = (rect.left - standRect.left + rect.width/2 - 20) + "px";
     f.style.top = (rect.top - standRect.top) + "px";
@@ -790,27 +724,35 @@
     setTimeout(function(){ f.remove(); }, 800);
   }
 
-  function onAnswer(val, btn){
+  function celebrate(reward, bigStreak, correctValue, originEl){
+    flashCoinsAt(reward, originEl);
+    burstFromElement(originEl, correctValue);
+    spawnPraise(bigStreak ? ("רצף אש! 🔥×" + state.streak) : PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+    els.shooterFigure.classList.add("recoil");
+    setTimeout(function(){ els.shooterFigure.classList.remove("recoil"); }, 150);
+  }
+
+  function onDuckHit(val, el, golden){
+    if(state.roundLocked || el.classList.contains("hit") || el.classList.contains("miss")) return;
     var c = state.current;
-    var buttons = Array.prototype.slice.call(els.choices.children);
-    buttons.forEach(function(b){ b.disabled = true; });
 
     if(val === c.correct){
-      btn.classList.add("correct");
+      state.roundLocked = true;
+      stopDuckLoop();
+      el.classList.add("hit");
       playCorrect();
       bumpWeight(c.a, c.b, true);
       var reward = Math.max(2, 10 - c.mistakes * 3);
       state.streak = (c.mistakes === 0) ? state.streak + 1 : 0;
       var streakMilestone = state.streak > 0 && state.streak % 5 === 0;
       if(streakMilestone) reward += 10;
-      if(c.golden) reward *= 2;
+      if(golden) reward *= 2;
       state.coins += reward;
       addLifetimeCoins(reward);
       if(c.mistakes === 0) state.dayClean++;
       state.servedToday++;
       updateHeader();
-      celebrate(reward, streakMilestone, c.product);
-      els.avatar.classList.add("leave");
+      celebrate(reward, streakMilestone, c.product, el);
 
       if(state.servedToday >= CUSTOMERS_PER_DAY){
         var completedDay = state.day;
@@ -822,39 +764,26 @@
         state.coins += 5;
         addLifetimeCoins(5);
         updateHeader();
-        setTimeout(function(){ showDayComplete(completedDay, starsEarned); }, 550);
+        setTimeout(function(){ showDayComplete(completedDay, starsEarned); }, 600);
       } else {
         setTimeout(function(){
           if(state.gameOver) return;
-          newCustomer();
-        }, 550);
+          newRound();
+        }, 600);
       }
     } else {
-      btn.classList.add("wrong");
       playWrong();
       c.mistakes++;
       bumpWeight(c.a, c.b, false);
-      els.avatar.classList.add("shake");
-      setTimeout(function(){ els.avatar.classList.remove("shake"); }, 350);
-
-      if(c.mistakes >= MAX_MISTAKES){
-        playStorm();
-        els.mood.textContent = MOODS[3];
-        els.patienceBar.style.height = "0%";
-        state.lives--;
-        state.streak = 0;
-        updateHeader();
-        els.avatar.classList.add("leave");
-        setTimeout(function(){
-          if(state.lives <= 0){ endGame(); }
-          else { newCustomer(); }
-        }, 650);
-      } else {
-        els.mood.textContent = MOODS[c.mistakes];
-        var pct = Math.max(0, 100 - (c.mistakes/MAX_MISTAKES)*100);
-        els.patienceBar.style.height = pct + "%";
-        els.patienceBar.style.background = c.mistakes===1 ? "#e0a83a" : "#e05a3a";
-        setTimeout(function(){ renderChoices(); }, 500);
+      state.streak = 0;
+      state.lives--;
+      el.classList.add("miss");
+      setTimeout(function(){ el.classList.remove("miss"); }, 300);
+      updateHeader();
+      if(state.lives <= 0){
+        state.roundLocked = true;
+        stopDuckLoop();
+        endGame();
       }
     }
   }
@@ -889,21 +818,21 @@
     state = {
       coins: 0, lives: LIVES_START, day: 1, servedToday: 0, streak: 0, dayClean: 0,
       factPool: buildFactPool(range), weights: {}, lastFactKey: null,
-      gameOver: false
+      ducks: [], roundLocked: false, gameOver: false
     };
     updateHeader();
     els.start.classList.add("hidden");
     els.gameover.classList.add("hidden");
     els.dayComplete.classList.add("hidden");
     els.game.classList.remove("hidden");
-    newCustomer();
+    newRound();
   }
 
   els.startBtn.addEventListener("click", startGame);
   els.nextDayBtn.addEventListener("click", function(){
     els.dayComplete.classList.add("hidden");
     els.game.classList.remove("hidden");
-    newCustomer();
+    newRound();
   });
   els.restartBtn.addEventListener("click", function(){
     els.highscoreLine.textContent = "השיא שלך: " + loadHighScore() + " מטבעות";

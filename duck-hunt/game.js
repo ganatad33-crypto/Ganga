@@ -360,6 +360,24 @@ function cloud(x, y, s) {
   ctx.fill();
 }
 
+// ציצית קטנה על הראש — צורה אחת, בשני גדלים (למתאר השחור ולצבע עצמו)
+function tuftPath(c, e) {
+  c.beginPath();
+  c.moveTo(11 - e, -18 - e * 0.6);
+  c.quadraticCurveTo(8 - e, -27 - e, 17, -31 - e);
+  c.quadraticCurveTo(20 + e * 0.6, -24, 15 + e * 0.4, -16 + e * 0.3);
+  c.closePath();
+}
+// מכהה/מבהיר צבע הקסה (hex) באחוז נתון — לשימוש בגוונים כמו הכנף
+function shade(hex, percent) {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const r = clamp((n >> 16) + amt, 0, 255);
+  const g = clamp(((n >> 8) & 0xff) + amt, 0, 255);
+  const b = clamp((n & 0xff) + amt, 0, 255);
+  return `rgb(${r},${g},${b})`;
+}
+
 function drawDuck(duck, t) {
   const hitAnim = duck.state === 'hit' ? clamp((performance.now() - duck.t0) / 600, 0, 1) : 0;
   const wrongAnim = duck.state === 'wrong' ? (performance.now() - duck.t0) / 400 : 0;
@@ -371,26 +389,52 @@ function drawDuck(duck, t) {
   ctx.scale(duck.facing < 0 ? -scale : scale, scale);
   if (hitAnim > 0) ctx.rotate(hitAnim * 0.9);
 
+  const OUT = '#171512'; // קו מתאר עבה בסגנון מדבקה, כמו הברווז שנשלח
+  const skin = duck.color;
+
   // גל קטן מתחת
   ctx.fillStyle = 'rgba(255,255,255,.25)';
-  ctx.beginPath(); ctx.ellipse(0, 20, 24, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 22, 24, 5, 0, 0, Math.PI * 2); ctx.fill();
 
-  // גוף
-  ctx.fillStyle = duck.color;
-  ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.ellipse(0, 4, 22, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // תת-שכבה שחורה מוגדלת — גוף + ראש + ציצית — יוצרת מתאר אחיד סביב הצללית המאוחדת
+  ctx.fillStyle = OUT;
+  ctx.beginPath(); ctx.ellipse(0, 6, 26, 18, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(15, -9, 15, 0, Math.PI * 2); ctx.fill();
+  tuftPath(ctx, 3); ctx.fill();
+
+  // גוף + ראש + ציצית בצבע הברווז — מכסים את השחור פרט לטבעת המתאר החיצונית
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.ellipse(0, 6, 23, 15, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(15, -9, 12, 0, Math.PI * 2); ctx.fill();
+  tuftPath(ctx, 0); ctx.fill();
+
+  // ברק פלסטיק
+  ctx.fillStyle = 'rgba(255,255,255,.4)';
+  ctx.beginPath(); ctx.ellipse(-3, -3, 12, 6, -0.35, 0, Math.PI * 2); ctx.fill();
+
   // כנף
-  ctx.fillStyle = 'rgba(0,0,0,.12)';
-  ctx.beginPath(); ctx.ellipse(-2, 6, 10, 7, 0.3, 0, Math.PI * 2); ctx.fill();
-  // ראש
-  ctx.fillStyle = duck.color;
-  ctx.beginPath(); ctx.ellipse(14, -8, 11, 10, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  // מקור
-  ctx.fillStyle = '#f0a92e';
-  ctx.beginPath(); ctx.moveTo(22, -8); ctx.lineTo(34, -6); ctx.lineTo(22, -3); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = shade(skin, -16);
+  ctx.strokeStyle = OUT; ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.ellipse(-4, 9, 12, 8, 0.25, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+  // מקור — דו-גוני
+  ctx.strokeStyle = OUT; ctx.lineWidth = 2.2; ctx.lineJoin = 'round';
+  ctx.fillStyle = '#ffb238';
+  ctx.beginPath();
+  ctx.moveTo(25, -12); ctx.quadraticCurveTo(38, -15, 44, -8); ctx.quadraticCurveTo(36, -6, 25, -5);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#e8871a';
+  ctx.beginPath();
+  ctx.moveTo(25, -5); ctx.quadraticCurveTo(35, -3, 43, -7); ctx.quadraticCurveTo(34, 1, 25, -1);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+
   // עין
-  ctx.fillStyle = '#173047';
-  ctx.beginPath(); ctx.arc(17, -10, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = OUT; ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.arc(20, -13, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#16305c';
+  ctx.beginPath(); ctx.arc(22, -12, 3.6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(23.3, -13.3, 1.2, 0, Math.PI * 2); ctx.fill();
 
   ctx.restore();
 
@@ -398,7 +442,7 @@ function drawDuck(duck, t) {
   // שלט מספר
   ctx.save();
   ctx.globalAlpha = 1 - hitAnim;
-  ctx.translate(duck.x, duck.y - 30 + hitAnim * 26);
+  ctx.translate(duck.x, duck.y - 44 + hitAnim * 26);
   const label = String(duck.val);
   const w = Math.max(34, 16 + label.length * 13);
   roundRect(ctx, -w / 2, -13, w, 26, 8);

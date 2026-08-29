@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1B4D6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="דוכן הכפל">
+<title>🦆 דוכן הכפל — משחק לוח הכפל</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A6%86%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="hleft">
+    <button id="shareBtn" class="iconbtn" aria-label="שיתוף">📤</button>
+    <button id="settingsBtn" class="iconbtn" aria-label="הגדרות">⚙️</button>
+    <button id="soundBtn" class="iconbtn" aria-label="השתקה">🔊</button>
+    <button id="restartBtn" class="iconbtn" aria-label="התחלה מחדש">🔄</button>
+  </div>
+  <h1>🦆 דוכן הכפל</h1>
+  <div class="hright">
+    <div class="pill">🎯 <b id="scoreVal">0</b></div>
+    <div class="pill">🏅 רמה <b id="levelVal">1</b></div>
+  </div>
+</header>
+
+<div class="streakRow" id="streakRow" aria-hidden="true"></div>
+
+<div class="question" id="questionBox">
+  <div class="qsign">
+    <span id="qA">?</span>
+    <span class="qop">×</span>
+    <span id="qB">?</span>
+    <span class="qeq">=</span>
+    <span class="qhuh">?</span>
+  </div>
+</div>
+
+<div class="stage" id="stage">
+  <canvas id="gameCanvas"></canvas>
+  <div class="toast" id="toast"></div>
+  <div class="levelup" id="levelUp"></div>
+</div>
+
+<div class="foot">
+  <p id="hintTxt">לחצו על הברווז עם התשובה הנכונה! 🦆</p>
+</div>
+
+<div class="startOverlay" id="startOverlay">
+  <div class="startCard">
+    <div class="startEmoji">🎪🦆🔫</div>
+    <h2>ברוכים הבאים לדוכן הכפל!</h2>
+    <p>בכל סיבוב יופיע תרגיל כפל למעלה.<br>
+       לוחצים על הברווז עם התשובה הנכונה כדי לפגוע בו.<br>
+       ככל שפוגעים יותר — המשחק מתקדם ברמה ומתרגש!<br>
+       <small>אפשר לשנות כמה תשובות נכונות צריך לעלות רמה בכפתור ⚙️ למעלה.</small></p>
+    <button id="startBtn">🎯 בואו נשחק!</button>
+    <button id="shareBtnBig" class="shareSecondary">📤 שתפו עם המשפחה</button>
+  </div>
+</div>
+
+<div class="startOverlay hidden" id="settingsOverlay">
+  <div class="startCard settingsCard">
+    <button class="closeX" id="settingsClose" aria-label="סגירה">✕</button>
+    <div class="startEmoji">⚙️🦆</div>
+    <h2>הגדרות משחק</h2>
+    <p class="settingsLabel">כמה תשובות נכונות ברצף כדי לעלות רמה?</p>
+    <div class="goalStepper">
+      <button id="goalMinus" class="iconbtn" aria-label="פחות">−</button>
+      <b id="goalVal">3</b>
+      <button id="goalPlus" class="iconbtn" aria-label="יותר">+</button>
+    </div>
+    <p class="hnote">מספר קטן = עולים רמה מהר. מספר גדול = צריך להתאמן יותר בכל רמה לפני שעולים.<br>
+       המשחק ימשיך להתאים את עצמו לבד: כמה טעויות ברצף — והרמה יורדת קצת, כדי שזה תמיד יישאר מאתגר בול.</p>
+    <button id="settingsSave">✓ שמירה</button>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>

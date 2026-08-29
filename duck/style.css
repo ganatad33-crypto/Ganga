@@ -71,6 +71,15 @@ header h1{
 .streakRow .dot{opacity:.35;transition:transform .25s, opacity .25s}
 .streakRow .dot.on{opacity:1;transform:scale(1.15)}
 
+.bossBanner{
+  display:none;justify-content:center;align-items:center;gap:8px;
+  margin:2px 12px 0;padding:6px 10px;border-radius:12px;
+  background:#3a1030;color:#ffdede;font-weight:800;font-size:14px;
+  border:2px solid #7a1f1f;
+}
+.bossBanner.show{display:flex}
+#bossHearts{font-size:15px;letter-spacing:2px}
+
 .question{
   display:flex;justify-content:center;padding:8px 12px 4px;
 }
@@ -163,6 +172,16 @@ header h1{
 }
 .shareSecondary:active{transform:translateY(1px)}
 
+.nameRow{margin:0 0 14px;text-align:center}
+.nameRow label{display:block;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.nameRow input{
+  width:100%;max-width:220px;box-sizing:border-box;
+  border:2px solid var(--wood-d);border-radius:12px;
+  padding:9px 14px;font-size:15px;font-family:'Heebo',sans-serif;text-align:center;
+  background:#fff;color:var(--ink);
+}
+.nameRow input:focus{outline:2px solid var(--gold);outline-offset:1px}
+
 .settingsCard{position:relative}
 .closeX{
   position:absolute;top:10px;left:10px;
@@ -182,3 +201,15 @@ header h1{
   cursor:pointer;box-shadow:0 4px 0 #237c40;margin-top:4px;
 }
 #settingsSave:active{transform:translateY(2px);box-shadow:0 2px 0 #237c40}
+
+.badgeShelf{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:8px;
+  max-height:170px;overflow-y:auto;margin-bottom:16px;
+  padding:10px;border:2px solid var(--wood-d);border-radius:12px;background:#fff;
+}
+.badgeTile{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:10px;color:var(--ink);text-align:center;
+}
+.badgeTile .ic{font-size:24px;filter:grayscale(1);opacity:.35;transition:filter .2s,opacity .2s,transform .2s}
+.badgeTile.on .ic{filter:none;opacity:1;transform:scale(1.1)}

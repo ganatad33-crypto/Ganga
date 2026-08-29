@@ -31,9 +31,10 @@ const shareBtn = document.getElementById('shareBtn');
 const shareBtnBig = document.getElementById('shareBtnBig');
 
 // ===== persistence =====
+// רק העדפות (צליל, סף עלייה ברמה) נשמרות בין ביקורים — לא ניקוד/רמה.
+// כל מי שפותח את הקישור, כולל מי ששלח אותו, מתחיל תמיד ממשחק חדש לגמרי.
 const LS = {
-  score: 'duckhunt.score', level: 'duckhunt.level',
-  best: 'duckhunt.best', sound: 'duckhunt.sound', streakGoal: 'duckhunt.streakGoal'
+  sound: 'duckhunt.sound', streakGoal: 'duckhunt.streakGoal'
 };
 // גישה בטוחה ל-localStorage — בדפדפנים/מצבים מסוימים (למשל דפדפן פנימי של אפליקציה,
 // גלישה פרטית) הגישה עצמה יכולה לזרוק שגיאה; לא רוצים שזה יפיל את כל המשחק.
@@ -41,17 +42,13 @@ function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { re
 function safeSet(key, val) { try { localStorage.setItem(key, val); return true; } catch (e) { return false; } }
 function loadNum(key, def) { const v = parseInt(safeGet(key), 10); return Number.isFinite(v) ? v : def; }
 function persist() {
-  safeSet(LS.score, String(state.score));
-  safeSet(LS.level, String(state.level));
-  safeSet(LS.best, String(Math.max(state.best, state.score)));
   safeSet(LS.streakGoal, String(state.streakGoal));
 }
 
 // ===== game state =====
 const state = {
-  score: loadNum(LS.score, 0),
-  level: Math.min(10, Math.max(1, loadNum(LS.level, 1))),
-  best: loadNum(LS.best, 0),
+  score: 0,
+  level: 1,
   // כמה תשובות נכונות ברצף צריך כדי לעלות רמה — ניתן לשינוי ע"י המשתמש בהגדרות
   streakGoal: clamp(loadNum(LS.streakGoal, 3), 1, 10),
   correctStreak: 0,
@@ -59,7 +56,6 @@ const state = {
   muted: safeGet(LS.sound) === '0',
   started: false,
 };
-state.best = Math.max(state.best, state.score);
 
 let question = { a: 2, b: 2, answer: 4 };
 let ducks = [];
@@ -113,21 +109,27 @@ const sfx = {
   splash() { tone(200, 0.12, 'sine', 0, 0.05); },
   correct() { tone(523.25, 0.11, 'triangle', 0, 0.16); tone(659.25, 0.11, 'triangle', 0.08, 0.16); tone(880, 0.18, 'triangle', 0.16, 0.18); },
   wrong() { tone(220, 0.15, 'sawtooth', 0, 0.10); tone(160, 0.2, 'sawtooth', 0.1, 0.10); },
-  levelUp() { tone(523, 0.1, 'triangle', 0, 0.16); tone(659, 0.1, 'triangle', 0.1, 0.16); tone(784, 0.1, 'triangle', 0.2, 0.16); tone(1046, 0.28, 'triangle', 0.3, 0.2); },
+  levelUp() {
+    tone(523, 0.1, 'triangle', 0, 0.16); tone(659, 0.1, 'triangle', 0.1, 0.16);
+    tone(784, 0.1, 'triangle', 0.2, 0.16); tone(1046, 0.32, 'triangle', 0.3, 0.22);
+    tone(784, 0.18, 'sine', 0.32, 0.14); tone(1318, 0.35, 'triangle', 0.34, 0.16);
+  },
   levelDown() { tone(392, 0.16, 'sine', 0, 0.10); tone(311, 0.22, 'sine', 0.12, 0.10); },
   tick() { tone(500, 0.05, 'square', 0, 0.08); },
 };
 
 // ===== difficulty model =====
+// אין תקרה למספר הרמה עצמו (מדד גאווה/הישג) — אבל הקושי בפועל (מהירות, מספר ברווזים,
+// חדות המסיחים) מתייצב סביב רמה 20, כדי שגם מי שמטפס גבוה מאוד ישאר במשחק שאפשר לשחק בו.
 function levelTables(level) {
-  if (level <= 2) return [1, 2, 5, 10];
-  if (level <= 4) return [1, 2, 3, 4, 5, 10];
-  if (level <= 6) return [1, 2, 3, 4, 5, 6, 7, 10];
+  if (level <= 3) return [1, 2, 5, 10];
+  if (level <= 6) return [1, 2, 3, 4, 5, 10];
+  if (level <= 9) return [1, 2, 3, 4, 5, 6, 7, 10];
   return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 }
-function duckCountForLevel(level) { return clamp(3 + Math.floor((level - 1) / 2), 3, 7); }
-function speedFactorForLevel(level) { return 1 + (level - 1) * 0.09; }
-function distractorSharpness(level) { return level >= 7 ? 'close' : (level >= 4 ? 'mid' : 'wide'); }
+function duckCountForLevel(level) { return clamp(3 + Math.floor((level - 1) / 3), 3, 8); }
+function speedFactorForLevel(level) { const capped = Math.min(level, 20); return 1 + (capped - 1) * 0.07; }
+function distractorSharpness(level) { return level >= 15 ? 'close' : (level >= 8 ? 'mid' : 'wide'); }
 
 function generateQuestion() {
   const tables = levelTables(state.level);
@@ -224,6 +226,19 @@ function burst(x, y, colors, count, spread) {
 function floatText(x, y, text, color) {
   particles.push({ x, y, vx: 0, vy: -38, g: 0, life: 0.9, age: 0, text, color: color || '#173047', isText: true });
 }
+const CONFETTI_COLORS = ['#f4c542', '#f28c28', '#5ac8fa', '#8ee06f', '#ff7fa8', '#c9a0ff', '#ffffff'];
+function confettiBurst() {
+  for (let i = 0; i < 48; i++) {
+    particles.push({
+      x: Math.random() * logicalW, y: -20 - Math.random() * 80,
+      vx: (Math.random() - 0.5) * 100, vy: 70 + Math.random() * 90,
+      g: 70, life: 1.6 + Math.random() * 0.9, age: 0,
+      rot: Math.random() * Math.PI * 2, vrot: (Math.random() - 0.5) * 9,
+      w: 6 + Math.random() * 5, h: 9 + Math.random() * 6,
+      color: pick(CONFETTI_COLORS), isConfetti: true,
+    });
+  }
+}
 
 // ===== UI helpers =====
 let toastTimer = null;
@@ -260,6 +275,11 @@ function pulseQuestion() {
 
 const PRAISE = ['כל הכבוד! 🎉', 'מעולה! 👏', 'בול פגיעה! 🎯', 'אלוף! 🌟', 'יפה מאוד! 😄', 'ישר בול! 🦆'];
 const TRY_AGAIN = ['כמעט! נסה שוב 🙂', 'לא נורא, עוד ניסיון 💪', 'קרוב מאוד! 🔁', 'שים לב לתרגיל למעלה 👀'];
+const LEVEL_UP_TITLES = ['וואו!', 'מדהים!', 'איזה כישרון!', 'אש! 🔥', 'לא ייאמן!', 'כוכב עולה!', 'מכונה!', 'איזה גאון!'];
+const LEVEL_UP_SUBS = [
+  'הברווזים שוחים מהר יותר עכשיו!', 'עוד קצת ואי אפשר יהיה לעצור אותך!',
+  'רמת האתגר עולה — בהצלחה!', 'תמשיך ככה ואתה שובר שיאים!', 'הידיים שלך על אש היום!',
+];
 
 // ===== round flow =====
 function newQuestion() {
@@ -277,15 +297,15 @@ function correctHit(duck) {
   floatText(duck.x, duck.y - 20, '+' + gained, '#2e7d46');
   sfx.correct();
   state.score += gained;
-  state.best = Math.max(state.best, state.score);
   state.correctStreak++; state.wrongStreak = 0;
   updateStreakDots(); updateHUD(); persist();
   showToast(pick(PRAISE));
   if (state.correctStreak >= state.streakGoal) {
     state.correctStreak = 0;
-    state.level = Math.min(10, state.level + 1);
+    state.level += 1;
     sfx.levelUp();
-    showLevelUp(`🎉 רמה ${state.level}! 🎉`, 'הברווזים שוחים מהר יותר עכשיו!');
+    confettiBurst();
+    showLevelUp(`🎉 ${pick(LEVEL_UP_TITLES)} רמה ${state.level}! 🎉`, pick(LEVEL_UP_SUBS));
     updateStreakDots(); persist();
   }
   schedule(() => newQuestion(), 750);
@@ -490,7 +510,9 @@ function drawParticles(dt) {
     p.age += dt;
     p.vy += (p.g || 0) * dt;
     p.x += p.vx * dt; p.y += p.vy * dt;
-    const a = clamp(1 - p.age / p.life, 0, 1);
+    if (p.isConfetti) p.rot += p.vrot * dt;
+    // הקונפטי דוהה רק לקראת הסוף — ככה הוא נשאר בהיר ושמח רוב הזמן שהוא נופל
+    const a = p.isConfetti ? clamp((p.life - p.age) / 0.5, 0, 1) : clamp(1 - p.age / p.life, 0, 1);
     ctx.save();
     ctx.globalAlpha = a;
     if (p.isText) {
@@ -498,6 +520,11 @@ function drawParticles(dt) {
       ctx.font = "800 16px Rubik, 'Heebo', sans-serif";
       ctx.textAlign = 'center';
       ctx.fillText(p.text, p.x, p.y);
+    } else if (p.isConfetti) {
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
     } else {
       ctx.fillStyle = p.color;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();

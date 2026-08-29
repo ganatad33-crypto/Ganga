@@ -31,7 +31,7 @@ header{
   box-shadow:0 3px 0 var(--wood-d), 0 4px 10px rgba(0,0,0,.25);
   padding:10px 12px;
   display:flex;align-items:center;justify-content:space-between;gap:8px;
-  position:relative;z-index:20;
+  position:relative;z-index:60;
 }
 header h1{
   font-family:'Rubik',sans-serif;font-weight:800;font-size:17px;
@@ -61,7 +61,7 @@ header h1{
 }
 
 .streakRow{
-  display:flex;justify-content:center;gap:6px;padding:6px 8px 0;
+  display:flex;flex-wrap:wrap;justify-content:center;gap:4px 6px;padding:6px 8px 0;
   font-size:18px;min-height:20px;
 }
 .streakRow .dot{opacity:.35;transition:transform .25s, opacity .25s}
@@ -150,3 +150,23 @@ header h1{
 }
 #startBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #237c40}
 .startOverlay.hidden{display:none}
+
+.settingsCard{position:relative}
+.closeX{
+  position:absolute;top:10px;left:10px;
+  width:32px;height:32px;border-radius:10px;border:none;
+  background:rgba(0,0,0,.08);font-size:16px;cursor:pointer;line-height:1;
+}
+.settingsLabel{font-weight:700;font-size:15px;margin-bottom:12px}
+.goalStepper{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  margin-bottom:14px;
+}
+.goalStepper .iconbtn{width:44px;height:44px;font-size:22px;font-weight:800}
+.goalStepper b{font-family:'Rubik',sans-serif;font-weight:800;font-size:30px;min-width:1.4ch;text-align:center}
+#settingsSave{
+  background:var(--ok);color:#fff;border:none;border-radius:14px;
+  padding:12px 22px;font-size:15px;font-weight:800;font-family:'Rubik',sans-serif;
+  cursor:pointer;box-shadow:0 4px 0 #237c40;margin-top:4px;
+}
+#settingsSave:active{transform:translateY(2px);box-shadow:0 2px 0 #237c40}

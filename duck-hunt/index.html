@@ -16,6 +16,7 @@
 
 <header>
   <div class="hleft">
+    <button id="settingsBtn" class="iconbtn" aria-label="הגדרות">⚙️</button>
     <button id="soundBtn" class="iconbtn" aria-label="השתקה">🔊</button>
     <button id="restartBtn" class="iconbtn" aria-label="התחלה מחדש">🔄</button>
   </div>
@@ -54,8 +55,26 @@
     <h2>ברוכים הבאים לדוכן הכפל!</h2>
     <p>בכל סיבוב יופיע תרגיל כפל למעלה.<br>
        לוחצים על הברווז עם התשובה הנכונה כדי לפגוע בו.<br>
-       ככל שפוגעים יותר — המשחק מתקדם ברמה ומתרגש!</p>
+       ככל שפוגעים יותר — המשחק מתקדם ברמה ומתרגש!<br>
+       <small>אפשר לשנות כמה תשובות נכונות צריך לעלות רמה בכפתור ⚙️ למעלה.</small></p>
     <button id="startBtn">🎯 בואו נשחק!</button>
+  </div>
+</div>
+
+<div class="startOverlay hidden" id="settingsOverlay">
+  <div class="startCard settingsCard">
+    <button class="closeX" id="settingsClose" aria-label="סגירה">✕</button>
+    <div class="startEmoji">⚙️🦆</div>
+    <h2>הגדרות משחק</h2>
+    <p class="settingsLabel">כמה תשובות נכונות ברצף כדי לעלות רמה?</p>
+    <div class="goalStepper">
+      <button id="goalMinus" class="iconbtn" aria-label="פחות">−</button>
+      <b id="goalVal">3</b>
+      <button id="goalPlus" class="iconbtn" aria-label="יותר">+</button>
+    </div>
+    <p class="hnote">מספר קטן = עולים רמה מהר. מספר גדול = צריך להתאמן יותר בכל רמה לפני שעולים.<br>
+       המשחק ימשיך להתאים את עצמו לבד: כמה טעויות ברצף — והרמה יורדת קצת, כדי שזה תמיד יישאר מאתגר בול.</p>
+    <button id="settingsSave">✓ שמירה</button>
   </div>
 </div>
 

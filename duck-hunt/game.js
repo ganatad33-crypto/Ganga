@@ -20,11 +20,18 @@ const soundBtn = document.getElementById('soundBtn');
 const restartBtn = document.getElementById('restartBtn');
 const startOverlay = document.getElementById('startOverlay');
 const startBtn = document.getElementById('startBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsOverlay = document.getElementById('settingsOverlay');
+const settingsClose = document.getElementById('settingsClose');
+const settingsSave = document.getElementById('settingsSave');
+const goalMinus = document.getElementById('goalMinus');
+const goalPlus = document.getElementById('goalPlus');
+const goalVal = document.getElementById('goalVal');
 
 // ===== persistence =====
 const LS = {
   score: 'duckhunt.score', level: 'duckhunt.level',
-  best: 'duckhunt.best', sound: 'duckhunt.sound'
+  best: 'duckhunt.best', sound: 'duckhunt.sound', streakGoal: 'duckhunt.streakGoal'
 };
 function loadNum(key, def) { const v = parseInt(localStorage.getItem(key), 10); return Number.isFinite(v) ? v : def; }
 function persist() {
@@ -32,6 +39,7 @@ function persist() {
     localStorage.setItem(LS.score, String(state.score));
     localStorage.setItem(LS.level, String(state.level));
     localStorage.setItem(LS.best, String(Math.max(state.best, state.score)));
+    localStorage.setItem(LS.streakGoal, String(state.streakGoal));
   } catch (e) { /* אחסון לא זמין — לא נורא */ }
 }
 
@@ -40,6 +48,8 @@ const state = {
   score: loadNum(LS.score, 0),
   level: Math.min(10, Math.max(1, loadNum(LS.level, 1))),
   best: loadNum(LS.best, 0),
+  // כמה תשובות נכונות ברצף צריך כדי לעלות רמה — ניתן לשינוי ע"י המשתמש בהגדרות
+  streakGoal: clamp(loadNum(LS.streakGoal, 3), 1, 10),
   correctStreak: 0,
   wrongStreak: 0,
   muted: localStorage.getItem(LS.sound) === '0',
@@ -97,6 +107,7 @@ const sfx = {
   wrong() { tone(220, 0.15, 'sawtooth', 0, 0.10); tone(160, 0.2, 'sawtooth', 0.1, 0.10); },
   levelUp() { tone(523, 0.1, 'triangle', 0, 0.16); tone(659, 0.1, 'triangle', 0.1, 0.16); tone(784, 0.1, 'triangle', 0.2, 0.16); tone(1046, 0.28, 'triangle', 0.3, 0.2); },
   levelDown() { tone(392, 0.16, 'sine', 0, 0.10); tone(311, 0.22, 'sine', 0.12, 0.10); },
+  tick() { tone(500, 0.05, 'square', 0, 0.08); },
 };
 
 // ===== difficulty model =====
@@ -226,7 +237,7 @@ function updateHUD() {
 }
 function updateStreakDots() {
   streakRow.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < state.streakGoal; i++) {
     const d = document.createElement('span');
     d.className = 'dot' + (i < state.correctStreak ? ' on' : '');
     d.textContent = '⭐';
@@ -262,7 +273,7 @@ function correctHit(duck) {
   state.correctStreak++; state.wrongStreak = 0;
   updateStreakDots(); updateHUD(); persist();
   showToast(pick(PRAISE));
-  if (state.correctStreak >= 3) {
+  if (state.correctStreak >= state.streakGoal) {
     state.correctStreak = 0;
     state.level = Math.min(10, state.level + 1);
     sfx.levelUp();
@@ -636,6 +647,23 @@ startBtn.addEventListener('click', () => {
   startOverlay.classList.add('hidden');
   state.started = true;
   newQuestion();
+});
+
+function renderGoalVal() { goalVal.textContent = state.streakGoal; }
+function closeSettings() { settingsOverlay.classList.add('hidden'); }
+settingsBtn.addEventListener('click', () => {
+  renderGoalVal();
+  settingsOverlay.classList.remove('hidden');
+});
+settingsClose.addEventListener('click', closeSettings);
+settingsSave.addEventListener('click', closeSettings);
+goalMinus.addEventListener('click', () => {
+  state.streakGoal = clamp(state.streakGoal - 1, 1, 10);
+  renderGoalVal(); updateStreakDots(); persist(); sfx.tick();
+});
+goalPlus.addEventListener('click', () => {
+  state.streakGoal = clamp(state.streakGoal + 1, 1, 10);
+  renderGoalVal(); updateStreakDots(); persist(); sfx.tick();
 });
 
 // ===== init =====

@@ -33,14 +33,16 @@ const LS = {
   score: 'duckhunt.score', level: 'duckhunt.level',
   best: 'duckhunt.best', sound: 'duckhunt.sound', streakGoal: 'duckhunt.streakGoal'
 };
-function loadNum(key, def) { const v = parseInt(localStorage.getItem(key), 10); return Number.isFinite(v) ? v : def; }
+// גישה בטוחה ל-localStorage — בדפדפנים/מצבים מסוימים (למשל דפדפן פנימי של אפליקציה,
+// גלישה פרטית) הגישה עצמה יכולה לזרוק שגיאה; לא רוצים שזה יפיל את כל המשחק.
+function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+function safeSet(key, val) { try { localStorage.setItem(key, val); return true; } catch (e) { return false; } }
+function loadNum(key, def) { const v = parseInt(safeGet(key), 10); return Number.isFinite(v) ? v : def; }
 function persist() {
-  try {
-    localStorage.setItem(LS.score, String(state.score));
-    localStorage.setItem(LS.level, String(state.level));
-    localStorage.setItem(LS.best, String(Math.max(state.best, state.score)));
-    localStorage.setItem(LS.streakGoal, String(state.streakGoal));
-  } catch (e) { /* אחסון לא זמין — לא נורא */ }
+  safeSet(LS.score, String(state.score));
+  safeSet(LS.level, String(state.level));
+  safeSet(LS.best, String(Math.max(state.best, state.score)));
+  safeSet(LS.streakGoal, String(state.streakGoal));
 }
 
 // ===== game state =====
@@ -52,7 +54,7 @@ const state = {
   streakGoal: clamp(loadNum(LS.streakGoal, 3), 1, 10),
   correctStreak: 0,
   wrongStreak: 0,
-  muted: localStorage.getItem(LS.sound) === '0',
+  muted: safeGet(LS.sound) === '0',
   started: false,
 };
 state.best = Math.max(state.best, state.score);
@@ -81,14 +83,17 @@ function clearTimers() { pendingTimers.forEach(clearTimeout); pendingTimers = []
 // ===== audio (WebAudio, ללא קבצים חיצוניים) =====
 let actx = null;
 function ensureAudio() {
-  if (!actx) {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (AC) actx = new AC();
-  }
-  if (actx && actx.state === 'suspended') actx.resume();
+  try {
+    if (!actx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) actx = new AC();
+    }
+    if (actx && actx.state === 'suspended') actx.resume();
+  } catch (e) { /* אודיו לא זמין בדפדפן הזה — המשחק ימשיך בלי צלילים */ }
 }
 function tone(freq, dur, type, delay, vol) {
   if (state.muted || !actx) return;
+  try {
   const t0 = actx.currentTime + (delay || 0);
   const osc = actx.createOscillator();
   const gain = actx.createGain();
@@ -99,6 +104,7 @@ function tone(freq, dur, type, delay, vol) {
   gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   osc.connect(gain).connect(actx.destination);
   osc.start(t0); osc.stop(t0 + dur + 0.03);
+  } catch (e) { /* לא נורא, פשוט בלי הצליל הזה */ }
 }
 const sfx = {
   shoot() { tone(120, 0.05, 'square', 0, 0.10); },
@@ -632,7 +638,7 @@ window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200)
 soundBtn.addEventListener('click', () => {
   state.muted = !state.muted;
   soundBtn.textContent = state.muted ? '🔇' : '🔊';
-  localStorage.setItem(LS.sound, state.muted ? '0' : '1');
+  safeSet(LS.sound, state.muted ? '0' : '1');
   if (!state.muted) ensureAudio();
 });
 restartBtn.addEventListener('click', () => {

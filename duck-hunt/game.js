@@ -27,6 +27,8 @@ const settingsSave = document.getElementById('settingsSave');
 const goalMinus = document.getElementById('goalMinus');
 const goalPlus = document.getElementById('goalPlus');
 const goalVal = document.getElementById('goalVal');
+const shareBtn = document.getElementById('shareBtn');
+const shareBtnBig = document.getElementById('shareBtnBig');
 
 // ===== persistence =====
 const LS = {
@@ -671,6 +673,27 @@ goalPlus.addEventListener('click', () => {
   state.streakGoal = clamp(state.streakGoal + 1, 1, 10);
   renderGoalVal(); updateStreakDots(); persist(); sfx.tick();
 });
+
+// שיתוף — פותח את תפריט השיתוף המובנה של הטלפון (וואטסאפ וכו') כשזמין,
+// ואם לא, מעתיק את הקישור ללוח כדי שאפשר יהיה להדביק אותו
+async function doShare() {
+  const text = state.score > 0
+    ? `אני ברמה ${state.level} עם ${state.score} נקודות במשחק דוכן הכפל! בואו לשחק גם אתם 🦆🎯`
+    : 'בואו לשחק דוכן הכפל — משחק כיפי לתרגול לוח הכפל! 🦆🎯';
+  const shareData = { title: '🦆 דוכן הכפל', text, url: location.href };
+  if (navigator.share) {
+    try { await navigator.share(shareData); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; /* בוטל ע"י המשתמש — לא נורא */ }
+  }
+  try {
+    await navigator.clipboard.writeText(location.href);
+    showToast('הקישור הועתק! 📋 אפשר להדביק בקבוצה', 1800);
+  } catch (e2) {
+    window.prompt('העתיקו את הקישור ושתפו:', location.href);
+  }
+}
+shareBtn.addEventListener('click', doShare);
+shareBtnBig.addEventListener('click', doShare);
 
 // ===== init =====
 soundBtn.textContent = state.muted ? '🔇' : '🔊';

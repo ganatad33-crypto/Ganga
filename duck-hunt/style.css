@@ -51,13 +51,17 @@ header h1{
 }
 .pill b{font-family:'Rubik',sans-serif;font-weight:800;font-size:15px;color:var(--ink)}
 
-@media (max-width:380px){
-  header{padding:8px 8px;gap:3px}
-  header h1{font-size:13px}
-  .iconbtn{width:32px;height:32px;font-size:14px;border-radius:10px}
-  .pill{padding:4px 8px;font-size:11px;gap:2px}
-  .pill b{font-size:12px}
-  .hleft,.hright{gap:4px}
+@media (max-width:430px){
+  header{padding:8px 6px;gap:2px}
+  header h1{font-size:12px}
+  .iconbtn{width:29px;height:29px;font-size:13px;border-radius:9px}
+  .pill{padding:3px 6px;font-size:10px;gap:2px}
+  .pill b{font-size:11px}
+  .hleft,.hright{gap:2px}
+}
+@media (max-width:340px){
+  header h1{display:none}
+  .iconbtn{width:30px;height:30px;font-size:14px}
 }
 
 .streakRow{
@@ -150,6 +154,14 @@ header h1{
 }
 #startBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #237c40}
 .startOverlay.hidden{display:none}
+
+.shareSecondary{
+  display:block;margin:10px auto 0;background:#fff;color:var(--ink);
+  border:2px solid var(--wood-d);border-radius:14px;
+  padding:10px 20px;font-size:14px;font-weight:700;font-family:'Heebo',sans-serif;
+  cursor:pointer;
+}
+.shareSecondary:active{transform:translateY(1px)}
 
 .settingsCard{position:relative}
 .closeX{

@@ -29,12 +29,16 @@ const goalPlus = document.getElementById('goalPlus');
 const goalVal = document.getElementById('goalVal');
 const shareBtn = document.getElementById('shareBtn');
 const shareBtnBig = document.getElementById('shareBtnBig');
+const nameInput = document.getElementById('nameInput');
+const bossBanner = document.getElementById('bossBanner');
+const bossHeartsEl = document.getElementById('bossHearts');
+const badgeShelf = document.getElementById('badgeShelf');
 
 // ===== persistence =====
-// רק העדפות (צליל, סף עלייה ברמה) נשמרות בין ביקורים — לא ניקוד/רמה.
+// רק העדפות (צליל, סף עלייה ברמה, שם השחקן) נשמרות בין ביקורים — לא ניקוד/רמה/הישגים.
 // כל מי שפותח את הקישור, כולל מי ששלח אותו, מתחיל תמיד ממשחק חדש לגמרי.
 const LS = {
-  sound: 'duckhunt.sound', streakGoal: 'duckhunt.streakGoal'
+  sound: 'duckhunt.sound', streakGoal: 'duckhunt.streakGoal', name: 'duckhunt.name'
 };
 // גישה בטוחה ל-localStorage — בדפדפנים/מצבים מסוימים (למשל דפדפן פנימי של אפליקציה,
 // גלישה פרטית) הגישה עצמה יכולה לזרוק שגיאה; לא רוצים שזה יפיל את כל המשחק.
@@ -55,6 +59,15 @@ const state = {
   wrongStreak: 0,
   muted: safeGet(LS.sound) === '0',
   started: false,
+  playerName: safeGet(LS.name) || '',
+  bestStreak: 0,
+  totalCorrect: 0,
+  tableCorrect: {}, // {2: 5, 7: 3, ...} כמה פעמים ענה נכון על כל לוח, בסיבוב הזה
+  weakFacts: new Map(), // תרגילים שטעה בהם לאחרונה — עולים בעדיפות עד שמצליח בהם שוב
+  badgesEarned: new Set(),
+  bossActive: false,
+  bossHitsNeeded: 0,
+  bossesDefeated: 0,
 };
 
 let question = { a: 2, b: 2, answer: 4 };
@@ -69,6 +82,9 @@ let pendingTimers = [];
 let duckIdSeq = 1;
 
 const COLORS = ['#f4c542', '#f28c28', '#5ac8fa', '#8ee06f', '#ff7fa8', '#c9a0ff'];
+const BOSS_COLORS = ['#7a1f3d', '#3a1f5c', '#1f3a5c', '#5c1f1f', '#402060'];
+function factKey(a, b) { const lo = Math.min(a, b), hi = Math.max(a, b); return lo + 'x' + hi; }
+function say(phrase) { return (state.playerName ? state.playerName + ', ' : '') + phrase; }
 
 // ===== utils =====
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
@@ -132,6 +148,11 @@ function speedFactorForLevel(level) { const capped = Math.min(level, 20); return
 function distractorSharpness(level) { return level >= 15 ? 'close' : (level >= 8 ? 'mid' : 'wide'); }
 
 function generateQuestion() {
+  // עדיפות לתרגילים שהילד טעה בהם לאחרונה בסיבוב הזה — עד שהוא חוזר ומצליח בהם
+  if (state.weakFacts.size && Math.random() < 0.55) {
+    const f = pick(Array.from(state.weakFacts.values()));
+    return { a: f.a, b: f.b, answer: f.a * f.b };
+  }
   const tables = levelTables(state.level);
   const a = pick(tables);
   const b = randInt(1, 10);
@@ -199,8 +220,13 @@ function spawnDucks(q) {
       color: pick(COLORS),
       state: 'alive', // alive | hit | wrong | gone
       t0: 0,
+      isBoss: false,
     };
   });
+  // בסיבוב בוס כל הברווזים מקבלים "עור" מיוחד (לא רק הנכון — כדי לא לחשוף את התשובה)
+  if (state.bossActive) {
+    for (const d of ducks) { d.color = pick(BOSS_COLORS); d.isBoss = true; d.vx *= 0.85; }
+  }
 }
 function respawnSingleDuck(duck) {
   if (!ducks.includes(duck)) return;
@@ -272,6 +298,49 @@ function pulseQuestion() {
   void qsignEl.offsetWidth;
   qsignEl.classList.add('pulse');
 }
+function renderBossBanner() {
+  if (state.bossActive) {
+    bossBanner.classList.add('show');
+    bossHeartsEl.textContent = '❤️'.repeat(Math.max(0, state.bossHitsNeeded));
+  } else {
+    bossBanner.classList.remove('show');
+  }
+}
+
+// ===== הישגים (לסיבוב הנוכחי בלבד) =====
+const BADGES = [
+  { id: 'first', emoji: '🥉', title: 'ברווז ראשון', check: s => s.totalCorrect >= 1 },
+  { id: 'streak5', emoji: '🔥', title: 'רצף של 5', check: s => s.bestStreak >= 5 },
+  { id: 'streak10', emoji: '🔥🔥', title: 'רצף של 10', check: s => s.bestStreak >= 10 },
+  { id: 'boss1', emoji: '🏆', title: 'מנצח בוסים', check: s => s.bossesDefeated >= 1 },
+  { id: 'level10', emoji: '⭐', title: 'רמה 10', check: s => s.level >= 10 },
+  { id: 'level20', emoji: '🌟', title: 'רמה 20', check: s => s.level >= 20 },
+  { id: 'score100', emoji: '💯', title: '100 נקודות', check: s => s.score >= 100 },
+  { id: 'score500', emoji: '💎', title: '500 נקודות', check: s => s.score >= 500 },
+];
+for (let t = 1; t <= 10; t++) {
+  BADGES.push({ id: 'table' + t, emoji: '👑', title: `אלוף לוח ה-${t}`, check: s => (s.tableCorrect[t] || 0) >= 6 });
+}
+function renderBadges() {
+  badgeShelf.innerHTML = '';
+  for (const b of BADGES) {
+    const on = state.badgesEarned.has(b.id);
+    const el = document.createElement('div');
+    el.className = 'badgeTile' + (on ? ' on' : '');
+    el.title = b.title;
+    el.innerHTML = `<span class="ic">${b.emoji}</span><span>${b.title}</span>`;
+    badgeShelf.appendChild(el);
+  }
+}
+function checkBadges() {
+  for (const b of BADGES) {
+    if (!state.badgesEarned.has(b.id) && b.check(state)) {
+      state.badgesEarned.add(b.id);
+      showToast(say(`🏅 הישג חדש: ${b.title}!`), 1800);
+      renderBadges();
+    }
+  }
+}
 
 const PRAISE = ['כל הכבוד! 🎉', 'מעולה! 👏', 'בול פגיעה! 🎯', 'אלוף! 🌟', 'יפה מאוד! 😄', 'ישר בול! 🦆'];
 const TRY_AGAIN = ['כמעט! נסה שוב 🙂', 'לא נורא, עוד ניסיון 💪', 'קרוב מאוד! 🔁', 'שים לב לתרגיל למעלה 👀'];
@@ -284,6 +353,7 @@ const LEVEL_UP_SUBS = [
 // ===== round flow =====
 function newQuestion() {
   question = generateQuestion();
+  question.missedThisRound = false;
   qAEl.textContent = question.a;
   qBEl.textContent = question.b;
   pulseQuestion();
@@ -297,32 +367,74 @@ function correctHit(duck) {
   floatText(duck.x, duck.y - 20, '+' + gained, '#2e7d46');
   sfx.correct();
   state.score += gained;
+  state.totalCorrect++;
+  state.tableCorrect[question.a] = (state.tableCorrect[question.a] || 0) + 1;
+  // "נשלט" רק אם ענה נכון בלי טעות באמצע הסיבוב הזה — אחרת זה נשאר "חלש" ויחזור שוב מאוחר יותר
+  if (!question.missedThisRound) state.weakFacts.delete(factKey(question.a, question.b));
   state.correctStreak++; state.wrongStreak = 0;
+  state.bestStreak = Math.max(state.bestStreak, state.correctStreak);
   updateStreakDots(); updateHUD(); persist();
-  showToast(pick(PRAISE));
+
+  let bossJustDefeated = false;
+  if (state.bossActive) {
+    state.bossHitsNeeded--;
+    if (state.bossHitsNeeded <= 0) {
+      state.bossActive = false;
+      state.bossesDefeated++;
+      bossJustDefeated = true;
+      const bonus = 30 + state.level * 3;
+      state.score += bonus;
+      floatText(duck.x, duck.y - 42, '+' + bonus + ' 🏆', '#b8860b');
+      sfx.levelUp();
+      confettiBurst(); confettiBurst();
+      showLevelUp('🏆 ניצחת את הבוס! 🏆', say('איזה כישרון!'));
+      updateHUD();
+    } else {
+      showToast(say(`💥 פגיעה בבוס! עוד ${state.bossHitsNeeded}!`));
+    }
+    renderBossBanner();
+  } else {
+    showToast(say(pick(PRAISE)));
+  }
+
   if (state.correctStreak >= state.streakGoal) {
     state.correctStreak = 0;
     state.level += 1;
     sfx.levelUp();
-    confettiBurst();
-    showLevelUp(`🎉 ${pick(LEVEL_UP_TITLES)} רמה ${state.level}! 🎉`, pick(LEVEL_UP_SUBS));
+    if (!bossJustDefeated) {
+      confettiBurst();
+      showLevelUp(`🎉 ${say(pick(LEVEL_UP_TITLES))} רמה ${state.level}! 🎉`, pick(LEVEL_UP_SUBS));
+    }
     updateStreakDots(); persist();
+    if (state.level % 5 === 0 && !state.bossActive) {
+      state.bossActive = true; state.bossHitsNeeded = 2;
+      renderBossBanner();
+    }
   }
+  checkBadges();
   schedule(() => newQuestion(), 750);
 }
 
 function wrongHit(duck) {
   duck.state = 'wrong'; duck.t0 = performance.now();
   sfx.wrong();
+  question.missedThisRound = true;
+  state.weakFacts.set(factKey(question.a, question.b), { a: question.a, b: question.b });
   state.correctStreak = 0; state.wrongStreak++;
   updateStreakDots(); persist();
-  showToast(pick(TRY_AGAIN));
+  if (state.bossActive) {
+    state.bossHitsNeeded = 2;
+    renderBossBanner();
+    showToast(say('הבוס התחדש! 😤 נסה שוב'));
+  } else {
+    showToast(say(pick(TRY_AGAIN)));
+  }
   if (state.wrongStreak >= 2) {
     state.wrongStreak = 0;
     if (state.level > 1) {
       state.level -= 1;
       sfx.levelDown();
-      showToast('בואו ננסה קצת יותר לאט, אתה מצליח! 💪', 1400);
+      showToast(say('בואו ננסה קצת יותר לאט, אתה מצליח! 💪'), 1400);
     }
     persist();
   }
@@ -485,9 +597,9 @@ function drawDuck(duck, t) {
   const label = String(duck.val);
   const w = Math.max(34, 16 + label.length * 13);
   roundRect(ctx, -w / 2, -13, w, 26, 8);
-  ctx.fillStyle = '#fff8ec';
+  ctx.fillStyle = duck.isBoss ? '#fff0e6' : '#fff8ec';
   ctx.fill();
-  ctx.lineWidth = 2.5; ctx.strokeStyle = '#7d4b21'; ctx.stroke();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = duck.isBoss ? '#7a1f1f' : '#7d4b21'; ctx.stroke();
   ctx.fillStyle = '#173047';
   ctx.font = "800 17px Rubik, 'Heebo', sans-serif";
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -673,11 +785,16 @@ soundBtn.addEventListener('click', () => {
 restartBtn.addEventListener('click', () => {
   clearTimers();
   state.score = 0; state.level = 1; state.correctStreak = 0; state.wrongStreak = 0;
-  updateHUD(); updateStreakDots(); persist();
-  showToast('מתחילים מחדש! 🔄');
+  state.bestStreak = 0; state.totalCorrect = 0; state.tableCorrect = {};
+  state.weakFacts.clear(); state.badgesEarned.clear();
+  state.bossActive = false; state.bossHitsNeeded = 0; state.bossesDefeated = 0;
+  updateHUD(); updateStreakDots(); renderBossBanner(); renderBadges(); persist();
+  showToast(say('מתחילים מחדש! 🔄'));
   newQuestion();
 });
 startBtn.addEventListener('click', () => {
+  state.playerName = nameInput.value.trim().slice(0, 12);
+  safeSet(LS.name, state.playerName);
   ensureAudio();
   startOverlay.classList.add('hidden');
   state.started = true;
@@ -724,7 +841,10 @@ shareBtnBig.addEventListener('click', doShare);
 
 // ===== init =====
 soundBtn.textContent = state.muted ? '🔇' : '🔊';
+nameInput.value = state.playerName;
 updateHUD();
 updateStreakDots();
+renderBossBanner();
+renderBadges();
 resizeCanvas();
 requestAnimationFrame(loop);

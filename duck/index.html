@@ -29,6 +29,7 @@
 </header>
 
 <div class="streakRow" id="streakRow" aria-hidden="true"></div>
+<div class="bossBanner" id="bossBanner">🐉 קרב בוס! <span id="bossHearts">❤️❤️</span></div>
 
 <div class="question" id="questionBox">
   <div class="qsign">
@@ -58,6 +59,10 @@
        לוחצים על הברווז עם התשובה הנכונה כדי לפגוע בו.<br>
        ככל שפוגעים יותר — המשחק מתקדם ברמה ומתרגש!<br>
        <small>אפשר לשנות כמה תשובות נכונות צריך לעלות רמה בכפתור ⚙️ למעלה.</small></p>
+    <div class="nameRow">
+      <label for="nameInput">איך קוראים לך? (לא חובה)</label>
+      <input id="nameInput" type="text" maxlength="12" placeholder="השם שלך" autocomplete="off">
+    </div>
     <button id="startBtn">🎯 בואו נשחק!</button>
     <button id="shareBtnBig" class="shareSecondary">📤 שתפו עם המשפחה</button>
   </div>
@@ -76,6 +81,8 @@
     </div>
     <p class="hnote">מספר קטן = עולים רמה מהר. מספר גדול = צריך להתאמן יותר בכל רמה לפני שעולים.<br>
        המשחק ימשיך להתאים את עצמו לבד: כמה טעויות ברצף — והרמה יורדת קצת, כדי שזה תמיד יישאר מאתגר בול.</p>
+    <p class="settingsLabel">🏅 ההישגים שלי (בסיבוב הזה)</p>
+    <div class="badgeShelf" id="badgeShelf"></div>
     <button id="settingsSave">✓ שמירה</button>
   </div>
 </div>

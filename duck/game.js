@@ -33,20 +33,86 @@ const nameInput = document.getElementById('nameInput');
 const bossBanner = document.getElementById('bossBanner');
 const bossHeartsEl = document.getElementById('bossHearts');
 const badgeShelf = document.getElementById('badgeShelf');
+const coinVal = document.getElementById('coinVal');
+const shopBtn = document.getElementById('shopBtn');
+const parentBtn = document.getElementById('parentBtn');
+const shopOverlay = document.getElementById('shopOverlay');
+const shopClose = document.getElementById('shopClose');
+const gunSkinShelf = document.getElementById('gunSkinShelf');
+const crosshairSkinShelf = document.getElementById('crosshairSkinShelf');
+const parentOverlay = document.getElementById('parentOverlay');
+const parentClose = document.getElementById('parentClose');
+const parentStats = document.getElementById('parentStats');
+const resetProfileBtn = document.getElementById('resetProfileBtn');
 
 // ===== persistence =====
-// רק העדפות (צליל, סף עלייה ברמה, שם השחקן) נשמרות בין ביקורים — לא ניקוד/רמה/הישגים.
-// כל מי שפותח את הקישור, כולל מי ששלח אותו, מתחיל תמיד ממשחק חדש לגמרי.
+// שני סוגי נתונים נשמרים בין ביקורים, שניהם רק על המכשיר הזה (לא בענן, לא משותף):
+// 1) העדפות (צליל, סף עלייה ברמה, שם) — כמו קודם.
+// 2) "פרופיל" ארוך-טווח (מטבעות, סקינים, נתוני תרגול, שיא רמה) — חדש בשלב הזה.
+// ניקוד/רמה/הישגי-הסיבוב עדיין מתאפסים בכל כניסה — זה לא השתנה.
 const LS = {
-  sound: 'duckhunt.sound', streakGoal: 'duckhunt.streakGoal', name: 'duckhunt.name'
+  sound: 'duckhunt.sound', streakGoal: 'duckhunt.streakGoal', name: 'duckhunt.name',
+  coins: 'duckhunt.coins', coinsEarned: 'duckhunt.coinsEarned',
+  highestLevel: 'duckhunt.highestLevel', gunSkin: 'duckhunt.gunSkin', crosshairSkin: 'duckhunt.crosshairSkin',
+  ownedGuns: 'duckhunt.ownedGuns', ownedCrosshairs: 'duckhunt.ownedCrosshairs',
+  factStats: 'duckhunt.factStats', totalPlayMs: 'duckhunt.totalPlayMs',
+  totalCorrectAll: 'duckhunt.totalCorrectAll', totalWrongAll: 'duckhunt.totalWrongAll',
+  badgesLifetime: 'duckhunt.badgesLifetime',
 };
 // גישה בטוחה ל-localStorage — בדפדפנים/מצבים מסוימים (למשל דפדפן פנימי של אפליקציה,
 // גלישה פרטית) הגישה עצמה יכולה לזרוק שגיאה; לא רוצים שזה יפיל את כל המשחק.
 function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
 function safeSet(key, val) { try { localStorage.setItem(key, val); return true; } catch (e) { return false; } }
 function loadNum(key, def) { const v = parseInt(safeGet(key), 10); return Number.isFinite(v) ? v : def; }
+function loadJSON(key, def) { try { const v = JSON.parse(safeGet(key)); return v && typeof v === 'object' ? v : def; } catch (e) { return def; } }
+function loadArr(key) { try { const v = JSON.parse(safeGet(key)); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
 function persist() {
   safeSet(LS.streakGoal, String(state.streakGoal));
+}
+
+// ===== פרופיל ארוך-טווח (נשמר על המכשיר הזה בין ביקורים) =====
+const profile = {
+  coins: loadNum(LS.coins, 0),
+  coinsEarned: loadNum(LS.coinsEarned, 0), // מונוטוני — לא יורד כשקונים, לצורך הישגים
+  highestLevel: loadNum(LS.highestLevel, 1),
+  gunSkin: safeGet(LS.gunSkin) || 'classic',
+  crosshairSkin: safeGet(LS.crosshairSkin) || 'classic',
+  ownedGuns: loadArr(LS.ownedGuns).length ? loadArr(LS.ownedGuns) : ['classic'],
+  ownedCrosshairs: loadArr(LS.ownedCrosshairs).length ? loadArr(LS.ownedCrosshairs) : ['classic'],
+  factStats: loadJSON(LS.factStats, {}), // {"axb": {seen,correct,wrong}} — לאורך זמן, לא רק הסיבוב הזה
+  totalPlayMs: loadNum(LS.totalPlayMs, 0),
+  totalCorrectAll: loadNum(LS.totalCorrectAll, 0),
+  totalWrongAll: loadNum(LS.totalWrongAll, 0),
+  badgesLifetime: new Set(loadArr(LS.badgesLifetime)),
+};
+function persistProfile() {
+  safeSet(LS.coins, String(profile.coins));
+  safeSet(LS.coinsEarned, String(profile.coinsEarned));
+  safeSet(LS.highestLevel, String(profile.highestLevel));
+  safeSet(LS.gunSkin, profile.gunSkin);
+  safeSet(LS.crosshairSkin, profile.crosshairSkin);
+  safeSet(LS.ownedGuns, JSON.stringify(profile.ownedGuns));
+  safeSet(LS.ownedCrosshairs, JSON.stringify(profile.ownedCrosshairs));
+  safeSet(LS.factStats, JSON.stringify(profile.factStats));
+  safeSet(LS.totalPlayMs, String(profile.totalPlayMs));
+  safeSet(LS.totalCorrectAll, String(profile.totalCorrectAll));
+  safeSet(LS.totalWrongAll, String(profile.totalWrongAll));
+  safeSet(LS.badgesLifetime, JSON.stringify(Array.from(profile.badgesLifetime)));
+}
+function recordFactResult(a, b, correct) {
+  const k = factKey(a, b);
+  const s = profile.factStats[k] || { seen: 0, correct: 0, wrong: 0 };
+  s.seen++; if (correct) s.correct++; else s.wrong++;
+  profile.factStats[k] = s;
+}
+function resetProfile() {
+  profile.coins = 0; profile.coinsEarned = 0; profile.highestLevel = 1;
+  profile.gunSkin = 'classic'; profile.crosshairSkin = 'classic';
+  profile.ownedGuns = ['classic']; profile.ownedCrosshairs = ['classic'];
+  profile.factStats = {}; profile.totalPlayMs = 0;
+  profile.totalCorrectAll = 0; profile.totalWrongAll = 0;
+  profile.badgesLifetime.clear();
+  persistProfile();
 }
 
 // ===== game state =====
@@ -80,11 +146,40 @@ let shots = []; // muzzle/impact flash effects
 let gunRecoil = 0;
 let pendingTimers = [];
 let duckIdSeq = 1;
+let goldenDuck = null; // "מטרת בונוס" נפרדת — לא קשורה לתשובה של התרגיל
 
 const COLORS = ['#f4c542', '#f28c28', '#5ac8fa', '#8ee06f', '#ff7fa8', '#c9a0ff'];
 const BOSS_COLORS = ['#7a1f3d', '#3a1f5c', '#1f3a5c', '#5c1f1f', '#402060'];
 function factKey(a, b) { const lo = Math.min(a, b), hi = Math.max(a, b); return lo + 'x' + hi; }
 function say(phrase) { return (state.playerName ? state.playerName + ', ' : '') + phrase; }
+
+// ===== עולמות — כל 10 רמות משנים תפאורה (קוסמטי בלבד, לא משפיע על הקושי) =====
+const WORLDS = [
+  { name: 'בריכת הכפר', sky: ['#8fd3ef', '#d8f2fa'], pond: ['#2f9fd0', '#1c6f9c'], fence: '#b5732f', night: false, ducks: COLORS },
+  { name: 'חוף פיראטים', sky: ['#ffd98a', '#fff3d6'], pond: ['#1f9e8f', '#0e6e63'], fence: '#8a5a2b', night: false, ducks: ['#f4c542', '#e0483e', '#3aa65b', '#f28c28', '#5ac8fa', '#8b4a2b'] },
+  { name: 'ביצת התנינים', sky: ['#8fbf7a', '#d9e8c9'], pond: ['#4a7c3f', '#2e4f28'], fence: '#5a4a2b', night: false, ducks: ['#7bb661', '#c9a227', '#8e6b3a', '#4a7c3f', '#b5732f', '#6b8f3a'] },
+  { name: 'עיר הניאון', sky: ['#1a0b2e', '#3a1a5c'], pond: ['#0f2545', '#1b1035'], fence: '#2e1a4a', night: true, ducks: ['#ff2fd0', '#2fe6ff', '#c6ff2f', '#ff5c2f', '#7a2fff', '#2fffb0'] },
+  { name: 'החלל', sky: ['#04041a', '#161033'], pond: ['#0a1a3a', '#050a1f'], fence: '#2a2450', night: true, ducks: ['#c9c9ff', '#8ee0ff', '#ffb3e6', '#b3ffcf', '#ffe08a', '#c9a0ff'] },
+  { name: 'ממלכת הדרקון', sky: ['#3a0f0f', '#6b1f1f'], pond: ['#1c0a0a', '#0d0505'], fence: '#4a1a0a', night: true, ducks: ['#ff5c2f', '#ffd23f', '#c9302c', '#7a1f1f', '#f28c28', '#8b2020'] },
+];
+function worldIndexForLevel(level) { return clamp(Math.floor((level - 1) / 10), 0, WORLDS.length - 1); }
+function currentWorld() { return WORLDS[worldIndexForLevel(state.level)]; }
+
+// ===== סקינים לרובה ולכוונת — קוסמטיים בלבד, נקנים במטבעות =====
+const GUN_SKINS = [
+  { id: 'classic', name: 'קלאסי', price: 0, stock: '#6b4020', barrel1: '#8b939a', barrel2: '#eef2f4', barrel3: '#6b7378', band: '#e0483e' },
+  { id: 'pirate', name: 'תותח פיראטים', price: 20, stock: '#2a1a0a', barrel1: '#4a3a2a', barrel2: '#c9a227', barrel3: '#2a1a0a', band: '#e0483e' },
+  { id: 'laser', name: 'לייזר', price: 35, stock: '#1a2a3a', barrel1: '#0e8fa0', barrel2: '#eafffe', barrel3: '#0e8fa0', band: '#2fe6ff' },
+  { id: 'gold', name: 'רובה זהב', price: 60, stock: '#6b4020', barrel1: '#a8790a', barrel2: '#fff3c4', barrel3: '#a8790a', band: '#f0c419' },
+];
+const CROSSHAIR_SKINS = [
+  { id: 'classic', name: 'קלאסי', price: 0, color: 'rgba(255,255,255,.9)' },
+  { id: 'red', name: 'אדום', price: 15, color: 'rgba(255,70,70,.95)' },
+  { id: 'green', name: 'ירוק', price: 15, color: 'rgba(80,255,120,.95)' },
+  { id: 'gold', name: 'זהב', price: 30, color: 'rgba(255,215,0,.95)' },
+];
+function gunSkinDef() { return GUN_SKINS.find(s => s.id === profile.gunSkin) || GUN_SKINS[0]; }
+function crosshairSkinDef() { return CROSSHAIR_SKINS.find(s => s.id === profile.crosshairSkin) || CROSSHAIR_SKINS[0]; }
 
 // ===== utils =====
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
@@ -147,10 +242,28 @@ function duckCountForLevel(level) { return clamp(3 + Math.floor((level - 1) / 3)
 function speedFactorForLevel(level) { const capped = Math.min(level, 20); return 1 + (capped - 1) * 0.07; }
 function distractorSharpness(level) { return level >= 15 ? 'close' : (level >= 8 ? 'mid' : 'wide'); }
 
+// תרגילים שלאורך זמן (לא רק היום) יש בהם הרבה טעויות — "המאמן החכם"
+function persistentWeakPool() {
+  const pool = [];
+  for (const k in profile.factStats) {
+    const s = profile.factStats[k];
+    if (s.seen >= 2 && s.wrong / s.seen >= 0.4) {
+      const [a, b] = k.split('x').map(Number);
+      pool.push({ a, b });
+    }
+  }
+  return pool;
+}
 function generateQuestion() {
   // עדיפות לתרגילים שהילד טעה בהם לאחרונה בסיבוב הזה — עד שהוא חוזר ומצליח בהם
-  if (state.weakFacts.size && Math.random() < 0.55) {
+  if (state.weakFacts.size && Math.random() < 0.5) {
     const f = pick(Array.from(state.weakFacts.values()));
+    return { a: f.a, b: f.b, answer: f.a * f.b };
+  }
+  // ואם אין כאלה כרגע — עדיפות קלה יותר לתרגילים שקשים לו לאורך זמן, מסיבובים קודמים
+  const longTerm = persistentWeakPool();
+  if (longTerm.length && Math.random() < 0.3) {
+    const f = pick(longTerm);
     return { a: f.a, b: f.b, answer: f.a * f.b };
   }
   const tables = levelTables(state.level);
@@ -202,31 +315,54 @@ function spawnDucks(q) {
   const values = shuffle([q.answer, ...generateDistractors(q, count - 1, [])]);
   const { top, bottom } = poolBounds();
   const margin = 44;
+  const palette = currentWorld().ducks;
   ducks = values.map((val, i) => {
     const lane = (i + 0.5) * ((bottom - top) / count);
     const baseY = top + lane + randInt(-6, 6);
     const dir = Math.random() < 0.5 ? -1 : 1;
     const speed = (46 + randInt(0, 34)) * speedFactorForLevel(state.level);
+    const isCorrect = val === q.answer;
+    // מגוון תנועה קל מרמה 4 ואילך — לא על הבוסים (שם כולם אחידים בכוונה), ולא "צוללן"
+    // על הברווז הנכון (כדי שלא יהיה בלתי-לחיץ בזמן שהילד יודע את התשובה)
+    let variant = 'normal';
+    if (!state.bossActive && state.level >= 4 && Math.random() < 0.22) {
+      variant = isCorrect ? pick(['fast', 'zigzag']) : pick(['fast', 'zigzag', 'diving']);
+    }
     return {
       id: duckIdSeq++,
       x: randInt(margin, Math.max(margin + 1, logicalW - margin)),
       baseY, y: baseY,
-      vx: speed * dir,
+      vx: speed * dir * (variant === 'fast' ? 1.6 : 1),
       facing: dir,
       phase: Math.random() * Math.PI * 2,
       bobFreq: 2 + Math.random(),
       amp: 6 + Math.random() * 5,
-      val, isCorrect: val === q.answer,
-      color: pick(COLORS),
+      val, isCorrect,
+      color: pick(palette),
       state: 'alive', // alive | hit | wrong | gone
       t0: 0,
       isBoss: false,
+      variant,
+      submerged: false,
     };
   });
   // בסיבוב בוס כל הברווזים מקבלים "עור" מיוחד (לא רק הנכון — כדי לא לחשוף את התשובה)
   if (state.bossActive) {
-    for (const d of ducks) { d.color = pick(BOSS_COLORS); d.isBoss = true; d.vx *= 0.85; }
+    for (const d of ducks) { d.color = pick(BOSS_COLORS); d.isBoss = true; d.vx *= 0.85; d.variant = 'normal'; }
   }
+  // מדי פעם ברווז זהב בונוס — לא קשור לשאלה, נעלם לבד
+  if (!state.bossActive && !goldenDuck && Math.random() < 0.15) spawnGoldenDuck();
+}
+function spawnGoldenDuck() {
+  const { top, bottom } = poolBounds();
+  const dir = Math.random() < 0.5 ? -1 : 1;
+  goldenDuck = {
+    x: randInt(50, Math.max(51, logicalW - 50)), baseY: randInt(top + 10, bottom - 10),
+    y: 0, vx: 70 * dir, facing: dir,
+    phase: Math.random() * Math.PI * 2, bobFreq: 2.4, amp: 7,
+    spawnT: performance.now(), life: 4200,
+  };
+  goldenDuck.y = goldenDuck.baseY;
 }
 function respawnSingleDuck(duck) {
   if (!ducks.includes(duck)) return;
@@ -307,40 +443,51 @@ function renderBossBanner() {
   }
 }
 
-// ===== הישגים (לסיבוב הנוכחי בלבד) =====
+// ===== הישגים =====
+// 'session' — לסיבוב הנוכחי בלבד, מתאפס בהתחלה מחדש (כמו הניקוד).
+// 'lifetime' — נשמר על המכשיר לצמיתות, מוצג גם אחרי איפוס סיבוב (רק "אזור ההורים" מאפס אותו).
 const BADGES = [
-  { id: 'first', emoji: '🥉', title: 'ברווז ראשון', check: s => s.totalCorrect >= 1 },
-  { id: 'streak5', emoji: '🔥', title: 'רצף של 5', check: s => s.bestStreak >= 5 },
-  { id: 'streak10', emoji: '🔥🔥', title: 'רצף של 10', check: s => s.bestStreak >= 10 },
-  { id: 'boss1', emoji: '🏆', title: 'מנצח בוסים', check: s => s.bossesDefeated >= 1 },
-  { id: 'level10', emoji: '⭐', title: 'רמה 10', check: s => s.level >= 10 },
-  { id: 'level20', emoji: '🌟', title: 'רמה 20', check: s => s.level >= 20 },
-  { id: 'score100', emoji: '💯', title: '100 נקודות', check: s => s.score >= 100 },
-  { id: 'score500', emoji: '💎', title: '500 נקודות', check: s => s.score >= 500 },
+  { id: 'first', emoji: '🥉', title: 'ברווז ראשון', scope: 'session', check: () => state.totalCorrect >= 1 },
+  { id: 'streak5', emoji: '🔥', title: 'רצף של 5', scope: 'session', check: () => state.bestStreak >= 5 },
+  { id: 'streak10', emoji: '🔥🔥', title: 'רצף של 10', scope: 'session', check: () => state.bestStreak >= 10 },
+  { id: 'boss1', emoji: '🏆', title: 'מנצח בוסים', scope: 'session', check: () => state.bossesDefeated >= 1 },
+  { id: 'level10', emoji: '⭐', title: 'רמה 10', scope: 'session', check: () => state.level >= 10 },
+  { id: 'level20', emoji: '🌟', title: 'רמה 20', scope: 'session', check: () => state.level >= 20 },
+  { id: 'score100', emoji: '💯', title: '100 נקודות', scope: 'session', check: () => state.score >= 100 },
+  { id: 'score500', emoji: '💎', title: '500 נקודות', scope: 'session', check: () => state.score >= 500 },
+  { id: 'world_pirate', emoji: '🏖️', title: 'הגעת לחוף הפיראטים', scope: 'lifetime', check: () => profile.highestLevel >= 11 },
+  { id: 'world_neon', emoji: '🌃', title: 'הגעת לעיר הניאון', scope: 'lifetime', check: () => profile.highestLevel >= 31 },
+  { id: 'world_dragon', emoji: '🐲', title: 'הגעת לממלכת הדרקון', scope: 'lifetime', check: () => profile.highestLevel >= 51 },
+  { id: 'coins50', emoji: '💰', title: '50 מטבעות נאספו', scope: 'lifetime', check: () => profile.coinsEarned >= 50 },
+  { id: 'coins200', emoji: '💰💰', title: '200 מטבעות נאספו', scope: 'lifetime', check: () => profile.coinsEarned >= 200 },
 ];
 for (let t = 1; t <= 10; t++) {
-  BADGES.push({ id: 'table' + t, emoji: '👑', title: `אלוף לוח ה-${t}`, check: s => (s.tableCorrect[t] || 0) >= 6 });
+  BADGES.push({ id: 'table' + t, emoji: '👑', title: `אלוף לוח ה-${t}`, scope: 'session', check: () => (state.tableCorrect[t] || 0) >= 6 });
 }
+function badgeStore(b) { return b.scope === 'lifetime' ? profile.badgesLifetime : state.badgesEarned; }
 function renderBadges() {
   badgeShelf.innerHTML = '';
   for (const b of BADGES) {
-    const on = state.badgesEarned.has(b.id);
+    const on = badgeStore(b).has(b.id);
     const el = document.createElement('div');
     el.className = 'badgeTile' + (on ? ' on' : '');
-    el.title = b.title;
+    el.title = b.title + (b.scope === 'lifetime' ? ' (לצמיתות)' : '');
     el.innerHTML = `<span class="ic">${b.emoji}</span><span>${b.title}</span>`;
     badgeShelf.appendChild(el);
   }
 }
 function checkBadges() {
   for (const b of BADGES) {
-    if (!state.badgesEarned.has(b.id) && b.check(state)) {
-      state.badgesEarned.add(b.id);
+    const store = badgeStore(b);
+    if (!store.has(b.id) && b.check()) {
+      store.add(b.id);
+      if (b.scope === 'lifetime') persistProfile();
       showToast(say(`🏅 הישג חדש: ${b.title}!`), 1800);
       renderBadges();
     }
   }
 }
+function renderCoins() { coinVal.textContent = profile.coins; }
 
 const PRAISE = ['כל הכבוד! 🎉', 'מעולה! 👏', 'בול פגיעה! 🎯', 'אלוף! 🌟', 'יפה מאוד! 😄', 'ישר בול! 🦆'];
 const TRY_AGAIN = ['כמעט! נסה שוב 🙂', 'לא נורא, עוד ניסיון 💪', 'קרוב מאוד! 🔁', 'שים לב לתרגיל למעלה 👀'];
@@ -375,6 +522,12 @@ function correctHit(duck) {
   state.bestStreak = Math.max(state.bestStreak, state.correctStreak);
   updateStreakDots(); updateHUD(); persist();
 
+  // מעקב לטווח ארוך (נשמר על המכשיר) — למאמן החכם ולאזור ההורים
+  recordFactResult(question.a, question.b, true);
+  profile.totalCorrectAll++;
+  profile.coins += 1; profile.coinsEarned += 1;
+  renderCoins();
+
   let bossJustDefeated = false;
   if (state.bossActive) {
     state.bossHitsNeeded--;
@@ -384,6 +537,8 @@ function correctHit(duck) {
       bossJustDefeated = true;
       const bonus = 30 + state.level * 3;
       state.score += bonus;
+      profile.coins += 10; profile.coinsEarned += 10;
+      renderCoins();
       floatText(duck.x, duck.y - 42, '+' + bonus + ' 🏆', '#b8860b');
       sfx.levelUp();
       confettiBurst(); confettiBurst();
@@ -399,11 +554,19 @@ function correctHit(duck) {
 
   if (state.correctStreak >= state.streakGoal) {
     state.correctStreak = 0;
+    const prevWorldIdx = worldIndexForLevel(state.level);
     state.level += 1;
+    profile.highestLevel = Math.max(profile.highestLevel, state.level);
+    const newWorldIdx = worldIndexForLevel(state.level);
     sfx.levelUp();
     if (!bossJustDefeated) {
       confettiBurst();
-      showLevelUp(`🎉 ${say(pick(LEVEL_UP_TITLES))} רמה ${state.level}! 🎉`, pick(LEVEL_UP_SUBS));
+      if (newWorldIdx !== prevWorldIdx) {
+        confettiBurst();
+        showLevelUp('🌍 עולם חדש! 🌍', say(`הגעתם ל${currentWorld().name}!`));
+      } else {
+        showLevelUp(`🎉 ${say(pick(LEVEL_UP_TITLES))} רמה ${state.level}! 🎉`, pick(LEVEL_UP_SUBS));
+      }
     }
     updateStreakDots(); persist();
     if (state.level % 5 === 0 && !state.bossActive) {
@@ -411,6 +574,7 @@ function correctHit(duck) {
       renderBossBanner();
     }
   }
+  persistProfile();
   checkBadges();
   schedule(() => newQuestion(), 750);
 }
@@ -422,6 +586,9 @@ function wrongHit(duck) {
   state.weakFacts.set(factKey(question.a, question.b), { a: question.a, b: question.b });
   state.correctStreak = 0; state.wrongStreak++;
   updateStreakDots(); persist();
+  recordFactResult(question.a, question.b, false);
+  profile.totalWrongAll++;
+  persistProfile();
   if (state.bossActive) {
     state.bossHitsNeeded = 2;
     renderBossBanner();
@@ -460,23 +627,37 @@ function resizeCanvas() {
 }
 
 function drawBackground(t) {
+  const world = currentWorld();
   // שמיים
   const sky = ctx.createLinearGradient(0, 0, 0, logicalH * 0.5);
-  sky.addColorStop(0, '#8fd3ef'); sky.addColorStop(1, '#d8f2fa');
+  sky.addColorStop(0, world.sky[0]); sky.addColorStop(1, world.sky[1]);
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, logicalW, logicalH * 0.45);
 
-  // עננים נעים
-  ctx.fillStyle = 'rgba(255,255,255,.85)';
-  for (let i = 0; i < 3; i++) {
-    const cx = ((t * 8 + i * 160) % (logicalW + 160)) - 80;
-    const cy = 20 + i * 22;
-    cloud(cx, cy, 26 + i * 4);
+  if (world.night) {
+    // כוכבים במקום עננים בעולמות הלילה
+    ctx.fillStyle = 'rgba(255,255,255,.8)';
+    for (let i = 0; i < 18; i++) {
+      const sx = (i * 53 + (t * 3) % 37) % logicalW;
+      const sy = (i * 29) % (logicalH * 0.4);
+      const tw = 0.5 + 0.5 * Math.sin(t * 2 + i);
+      ctx.globalAlpha = 0.3 + tw * 0.6;
+      ctx.beginPath(); ctx.arc(sx, sy, 1.3, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  } else {
+    // עננים נעים
+    ctx.fillStyle = 'rgba(255,255,255,.85)';
+    for (let i = 0; i < 3; i++) {
+      const cx = ((t * 8 + i * 160) % (logicalW + 160)) - 80;
+      const cy = 20 + i * 22;
+      cloud(cx, cy, 26 + i * 4);
+    }
   }
 
-  // גדר עץ
+  // גדר/גבול
   const fenceTop = logicalH * 0.36, fenceBot = poolBounds().top + 4;
-  ctx.fillStyle = '#b5732f';
+  ctx.fillStyle = world.fence;
   ctx.fillRect(0, fenceTop, logicalW, fenceBot - fenceTop);
   ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 2;
   for (let x = -((t * 4) % 26); x < logicalW; x += 26) {
@@ -488,7 +669,7 @@ function drawBackground(t) {
   // בריכה
   const { top, bottom } = poolBounds();
   const pond = ctx.createLinearGradient(0, top, 0, logicalH);
-  pond.addColorStop(0, '#2f9fd0'); pond.addColorStop(1, '#1c6f9c');
+  pond.addColorStop(0, world.pond[0]); pond.addColorStop(1, world.pond[1]);
   ctx.fillStyle = pond;
   ctx.fillRect(0, top, logicalW, logicalH - top);
 
@@ -530,8 +711,26 @@ function shade(hex, percent) {
 }
 
 function drawDuck(duck, t) {
+  if (duck.submerged) {
+    // "צוללן" — נעלם רגעית מתחת למים, רק אדוות נשארות; לא ניתן לפגיעה בזמן הזה
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(duck.x, duck.y + 10, 16, 5, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+    return;
+  }
   const hitAnim = duck.state === 'hit' ? clamp((performance.now() - duck.t0) / 600, 0, 1) : 0;
   const wrongAnim = duck.state === 'wrong' ? (performance.now() - duck.t0) / 400 : 0;
+  if (duck.variant === 'fast' && duck.state === 'alive') {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2;
+    const dir = duck.facing < 0 ? 1 : -1;
+    ctx.beginPath();
+    ctx.moveTo(duck.x + dir * 22, duck.y + 4); ctx.lineTo(duck.x + dir * 34, duck.y + 4);
+    ctx.moveTo(duck.x + dir * 20, duck.y + 10); ctx.lineTo(duck.x + dir * 30, duck.y + 10);
+    ctx.stroke();
+    ctx.restore();
+  }
   ctx.save();
   const wiggle = duck.state === 'wrong' ? Math.sin(wrongAnim * 40) * 6 * Math.max(0, 1 - wrongAnim) : 0;
   ctx.translate(duck.x + wiggle, duck.y + hitAnim * 26);
@@ -606,6 +805,37 @@ function drawDuck(duck, t) {
   ctx.fillText(label, 0, 1);
   ctx.restore();
 }
+// ברווז הזהב — מטרת בונוס נפרדת לגמרי מהתרגיל, לא נספר כתשובה נכונה/שגויה
+function drawGoldenDuck(g, t) {
+  const sparkle = 0.6 + 0.4 * Math.sin(t * 8);
+  ctx.save();
+  ctx.translate(g.x, g.y);
+  ctx.scale(g.facing < 0 ? -1 : 1, 1);
+  ctx.shadowColor = 'rgba(255,215,0,.9)'; ctx.shadowBlur = 14 * sparkle;
+  const OUT = '#171512';
+  ctx.fillStyle = OUT;
+  ctx.beginPath(); ctx.ellipse(0, 6, 26, 18, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(15, -9, 15, 0, Math.PI * 2); ctx.fill();
+  const gold = ctx.createLinearGradient(-20, -20, 20, 20);
+  gold.addColorStop(0, '#fff3c4'); gold.addColorStop(0.5, '#f0c419'); gold.addColorStop(1, '#a8790a');
+  ctx.fillStyle = gold;
+  ctx.beginPath(); ctx.ellipse(0, 6, 23, 15, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(15, -9, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#e8871a';
+  ctx.beginPath();
+  ctx.moveTo(25, -12); ctx.quadraticCurveTo(38, -14, 44, -8); ctx.quadraticCurveTo(36, -5, 25, -5);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(20, -13, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#16305c'; ctx.beginPath(); ctx.arc(22, -12, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.font = '18px sans-serif'; ctx.textAlign = 'center';
+  ctx.globalAlpha = sparkle;
+  ctx.fillText('✨', g.x - 22, g.y - 22);
+  ctx.fillText('✨', g.x + 24, g.y - 14);
+  ctx.restore();
+}
 function roundRect(c, x, y, w, h, r) {
   c.beginPath();
   c.moveTo(x + r, y);
@@ -651,26 +881,27 @@ function drawGunAndCrosshair() {
   const ty = pointer.y == null ? gy - 120 : pointer.y;
   const ang = Math.atan2(ty - gy, tx - gx);
 
+  const skin = gunSkinDef();
   ctx.save();
   ctx.translate(gx, gy);
   ctx.rotate(ang + Math.PI / 2);
   const rec = gunRecoil * 6;
   ctx.translate(0, rec);
-  // קת עץ
-  ctx.fillStyle = '#6b4020';
-  ctx.strokeStyle = '#3d2410'; ctx.lineWidth = 2;
+  // קת
+  ctx.fillStyle = skin.stock;
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
   roundRect(ctx, -11, 4, 22, 30, 7); ctx.fill(); ctx.stroke();
   // הדק
-  ctx.strokeStyle = '#3d2410'; ctx.lineWidth = 3;
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.arc(0, 16, 6, 0.2, Math.PI * 1.6); ctx.stroke();
-  // קנה מתכת
+  // קנה
   const bg = ctx.createLinearGradient(-6, 0, 6, 0);
-  bg.addColorStop(0, '#8b939a'); bg.addColorStop(0.5, '#eef2f4'); bg.addColorStop(1, '#6b7378');
+  bg.addColorStop(0, skin.barrel1); bg.addColorStop(0.5, skin.barrel2); bg.addColorStop(1, skin.barrel3);
   ctx.fillStyle = bg;
-  ctx.strokeStyle = '#3a3f43'; ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
   roundRect(ctx, -6, -62, 12, 68, 5); ctx.fill(); ctx.stroke();
-  // פס אדום קרנבלי
-  ctx.fillStyle = '#e0483e';
+  // פס צבע
+  ctx.fillStyle = skin.band;
   ctx.fillRect(-6, -16, 12, 6);
   // קצה הקנה
   ctx.fillStyle = '#2b2b2b';
@@ -678,9 +909,10 @@ function drawGunAndCrosshair() {
   ctx.restore();
 
   if (pointer.x != null) {
+    const xhColor = crosshairSkinDef().color;
     ctx.save();
     ctx.translate(pointer.x, pointer.y);
-    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2.5;
+    ctx.strokeStyle = xhColor; ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.stroke();
     ctx.strokeStyle = 'rgba(224,72,62,.9)'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(-10, 0); ctx.moveTo(10, 0); ctx.lineTo(26, 0);
@@ -708,11 +940,21 @@ function update(dt, t) {
     if (d.state === 'gone') continue;
     if (d.state === 'alive') {
       d.x += d.vx * dt;
+      if (d.variant === 'zigzag') d.x += Math.sin(t * 6 + d.phase) * 55 * dt;
       if (d.x < margin) { d.x = margin; d.vx = Math.abs(d.vx); d.facing = 1; }
       if (d.x > logicalW - margin) { d.x = logicalW - margin; d.vx = -Math.abs(d.vx); d.facing = -1; }
       d.y = d.baseY + Math.sin(t * d.bobFreq + d.phase) * d.amp;
+      d.submerged = d.variant === 'diving' && ((t * 0.3 + d.phase) % 1) > 0.7;
     }
     if (d.state === 'hit' && performance.now() - d.t0 > 620) d.state = 'gone';
+  }
+  if (goldenDuck) {
+    const g = goldenDuck;
+    g.x += g.vx * dt;
+    if (g.x < 40) { g.x = 40; g.vx = Math.abs(g.vx); g.facing = 1; }
+    if (g.x > logicalW - 40) { g.x = logicalW - 40; g.vx = -Math.abs(g.vx); g.facing = -1; }
+    g.y = g.baseY + Math.sin(t * g.bobFreq + g.phase) * g.amp;
+    if (performance.now() - g.spawnT > g.life) goldenDuck = null;
   }
   gunRecoil = Math.max(0, gunRecoil - dt * 4);
 }
@@ -721,6 +963,7 @@ function render(t) {
   ctx.clearRect(0, 0, logicalW, logicalH);
   drawBackground(t);
   for (const d of ducks) if (d.state !== 'gone') drawDuck(d, t);
+  if (goldenDuck) drawGoldenDuck(goldenDuck, t);
   drawParticles(1 / 60);
   drawGunAndCrosshair();
 }
@@ -749,9 +992,14 @@ function fireShot(x, y) {
   gunRecoil = 1;
   shots.push({ x, y, t: performance.now() });
   sfx.shoot();
+  // ברווז הזהב הוא מטרת בונוס נפרדת — פגיעה בו לא נחשבת כתשובה על התרגיל
+  if (goldenDuck) {
+    const dx = x - goldenDuck.x, dy = y - (goldenDuck.y - 6);
+    if (Math.hypot(dx, dy) < 42) { collectGolden(); return; }
+  }
   let best = null, bestDist = Infinity;
   for (const d of ducks) {
-    if (d.state !== 'alive') continue;
+    if (d.state !== 'alive' || d.submerged) continue;
     const dx = x - d.x, dy = y - (d.y - 6);
     const dist = Math.hypot(dx, dy);
     if (dist < 42 && dist < bestDist) { best = d; bestDist = dist; }
@@ -761,6 +1009,17 @@ function fireShot(x, y) {
   } else {
     missShot(x, y);
   }
+}
+function collectGolden() {
+  const g = goldenDuck;
+  goldenDuck = null;
+  const coinsWon = 15;
+  profile.coins += coinsWon; profile.coinsEarned += coinsWon;
+  persistProfile(); renderCoins();
+  burst(g.x, g.y, ['#fff3c4', '#f0c419', '#ffffff'], 20, 150);
+  floatText(g.x, g.y - 20, '+' + coinsWon + ' 🪙', '#a8790a');
+  sfx.tick(); sfx.tick();
+  showToast(say('ברווז הזהב! בונוס מטבעות 🪙✨'), 1400);
 }
 function onPointerDown(e) {
   e.preventDefault();
@@ -839,6 +1098,108 @@ async function doShare() {
 shareBtn.addEventListener('click', doShare);
 shareBtnBig.addEventListener('click', doShare);
 
+// ===== חנות (מטבעות בלבד, קוסמטי) =====
+function renderShop() {
+  coinVal.textContent = profile.coins;
+  const shopCoinVal = document.getElementById('shopCoinVal');
+  if (shopCoinVal) shopCoinVal.textContent = profile.coins;
+  gunSkinShelf.innerHTML = '';
+  for (const s of GUN_SKINS) {
+    gunSkinShelf.appendChild(buildSkinTile(s, profile.ownedGuns, profile.gunSkin, 'gun'));
+  }
+  crosshairSkinShelf.innerHTML = '';
+  for (const s of CROSSHAIR_SKINS) {
+    crosshairSkinShelf.appendChild(buildSkinTile(s, profile.ownedCrosshairs, profile.crosshairSkin, 'crosshair'));
+  }
+}
+function buildSkinTile(s, owned, equipped, kind) {
+  const isOwned = owned.includes(s.id);
+  const isEquipped = equipped === s.id;
+  const el = document.createElement('div');
+  el.className = 'skinTile' + (isEquipped ? ' equipped' : '');
+  const swatch = kind === 'gun' ? s.barrel2 : s.color;
+  el.innerHTML = `<span class="swatch" style="background:${swatch}"></span>
+    <span class="skinName">${s.name}</span>
+    <span class="skinTag">${isEquipped ? '✓ מצויד' : (isOwned ? 'לחצו לציוד' : '🪙 ' + s.price)}</span>`;
+  el.addEventListener('click', () => buySkin(s, kind));
+  return el;
+}
+function buySkin(s, kind) {
+  const owned = kind === 'gun' ? profile.ownedGuns : profile.ownedCrosshairs;
+  if (owned.includes(s.id)) {
+    if (kind === 'gun') profile.gunSkin = s.id; else profile.crosshairSkin = s.id;
+    sfx.tick();
+  } else {
+    if (profile.coins < s.price) { showToast(say('אין מספיק מטבעות עדיין 🪙'), 1200); return; }
+    profile.coins -= s.price;
+    owned.push(s.id);
+    if (kind === 'gun') profile.gunSkin = s.id; else profile.crosshairSkin = s.id;
+    showToast(say(`נרכש: ${s.name}! 🎉`), 1400);
+    sfx.levelUp();
+  }
+  persistProfile(); renderShop();
+}
+function closeShop() { shopOverlay.classList.add('hidden'); }
+shopBtn.addEventListener('click', () => { closeSettings(); renderShop(); shopOverlay.classList.remove('hidden'); });
+shopClose.addEventListener('click', closeShop);
+
+// ===== אזור הורים =====
+function tableStats() {
+  const rows = [];
+  for (let t = 1; t <= 10; t++) {
+    let seen = 0, correct = 0;
+    for (const k in profile.factStats) {
+      const [a, b] = k.split('x').map(Number);
+      if (a === t || b === t) { seen += profile.factStats[k].seen; correct += profile.factStats[k].correct; }
+    }
+    if (seen >= 3) rows.push({ t, acc: correct / seen });
+  }
+  return rows;
+}
+function hardestFact() {
+  let worst = null;
+  for (const k in profile.factStats) {
+    const s = profile.factStats[k];
+    if (s.seen >= 2 && (!worst || s.wrong / s.seen > worst.rate)) worst = { key: k, rate: s.wrong / s.seen };
+  }
+  return worst ? worst.key.replace('x', ' × ') : null;
+}
+function renderParent() {
+  const totalSeen = profile.totalCorrectAll + profile.totalWrongAll;
+  const acc = totalSeen ? Math.round((profile.totalCorrectAll / totalSeen) * 100) : 0;
+  const rows = tableStats();
+  const strongest = rows.slice().sort((a, b) => b.acc - a.acc).slice(0, 2);
+  const weakest = rows.slice().sort((a, b) => a.acc - b.acc).slice(0, 2);
+  const hard = hardestFact();
+  const minutes = Math.round(profile.totalPlayMs / 60000);
+  const fmt = list => list.length ? list.map(r => `לוח ${r.t} (${Math.round(r.acc * 100)}%)`).join(', ') : '—';
+  parentStats.innerHTML = `
+    <div class="statRow"><span>סה"כ תשובות נכונות</span><b>${profile.totalCorrectAll}</b></div>
+    <div class="statRow"><span>דיוק כללי</span><b>${totalSeen ? acc + '%' : '—'}</b></div>
+    <div class="statRow"><span>שיא רמה</span><b>${profile.highestLevel}</b></div>
+    <div class="statRow"><span>זמן משחק כולל</span><b>${minutes} דקות</b></div>
+    <div class="statRow"><span>מטבעות</span><b>🪙 ${profile.coins}</b></div>
+    <div class="statRow"><span>חזק במיוחד</span><b>${fmt(strongest)}</b></div>
+    <div class="statRow"><span>צריך תרגול</span><b>${fmt(weakest)}</b></div>
+    <div class="statRow"><span>התרגיל הקשה ביותר</span><b>${hard || '—'}</b></div>
+  `;
+}
+function closeParent() { parentOverlay.classList.add('hidden'); }
+parentBtn.addEventListener('click', () => { closeSettings(); renderParent(); parentOverlay.classList.remove('hidden'); });
+parentClose.addEventListener('click', closeParent);
+resetProfileBtn.addEventListener('click', () => {
+  if (window.confirm('לאפס את כל ההתקדמות השמורה (מטבעות, סקינים, סטטיסטיקות)? זה לא ניתן לביטול.')) {
+    resetProfile();
+    renderCoins(); renderBadges(); renderParent();
+    showToast(say('ההתקדמות אופסה'), 1500);
+  }
+});
+
+// מעקב זמן משחק כולל (מוערך, לא מדויק לשנייה) — נשמר על המכשיר
+setInterval(() => {
+  if (state.started) { profile.totalPlayMs += 5000; persistProfile(); }
+}, 5000);
+
 // ===== init =====
 soundBtn.textContent = state.muted ? '🔇' : '🔊';
 nameInput.value = state.playerName;
@@ -846,5 +1207,6 @@ updateHUD();
 updateStreakDots();
 renderBossBanner();
 renderBadges();
+renderCoins();
 resizeCanvas();
 requestAnimationFrame(loop);

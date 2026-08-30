@@ -23,6 +23,7 @@
   </div>
   <h1>🦆 דוכן הכפל</h1>
   <div class="hright">
+    <div class="pill">🪙 <b id="coinVal">0</b></div>
     <div class="pill">🎯 <b id="scoreVal">0</b></div>
     <div class="pill">🏅 רמה <b id="levelVal">1</b></div>
   </div>
@@ -81,9 +82,38 @@
     </div>
     <p class="hnote">מספר קטן = עולים רמה מהר. מספר גדול = צריך להתאמן יותר בכל רמה לפני שעולים.<br>
        המשחק ימשיך להתאים את עצמו לבד: כמה טעויות ברצף — והרמה יורדת קצת, כדי שזה תמיד יישאר מאתגר בול.</p>
-    <p class="settingsLabel">🏅 ההישגים שלי (בסיבוב הזה)</p>
+    <p class="settingsLabel">🏅 ההישגים שלי</p>
     <div class="badgeShelf" id="badgeShelf"></div>
+    <div class="settingsLinks">
+      <button id="shopBtn" class="linkBtn">🛒 חנות</button>
+      <button id="parentBtn" class="linkBtn">👨‍👩‍👦 אזור הורים</button>
+    </div>
     <button id="settingsSave">✓ שמירה</button>
+  </div>
+</div>
+
+<div class="startOverlay hidden" id="shopOverlay">
+  <div class="startCard settingsCard">
+    <button class="closeX" id="shopClose" aria-label="סגירה">✕</button>
+    <div class="startEmoji">🛒🦆</div>
+    <h2>חנות</h2>
+    <p class="hnote" style="margin-bottom:10px">יש לך <b>🪙 <span id="shopCoinVal">0</span></b> מטבעות (מוצג גם למעלה בכותרת).</p>
+    <p class="settingsLabel">🔫 סקינים לרובה</p>
+    <div class="badgeShelf skinShelf" id="gunSkinShelf"></div>
+    <p class="settingsLabel">🎯 סקינים לכוונת</p>
+    <div class="badgeShelf skinShelf" id="crosshairSkinShelf"></div>
+    <p class="hnote">קוסמטי בלבד — לא משפיע על הקושי. נקנה במטבעות שנאספים בזמן המשחק.</p>
+  </div>
+</div>
+
+<div class="startOverlay hidden" id="parentOverlay">
+  <div class="startCard settingsCard">
+    <button class="closeX" id="parentClose" aria-label="סגירה">✕</button>
+    <div class="startEmoji">👨‍👩‍👦🦆</div>
+    <h2>אזור הורים</h2>
+    <div class="parentStats" id="parentStats"></div>
+    <p class="hnote">הנתונים נשמרים רק על המכשיר הזה, לאורך זמן — לא נשלחים לשום מקום.</p>
+    <button id="resetProfileBtn" class="dangerBtn">🗑️ איפוס כל ההתקדמות השמורה</button>
   </div>
 </div>
 

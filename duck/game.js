@@ -162,7 +162,7 @@ const WORLDS = [
   { name: 'החלל', sky: ['#04041a', '#161033'], pond: ['#0a1a3a', '#050a1f'], fence: '#2a2450', night: true, ducks: ['#c9c9ff', '#8ee0ff', '#ffb3e6', '#b3ffcf', '#ffe08a', '#c9a0ff'] },
   { name: 'ממלכת הדרקון', sky: ['#3a0f0f', '#6b1f1f'], pond: ['#1c0a0a', '#0d0505'], fence: '#4a1a0a', night: true, ducks: ['#ff5c2f', '#ffd23f', '#c9302c', '#7a1f1f', '#f28c28', '#8b2020'] },
 ];
-function worldIndexForLevel(level) { return clamp(Math.floor((level - 1) / 10), 0, WORLDS.length - 1); }
+function worldIndexForLevel(level) { return clamp(Math.floor((level - 1) / 3), 0, WORLDS.length - 1); }
 function currentWorld() { return WORLDS[worldIndexForLevel(state.level)]; }
 
 // ===== סקינים לרובה ולכוונת — קוסמטיים בלבד, נקנים במטבעות =====
@@ -455,9 +455,9 @@ const BADGES = [
   { id: 'level20', emoji: '🌟', title: 'רמה 20', scope: 'session', check: () => state.level >= 20 },
   { id: 'score100', emoji: '💯', title: '100 נקודות', scope: 'session', check: () => state.score >= 100 },
   { id: 'score500', emoji: '💎', title: '500 נקודות', scope: 'session', check: () => state.score >= 500 },
-  { id: 'world_pirate', emoji: '🏖️', title: 'הגעת לחוף הפיראטים', scope: 'lifetime', check: () => profile.highestLevel >= 11 },
-  { id: 'world_neon', emoji: '🌃', title: 'הגעת לעיר הניאון', scope: 'lifetime', check: () => profile.highestLevel >= 31 },
-  { id: 'world_dragon', emoji: '🐲', title: 'הגעת לממלכת הדרקון', scope: 'lifetime', check: () => profile.highestLevel >= 51 },
+  { id: 'world_pirate', emoji: '🏖️', title: 'הגעת לחוף הפיראטים', scope: 'lifetime', check: () => profile.highestLevel >= 4 },
+  { id: 'world_neon', emoji: '🌃', title: 'הגעת לעיר הניאון', scope: 'lifetime', check: () => profile.highestLevel >= 10 },
+  { id: 'world_dragon', emoji: '🐲', title: 'הגעת לממלכת הדרקון', scope: 'lifetime', check: () => profile.highestLevel >= 16 },
   { id: 'coins50', emoji: '💰', title: '50 מטבעות נאספו', scope: 'lifetime', check: () => profile.coinsEarned >= 50 },
   { id: 'coins200', emoji: '💰💰', title: '200 מטבעות נאספו', scope: 'lifetime', check: () => profile.coinsEarned >= 200 },
 ];

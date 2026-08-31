@@ -155,12 +155,12 @@ function say(phrase) { return (state.playerName ? state.playerName + ', ' : '') 
 
 // ===== עולמות — כל 10 רמות משנים תפאורה (קוסמטי בלבד, לא משפיע על הקושי) =====
 const WORLDS = [
-  { name: 'בריכת הכפר', sky: ['#8fd3ef', '#d8f2fa'], pond: ['#2f9fd0', '#1c6f9c'], fence: '#b5732f', night: false, ducks: COLORS },
-  { name: 'חוף פיראטים', sky: ['#ffd98a', '#fff3d6'], pond: ['#1f9e8f', '#0e6e63'], fence: '#8a5a2b', night: false, ducks: ['#f4c542', '#e0483e', '#3aa65b', '#f28c28', '#5ac8fa', '#8b4a2b'] },
-  { name: 'ביצת התנינים', sky: ['#8fbf7a', '#d9e8c9'], pond: ['#4a7c3f', '#2e4f28'], fence: '#5a4a2b', night: false, ducks: ['#7bb661', '#c9a227', '#8e6b3a', '#4a7c3f', '#b5732f', '#6b8f3a'] },
-  { name: 'עיר הניאון', sky: ['#1a0b2e', '#3a1a5c'], pond: ['#0f2545', '#1b1035'], fence: '#2e1a4a', night: true, ducks: ['#ff2fd0', '#2fe6ff', '#c6ff2f', '#ff5c2f', '#7a2fff', '#2fffb0'] },
-  { name: 'החלל', sky: ['#04041a', '#161033'], pond: ['#0a1a3a', '#050a1f'], fence: '#2a2450', night: true, ducks: ['#c9c9ff', '#8ee0ff', '#ffb3e6', '#b3ffcf', '#ffe08a', '#c9a0ff'] },
-  { name: 'ממלכת הדרקון', sky: ['#3a0f0f', '#6b1f1f'], pond: ['#1c0a0a', '#0d0505'], fence: '#4a1a0a', night: true, ducks: ['#ff5c2f', '#ffd23f', '#c9302c', '#7a1f1f', '#f28c28', '#8b2020'] },
+  { name: 'בריכת הכפר', sky: ['#8fd3ef', '#d8f2fa'], pond: ['#4fc3e8', '#2f9fd0', '#164e73'], fence: '#b5732f', night: false, ducks: COLORS, skyline: 'hills', glow: '#fff6c8', hill: '#6fb56a' },
+  { name: 'חוף פיראטים', sky: ['#ffd98a', '#fff3d6'], pond: ['#3fc4b0', '#1f9e8f', '#0a3e39'], fence: '#8a5a2b', night: false, ducks: ['#f4c542', '#e0483e', '#3aa65b', '#f28c28', '#5ac8fa', '#8b4a2b'], skyline: 'hills', glow: '#fff0c0', hill: '#c9a866' },
+  { name: 'ביצת התנינים', sky: ['#8fbf7a', '#d9e8c9'], pond: ['#5c9a4c', '#4a7c3f', '#1c3117'], fence: '#5a4a2b', night: false, ducks: ['#7bb661', '#c9a227', '#8e6b3a', '#4a7c3f', '#b5732f', '#6b8f3a'], skyline: 'hills', glow: '#eaffd0', hill: '#3f6b35' },
+  { name: 'עיר הניאון', sky: ['#1a0b2e', '#3a1a5c'], pond: ['#1c3a6b', '#0f2545', '#050b1a'], fence: '#2e1a4a', night: true, ducks: ['#ff2fd0', '#2fe6ff', '#c6ff2f', '#ff5c2f', '#7a2fff', '#2fffb0'], skyline: 'buildings', glow: '#dcefff', hill: '#160b2a' },
+  { name: 'החלל', sky: ['#04041a', '#161033'], pond: ['#1c3a6b', '#0a1a3a', '#03060f'], fence: '#2a2450', night: true, ducks: ['#c9c9ff', '#8ee0ff', '#ffb3e6', '#b3ffcf', '#ffe08a', '#c9a0ff'], skyline: 'craters', glow: '#eaeaff', hill: '#0c0a24' },
+  { name: 'ממלכת הדרקון', sky: ['#3a0f0f', '#6b1f1f'], pond: ['#5c1414', '#1c0a0a', '#070303'], fence: '#4a1a0a', night: true, ducks: ['#ff5c2f', '#ffd23f', '#c9302c', '#7a1f1f', '#f28c28', '#8b2020'], skyline: 'peaks', glow: '#ffd8a8', hill: '#2a0d0d' },
 ];
 function worldIndexForLevel(level) { return clamp(Math.floor((level - 1) / 3), 0, WORLDS.length - 1); }
 function currentWorld() { return WORLDS[worldIndexForLevel(state.level)]; }
@@ -628,18 +628,22 @@ function resizeCanvas() {
 
 function drawBackground(t) {
   const world = currentWorld();
-  // שמיים
-  const sky = ctx.createLinearGradient(0, 0, 0, logicalH * 0.5);
-  sky.addColorStop(0, world.sky[0]); sky.addColorStop(1, world.sky[1]);
+  const horizonY = logicalH * 0.36;
+  // שמיים — גרדיאנט עשיר יותר עם זוהר שמש/ירח
+  const sky = ctx.createLinearGradient(0, 0, 0, horizonY);
+  sky.addColorStop(0, world.sky[0]); sky.addColorStop(0.7, world.sky[1]); sky.addColorStop(1, world.sky[1]);
   ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, logicalW, logicalH * 0.45);
+  ctx.fillRect(0, 0, logicalW, horizonY);
+
+  const orbX = logicalW * 0.78, orbY = logicalH * 0.11;
+  drawGlowOrb(orbX, orbY, world.night ? 13 : 20, world.glow, world.night ? 0.5 : 0.35);
 
   if (world.night) {
     // כוכבים במקום עננים בעולמות הלילה
     ctx.fillStyle = 'rgba(255,255,255,.8)';
     for (let i = 0; i < 18; i++) {
       const sx = (i * 53 + (t * 3) % 37) % logicalW;
-      const sy = (i * 29) % (logicalH * 0.4);
+      const sy = (i * 29) % (horizonY * 0.9);
       const tw = 0.5 + 0.5 * Math.sin(t * 2 + i);
       ctx.globalAlpha = 0.3 + tw * 0.6;
       ctx.beginPath(); ctx.arc(sx, sy, 1.3, 0, Math.PI * 2); ctx.fill();
@@ -655,27 +659,36 @@ function drawBackground(t) {
     }
   }
 
-  // גדר/גבול
-  const fenceTop = logicalH * 0.36, fenceBot = poolBounds().top + 4;
+  drawSkyline(world, t, horizonY);
+
+  // גדר/גבול — עם פס אור למעלה ופס צל למטה, לתחושת נפח
+  const fenceTop = horizonY, fenceBot = poolBounds().top + 4;
   ctx.fillStyle = world.fence;
   ctx.fillRect(0, fenceTop, logicalW, fenceBot - fenceTop);
-  ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 2;
+  ctx.fillStyle = 'rgba(255,255,255,.22)';
+  ctx.fillRect(0, fenceTop, logicalW, 3);
+  ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 2;
   for (let x = -((t * 4) % 26); x < logicalW; x += 26) {
-    ctx.beginPath(); ctx.moveTo(x, fenceTop); ctx.lineTo(x, fenceBot); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, fenceTop + 3); ctx.lineTo(x, fenceBot); ctx.stroke();
   }
-  ctx.fillStyle = 'rgba(0,0,0,.12)';
-  ctx.fillRect(0, fenceTop, logicalW, 4);
+  ctx.fillStyle = 'rgba(0,0,0,.22)';
+  ctx.fillRect(0, fenceBot - 4, logicalW, 4);
 
-  // בריכה
+  // בריכה — גרדיאנט תלת-שכבתי + פס ברק עליון שמדמה השתקפות שמיים
   const { top, bottom } = poolBounds();
   const pond = ctx.createLinearGradient(0, top, 0, logicalH);
-  pond.addColorStop(0, world.pond[0]); pond.addColorStop(1, world.pond[1]);
+  pond.addColorStop(0, world.pond[0]); pond.addColorStop(0.35, world.pond[1]); pond.addColorStop(1, world.pond[2] || world.pond[1]);
   ctx.fillStyle = pond;
   ctx.fillRect(0, top, logicalW, logicalH - top);
+  const shine = ctx.createLinearGradient(0, top, 0, top + 22);
+  shine.addColorStop(0, 'rgba(255,255,255,.32)'); shine.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = shine;
+  ctx.fillRect(0, top, logicalW, 22);
 
-  ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(255,255,255,.24)'; ctx.lineWidth = 2;
   for (let row = 0; row < 5; row++) {
     const y = top + 14 + row * ((bottom - top) / 5);
+    ctx.globalAlpha = 1 - row * 0.12;
     ctx.beginPath();
     for (let x = 0; x <= logicalW; x += 10) {
       const yy = y + Math.sin(x * 0.05 + t * 1.6 + row) * 3;
@@ -683,6 +696,28 @@ function drawBackground(t) {
     }
     ctx.stroke();
   }
+  ctx.globalAlpha = 1;
+
+  // נצנוצים קטנים על פני המים
+  ctx.fillStyle = 'rgba(255,255,255,.7)';
+  for (let i = 0; i < 6; i++) {
+    const sx = (i * 71 + (t * 26) % 53) % logicalW;
+    const sy = top + 20 + (i * 37) % (bottom - top - 30);
+    const tw = 0.5 + 0.5 * Math.sin(t * 3 + i * 2);
+    ctx.globalAlpha = tw * 0.55;
+    ctx.beginPath(); ctx.arc(sx, sy, 1.4, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+function drawGlowOrb(x, y, r, color, alpha) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r * 2.4);
+  g.addColorStop(0, color); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r * 2.4, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
 }
 function cloud(x, y, s) {
   ctx.beginPath();
@@ -690,6 +725,60 @@ function cloud(x, y, s) {
   ctx.ellipse(x + s * 0.7, y + s * 0.15, s * 0.7, s * 0.45, 0, 0, Math.PI * 2);
   ctx.ellipse(x - s * 0.6, y + s * 0.2, s * 0.55, s * 0.4, 0, 0, Math.PI * 2);
   ctx.fill();
+}
+// קו רקיע רחוק לפי סוג העולם — שכבת עומק בין השמיים לגדר
+function drawSkyline(world, t, horizonY) {
+  const base = horizonY;
+  const drift = (t * 2) % 40;
+  ctx.fillStyle = world.hill;
+  if (world.skyline === 'hills') {
+    ctx.globalAlpha = 0.9;
+    for (let i = 0; i < 3; i++) {
+      const h = 16 + i * 8, cy = base - h * 0.3;
+      ctx.globalAlpha = 0.45 + i * 0.22;
+      ctx.beginPath();
+      for (let x = -drift - 20; x <= logicalW + 20; x += 4) {
+        const yy = cy - Math.max(0, h - Math.abs(((x + i * 90) % 160) - 80) * 0.5);
+        if (x === -drift - 20) ctx.moveTo(x, base);
+        ctx.lineTo(x, yy);
+      }
+      ctx.lineTo(logicalW + 20, base); ctx.closePath(); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  } else if (world.skyline === 'buildings') {
+    const n = 7;
+    for (let i = 0; i < n; i++) {
+      const w = logicalW / n;
+      const bx = i * w + 2, bh = 18 + ((i * 37) % 26);
+      ctx.globalAlpha = 0.85;
+      ctx.fillRect(bx, base - bh, w - 4, bh);
+      ctx.globalAlpha = 0.4 + 0.4 * Math.max(0, Math.sin(t * 2 + i * 1.7));
+      ctx.fillStyle = '#ffe98a';
+      ctx.fillRect(bx + 4, base - bh + 6, 3, 3);
+      ctx.fillRect(bx + w - 12, base - bh + 12, 3, 3);
+      ctx.fillStyle = world.hill;
+    }
+    ctx.globalAlpha = 1;
+  } else if (world.skyline === 'craters') {
+    ctx.globalAlpha = 0.55;
+    ctx.beginPath(); ctx.arc(logicalW * 0.18, base - 6, 30, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath(); ctx.arc(logicalW * 0.14, base - 10, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(logicalW * 0.24, base - 2, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+  } else if (world.skyline === 'peaks') {
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.moveTo(-10, base);
+    const n = 6;
+    for (let i = 0; i <= n; i++) {
+      const x = (logicalW + 20) * (i / n) - 10;
+      const h = 18 + (i % 2 === 0 ? 22 : 8) + ((i * 13) % 9);
+      ctx.lineTo(x, base - h);
+    }
+    ctx.lineTo(logicalW + 10, base); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
 }
 
 // ציצית קטנה על הראש — צורה אחת, בשני גדלים (למתאר השחור ולצבע עצמו)
@@ -880,44 +969,79 @@ function drawGunAndCrosshair() {
   const tx = pointer.x == null ? gx : pointer.x;
   const ty = pointer.y == null ? gy - 120 : pointer.y;
   const ang = Math.atan2(ty - gy, tx - gx);
-
   const skin = gunSkinDef();
+
+  // צל קבוע על הקרקע, לא מסתובב עם הרובה — נותן תחושת עומק
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.ellipse(gx, gy + 20, 20, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
   ctx.save();
   ctx.translate(gx, gy);
   ctx.rotate(ang + Math.PI / 2);
-  const rec = gunRecoil * 6;
+  const rec = gunRecoil * 7;
   ctx.translate(0, rec);
-  // קת
-  ctx.fillStyle = skin.stock;
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-  roundRect(ctx, -11, 4, 22, 30, 7); ctx.fill(); ctx.stroke();
+  ctx.scale(1, 1 - gunRecoil * 0.05);
+
+  // קת — גרדיאנט דו-גוני + קו ברק עדין
+  const stockG = ctx.createLinearGradient(-11, 0, 11, 0);
+  stockG.addColorStop(0, shade(skin.stock, -18)); stockG.addColorStop(0.45, skin.stock); stockG.addColorStop(1, shade(skin.stock, 14));
+  ctx.fillStyle = stockG;
+  ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 2;
+  roundRect(ctx, -11, 2, 22, 32, 8); ctx.fill(); ctx.stroke();
+
   // הדק
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(0, 16, 6, 0.2, Math.PI * 1.6); ctx.stroke();
-  // קנה
+  ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0, 15, 6, 0.2, Math.PI * 1.6); ctx.stroke();
+
+  // בית-הרובה — גוף רחב יותר שמחבר בין הקת לקנה, לצליל "בלאסטר" יותר עשיר
+  const bodyG = ctx.createLinearGradient(-13, 0, 13, 0);
+  bodyG.addColorStop(0, shade(skin.barrel3, -10)); bodyG.addColorStop(0.5, skin.barrel2); bodyG.addColorStop(1, shade(skin.barrel3, -10));
+  ctx.fillStyle = bodyG;
+  ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 1.5;
+  roundRect(ctx, -13, -18, 26, 22, 8); ctx.fill(); ctx.stroke();
+
+  // קנה עם ברק מתכתי
   const bg = ctx.createLinearGradient(-6, 0, 6, 0);
-  bg.addColorStop(0, skin.barrel1); bg.addColorStop(0.5, skin.barrel2); bg.addColorStop(1, skin.barrel3);
+  bg.addColorStop(0, skin.barrel1); bg.addColorStop(0.35, skin.barrel2); bg.addColorStop(0.55, '#ffffff'); bg.addColorStop(0.75, skin.barrel2); bg.addColorStop(1, skin.barrel3);
   ctx.fillStyle = bg;
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
-  roundRect(ctx, -6, -62, 12, 68, 5); ctx.fill(); ctx.stroke();
-  // פס צבע
+  ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 1.5;
+  roundRect(ctx, -6, -62, 12, 46, 5); ctx.fill(); ctx.stroke();
+  // פס צבע קרנבלי
   ctx.fillStyle = skin.band;
-  ctx.fillRect(-6, -16, 12, 6);
-  // קצה הקנה
-  ctx.fillStyle = '#2b2b2b';
-  ctx.beginPath(); ctx.ellipse(0, -62, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillRect(-6, -34, 12, 7);
+  // סנפירי אוורור קטנים ליד הקנה
+  ctx.fillStyle = shade(skin.barrel3, -20);
+  ctx.fillRect(-8, -46, 3, 8); ctx.fillRect(5, -46, 3, 8);
+  // זוהר קל בקצה הקנה
+  drawGlowOrb(0, -62, 5, skin.band, 0.55);
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.ellipse(0, -62, 5.5, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 
   if (pointer.x != null) {
     const xhColor = crosshairSkinDef().color;
+    const pulse = 1 + Math.sin(performance.now() / 220) * 0.06;
     ctx.save();
     ctx.translate(pointer.x, pointer.y);
+    // רשת HUD: טבעת חיצונית פועמת + סוגריים בפינות + נקודת מרכז
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = xhColor; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, 22 * pulse, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1;
     ctx.strokeStyle = xhColor; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeStyle = 'rgba(224,72,62,.9)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(-10, 0); ctx.moveTo(10, 0); ctx.lineTo(26, 0);
-    ctx.moveTo(0, -26); ctx.lineTo(0, -10); ctx.moveTo(0, 10); ctx.lineTo(0, 26);
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.stroke();
+    const bl = 7, off = 15;
+    ctx.lineWidth = 2.5;
+    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      ctx.beginPath();
+      ctx.moveTo(sx * off, sy * (off - bl)); ctx.lineTo(sx * off, sy * off); ctx.lineTo(sx * (off - bl), sy * off);
+      ctx.stroke();
+    }
+    ctx.fillStyle = xhColor;
+    ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 
@@ -959,6 +1083,15 @@ function update(dt, t) {
   gunRecoil = Math.max(0, gunRecoil - dt * 4);
 }
 
+function drawVignette() {
+  const cx = logicalW / 2, cy = logicalH * 0.45;
+  const r = Math.max(logicalW, logicalH) * 0.75;
+  const v = ctx.createRadialGradient(cx, cy, r * 0.55, cx, cy, r);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.22)');
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, logicalW, logicalH);
+}
+
 function render(t) {
   ctx.clearRect(0, 0, logicalW, logicalH);
   drawBackground(t);
@@ -966,6 +1099,7 @@ function render(t) {
   if (goldenDuck) drawGoldenDuck(goldenDuck, t);
   drawParticles(1 / 60);
   drawGunAndCrosshair();
+  drawVignette();
 }
 
 function loop(ts) {

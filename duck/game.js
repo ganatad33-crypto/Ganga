@@ -229,6 +229,31 @@ const sfx = {
   tick() { tone(500, 0.05, 'square', 0, 0.08); },
 };
 
+// ===== מוזיקת רקע — מלודיה קלילה שחוזרת בלולאה, נוצרת בקוד כמו שאר הצלילים =====
+// עוצמה נמוכה בכוונה כדי לא להתחרות באפקטים של פגיעה/עלייה ברמה; משתיקה אוטומטית
+// כש-state.muted פעיל, כי tone() כבר בודק את זה בעצמו בכל תו.
+const MUSIC_BEAT = 0.3; // שניות לכל תו — קצב עליז ולא ממהר
+const MUSIC_MELODY = [
+  523.25, 659.25, 783.99, 659.25, 523.25, 783.99, 1046.5, 783.99,
+  987.77, 880.00, 783.99, 698.46, 659.25, 587.33, 523.25, 523.25,
+];
+const MUSIC_BASS = { 0: 130.81, 4: 98.00, 8: 130.81, 12: 98.00 };
+// טיימר עצמאי (לא דרך schedule/pendingTimers) כדי שהמוזיקה תמשיך לנגן ברצף
+// גם כש-restartBtn מנקה את הטיימרים של סבב המשחק.
+let musicTimer = null, musicStarted = false;
+function playMusicLoop() {
+  for (let i = 0; i < MUSIC_MELODY.length; i++) {
+    tone(MUSIC_MELODY[i], MUSIC_BEAT * 0.85, 'triangle', i * MUSIC_BEAT, 0.045);
+    if (MUSIC_BASS[i]) tone(MUSIC_BASS[i], MUSIC_BEAT * 3.6, 'sine', i * MUSIC_BEAT, 0.05);
+  }
+  musicTimer = setTimeout(playMusicLoop, MUSIC_MELODY.length * MUSIC_BEAT * 1000);
+}
+function startMusic() {
+  if (musicStarted) return;
+  musicStarted = true;
+  playMusicLoop();
+}
+
 // ===== difficulty model =====
 // אין תקרה למספר הרמה עצמו (מדד גאווה/הישג) — אבל הקושי בפועל (מהירות, מספר ברווזים,
 // חדות המסיחים) מתייצב סביב רמה 20, כדי שגם מי שמטפס גבוה מאוד ישאר במשחק שאפשר לשחק בו.
@@ -1191,6 +1216,7 @@ startBtn.addEventListener('click', () => {
   ensureAudio();
   startOverlay.classList.add('hidden');
   state.started = true;
+  startMusic();
   newQuestion();
 });
 

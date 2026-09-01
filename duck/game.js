@@ -271,9 +271,9 @@ function startMusic() {
 // אין תקרה למספר הרמה עצמו (מדד גאווה/הישג) — אבל הקושי בפועל (מהירות, מספר ברווזים,
 // חדות המסיחים) מתייצב סביב רמה 20, כדי שגם מי שמטפס גבוה מאוד ישאר במשחק שאפשר לשחק בו.
 function levelTables(level) {
-  if (level <= 3) return [1, 2, 5, 10];
-  if (level <= 6) return [1, 2, 3, 4, 5, 10];
-  if (level <= 9) return [1, 2, 3, 4, 5, 6, 7, 10];
+  if (level <= 2) return [1, 2, 5, 10];
+  if (level <= 4) return [1, 2, 3, 4, 5, 10];
+  if (level <= 6) return [1, 2, 3, 4, 5, 6, 7, 10];
   return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 }
 function duckCountForLevel(level) { return clamp(3 + Math.floor((level - 1) / 3), 3, 8); }
@@ -292,22 +292,35 @@ function persistentWeakPool() {
   }
   return pool;
 }
-function generateQuestion() {
-  // עדיפות לתרגילים שהילד טעה בהם לאחרונה בסיבוב הזה — עד שהוא חוזר ומצליח בהם
-  if (state.weakFacts.size && Math.random() < 0.5) {
-    const f = pick(Array.from(state.weakFacts.values()));
-    return { a: f.a, b: f.b, answer: f.a * f.b };
-  }
-  // ואם אין כאלה כרגע — עדיפות קלה יותר לתרגילים שקשים לו לאורך זמן, מסיבובים קודמים
-  const longTerm = persistentWeakPool();
-  if (longTerm.length && Math.random() < 0.3) {
-    const f = pick(longTerm);
-    return { a: f.a, b: f.b, answer: f.a * f.b };
-  }
+let lastQuestionKey = null;
+function pickRandomQuestion() {
   const tables = levelTables(state.level);
   const a = pick(tables);
   const b = randInt(1, 10);
   return { a, b, answer: a * b };
+}
+function generateQuestion() {
+  let q = null;
+  // עדיפות (לא דומיננטית מדי!) לתרגילים שהילד טעה בהם לאחרונה בסיבוב הזה — עד שהוא חוזר ומצליח בהם
+  if (state.weakFacts.size && Math.random() < 0.35) {
+    const f = pick(Array.from(state.weakFacts.values()));
+    q = { a: f.a, b: f.b, answer: f.a * f.b };
+  }
+  // ואם אין כאלה כרגע — עדיפות קלה עוד יותר לתרגילים שקשים לו לאורך זמן, מסיבובים קודמים
+  if (!q) {
+    const longTerm = persistentWeakPool();
+    if (longTerm.length && Math.random() < 0.2) {
+      const f = pick(longTerm);
+      q = { a: f.a, b: f.b, answer: f.a * f.b };
+    }
+  }
+  if (!q) q = pickRandomQuestion();
+  // לא לשאול בדיוק את אותו תרגיל פעמיים ברצף — מרגיש כמו "תקוע" גם אם זה טכנית "חוזר בעדיפות"
+  if (lastQuestionKey && factKey(q.a, q.b) === lastQuestionKey) {
+    q = pickRandomQuestion();
+  }
+  lastQuestionKey = factKey(q.a, q.b);
+  return q;
 }
 
 function generateDistractors(q, count, exclude) {

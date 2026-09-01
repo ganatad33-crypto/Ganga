@@ -147,6 +147,10 @@ let gunRecoil = 0;
 let pendingTimers = [];
 let duckIdSeq = 1;
 let goldenDuck = null; // "מטרת בונוס" נפרדת — לא קשורה לתשובה של התרגיל
+// בהשראת Carnival (1980) — אם סיבוב נמשך הרבה זמן, הברווזים "מתעוררים לחיים"
+// ונהיים תוססים יותר. אפקט ויזואלי/אווירתי בלבד — אין שום עונש בפועל.
+let roundStartTs = 0, roundRestless = false;
+const RESTLESS_AFTER_MS = 9000;
 
 const COLORS = ['#f4c542', '#f28c28', '#5ac8fa', '#8ee06f', '#ff7fa8', '#c9a0ff'];
 const BOSS_COLORS = ['#7a1f3d', '#3a1f5c', '#1f3a5c', '#5c1f1f', '#402060'];
@@ -155,12 +159,18 @@ function say(phrase) { return (state.playerName ? state.playerName + ', ' : '') 
 
 // ===== עולמות — כל 10 רמות משנים תפאורה (קוסמטי בלבד, לא משפיע על הקושי) =====
 const WORLDS = [
-  { name: 'בריכת הכפר', sky: ['#8fd3ef', '#d8f2fa'], pond: ['#4fc3e8', '#2f9fd0', '#164e73'], fence: '#b5732f', night: false, ducks: COLORS, skyline: 'hills', glow: '#fff6c8', hill: '#6fb56a' },
-  { name: 'חוף פיראטים', sky: ['#ffd98a', '#fff3d6'], pond: ['#3fc4b0', '#1f9e8f', '#0a3e39'], fence: '#8a5a2b', night: false, ducks: ['#f4c542', '#e0483e', '#3aa65b', '#f28c28', '#5ac8fa', '#8b4a2b'], skyline: 'hills', glow: '#fff0c0', hill: '#c9a866' },
-  { name: 'ביצת התנינים', sky: ['#8fbf7a', '#d9e8c9'], pond: ['#5c9a4c', '#4a7c3f', '#1c3117'], fence: '#5a4a2b', night: false, ducks: ['#7bb661', '#c9a227', '#8e6b3a', '#4a7c3f', '#b5732f', '#6b8f3a'], skyline: 'hills', glow: '#eaffd0', hill: '#3f6b35' },
-  { name: 'עיר הניאון', sky: ['#1a0b2e', '#3a1a5c'], pond: ['#1c3a6b', '#0f2545', '#050b1a'], fence: '#2e1a4a', night: true, ducks: ['#ff2fd0', '#2fe6ff', '#c6ff2f', '#ff5c2f', '#7a2fff', '#2fffb0'], skyline: 'buildings', glow: '#dcefff', hill: '#160b2a' },
-  { name: 'החלל', sky: ['#04041a', '#161033'], pond: ['#1c3a6b', '#0a1a3a', '#03060f'], fence: '#2a2450', night: true, ducks: ['#c9c9ff', '#8ee0ff', '#ffb3e6', '#b3ffcf', '#ffe08a', '#c9a0ff'], skyline: 'craters', glow: '#eaeaff', hill: '#0c0a24' },
-  { name: 'ממלכת הדרקון', sky: ['#3a0f0f', '#6b1f1f'], pond: ['#5c1414', '#1c0a0a', '#070303'], fence: '#4a1a0a', night: true, ducks: ['#ff5c2f', '#ffd23f', '#c9302c', '#7a1f1f', '#f28c28', '#8b2020'], skyline: 'peaks', glow: '#ffd8a8', hill: '#2a0d0d' },
+  { name: 'בריכת הכפר', sky: ['#8fd3ef', '#d8f2fa'], pond: ['#4fc3e8', '#2f9fd0', '#164e73'], fence: '#b5732f', night: false, ducks: COLORS, skyline: 'hills', glow: '#fff6c8', hill: '#6fb56a',
+    story: 'קפטן קוואק גנב את גביע הכפל האגדי מהבריכה! 😱 עוקבים אחרי שובל הנוצות שלו...' },
+  { name: 'חוף פיראטים', sky: ['#ffd98a', '#fff3d6'], pond: ['#3fc4b0', '#1f9e8f', '#0a3e39'], fence: '#8a5a2b', night: false, ducks: ['#f4c542', '#e0483e', '#3aa65b', '#f28c28', '#5ac8fa', '#8b4a2b'], skyline: 'hills', glow: '#fff0c0', hill: '#c9a866',
+    story: 'השובל ממשיך אל חוף הפיראטים — קפטן קוואק מסתתר בין הסירות! 🏴‍☠️' },
+  { name: 'ביצת התנינים', sky: ['#8fbf7a', '#d9e8c9'], pond: ['#5c9a4c', '#4a7c3f', '#1c3117'], fence: '#5a4a2b', night: false, ducks: ['#7bb661', '#c9a227', '#8e6b3a', '#4a7c3f', '#b5732f', '#6b8f3a'], skyline: 'hills', glow: '#eaffd0', hill: '#3f6b35',
+    story: 'הוא נמלט לתוך הביצה כדי לבלבל אתכם — אבל אתם קרובים יותר מתמיד! 🐊' },
+  { name: 'עיר הניאון', sky: ['#1a0b2e', '#3a1a5c'], pond: ['#1c3a6b', '#0f2545', '#050b1a'], fence: '#2e1a4a', night: true, ducks: ['#ff2fd0', '#2fe6ff', '#c6ff2f', '#ff5c2f', '#7a2fff', '#2fffb0'], skyline: 'buildings', glow: '#dcefff', hill: '#160b2a',
+    story: 'האורות של עיר הניאון לא יסתירו אותו הפעם — השובל ממשיך! 🌃' },
+  { name: 'החלל', sky: ['#04041a', '#161033'], pond: ['#1c3a6b', '#0a1a3a', '#03060f'], fence: '#2a2450', night: true, ducks: ['#c9c9ff', '#8ee0ff', '#ffb3e6', '#b3ffcf', '#ffe08a', '#c9a0ff'], skyline: 'craters', glow: '#eaeaff', hill: '#0c0a24',
+    story: 'קפטן קוואק ברח עד לחלל החיצון עם הגביע! עוד קצת ותתפסו אותו 🚀' },
+  { name: 'ממלכת הדרקון', sky: ['#3a0f0f', '#6b1f1f'], pond: ['#5c1414', '#1c0a0a', '#070303'], fence: '#4a1a0a', night: true, ducks: ['#ff5c2f', '#ffd23f', '#c9302c', '#7a1f1f', '#f28c28', '#8b2020'], skyline: 'peaks', glow: '#ffd8a8', hill: '#2a0d0d',
+    story: 'המפלט האחרון שלו — ממלכת הדרקון! זה הסיבוב האחרון של המרדף 🐉🏆' },
 ];
 function worldIndexForLevel(level) { return clamp(Math.floor((level - 1) / 3), 0, WORLDS.length - 1); }
 function currentWorld() { return WORLDS[worldIndexForLevel(state.level)]; }
@@ -556,6 +566,8 @@ function newQuestion() {
   qBEl.textContent = question.b;
   pulseQuestion();
   spawnDucks(question);
+  roundStartTs = performance.now();
+  roundRestless = false;
 }
 
 function correctHit(duck) {
@@ -614,7 +626,7 @@ function correctHit(duck) {
       confettiBurst();
       if (newWorldIdx !== prevWorldIdx) {
         confettiBurst();
-        showLevelUp('🌍 עולם חדש! 🌍', say(`הגעתם ל${currentWorld().name}!`));
+        showLevelUp(`🌍 ${currentWorld().name}! 🌍`, currentWorld().story);
       } else {
         showLevelUp(`🎉 ${say(pick(LEVEL_UP_TITLES))} רמה ${state.level}! 🎉`, pick(LEVEL_UP_SUBS));
       }
@@ -878,6 +890,12 @@ function drawDuck(duck, t) {
   ctx.globalAlpha = 1 - hitAnim;
   ctx.scale(duck.facing < 0 ? -scale : scale, scale);
   if (hitAnim > 0) ctx.rotate(hitAnim * 0.9);
+  // squash & stretch עדין על תנועת הבוב — נמתח במהירות המרבית (אמצע התנועה),
+  // ומתכווץ ברגע ה"נחיתה" (קצוות התנועה) — עוצמה מתונה בכוונה
+  if (duck.state === 'alive') {
+    const bobVel = Math.abs(Math.cos(t * duck.bobFreq * (roundRestless ? 1.3 : 1) + duck.phase));
+    ctx.scale(1.04 - bobVel * 0.06, 0.96 + bobVel * 0.06);
+  }
 
   const OUT = '#171512'; // קו מתאר עבה בסגנון מדבקה, כמו הברווז שנשלח
   const skin = duck.color;
@@ -1110,15 +1128,23 @@ function drawGunAndCrosshair() {
 }
 
 function update(dt, t) {
+  // בהשראת המשחק הקלאסי Carnival: אם סיבוב נמשך הרבה זמן, הברווזים נהיים תוססים
+  // יותר — ויזואלי בלבד, בלי שום עונש בפועל (עדיין קל לפגוע בהם).
+  if (!roundRestless && state.started && performance.now() - roundStartTs > RESTLESS_AFTER_MS) {
+    roundRestless = true;
+    sfx.tick();
+  }
+  const restlessSpeed = roundRestless ? 1.3 : 1;
+  const restlessBob = roundRestless ? 1.3 : 1;
   const margin = 44;
   for (const d of ducks) {
     if (d.state === 'gone') continue;
     if (d.state === 'alive') {
-      d.x += d.vx * dt;
+      d.x += d.vx * restlessSpeed * dt;
       if (d.variant === 'zigzag') d.x += Math.sin(t * 6 + d.phase) * 55 * dt;
       if (d.x < margin) { d.x = margin; d.vx = Math.abs(d.vx); d.facing = 1; }
       if (d.x > logicalW - margin) { d.x = logicalW - margin; d.vx = -Math.abs(d.vx); d.facing = -1; }
-      d.y = d.baseY + Math.sin(t * d.bobFreq + d.phase) * d.amp;
+      d.y = d.baseY + Math.sin(t * d.bobFreq * restlessBob + d.phase) * d.amp * restlessBob;
       d.submerged = d.variant === 'diving' && ((t * 0.3 + d.phase) % 1) > 0.7;
     }
     if (d.state === 'hit' && performance.now() - d.t0 > 620) d.state = 'gone';

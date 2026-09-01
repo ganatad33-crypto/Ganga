@@ -229,9 +229,17 @@ const sfx = {
   tick() { tone(500, 0.05, 'square', 0, 0.08); },
 };
 
-// ===== מוזיקת רקע — מלודיה קלילה שחוזרת בלולאה, נוצרת בקוד כמו שאר הצלילים =====
-// עוצמה נמוכה בכוונה כדי לא להתחרות באפקטים של פגיעה/עלייה ברמה; משתיקה אוטומטית
-// כש-state.muted פעיל, כי tone() כבר בודק את זה בעצמו בכל תו.
+// ===== מוזיקת רקע =====
+// קודם מנסים לנגן קובץ אודיו אמיתי (קובץ קרקסי שהמשתמש סיפק); אם משום מה הוא
+// לא נטען/לא מצליח לנגן (רשת, פורמט לא נתמך וכו') — נופלים בחזרה למלודיה
+// שנוצרת בקוד, כדי שלעולם לא יישאר המשחק בלי מוזיקה בכלל.
+const musicFile = new Audio('audio/circus-theme.mp3');
+musicFile.loop = true;
+musicFile.volume = 0.4;
+musicFile.preload = 'auto';
+let musicFileFailed = false;
+musicFile.addEventListener('error', () => { musicFileFailed = true; if (musicStarted) playMusicLoop(); });
+
 const MUSIC_BEAT = 0.3; // שניות לכל תו — קצב עליז ולא ממהר
 const MUSIC_MELODY = [
   523.25, 659.25, 783.99, 659.25, 523.25, 783.99, 1046.5, 783.99,
@@ -251,7 +259,12 @@ function playMusicLoop() {
 function startMusic() {
   if (musicStarted) return;
   musicStarted = true;
-  playMusicLoop();
+  musicFile.muted = state.muted;
+  const p = musicFile.play();
+  if (p && p.catch) {
+    p.catch(() => { musicFileFailed = true; playMusicLoop(); });
+  }
+  if (musicFileFailed) playMusicLoop();
 }
 
 // ===== difficulty model =====
@@ -1198,6 +1211,7 @@ soundBtn.addEventListener('click', () => {
   state.muted = !state.muted;
   soundBtn.textContent = state.muted ? '🔇' : '🔊';
   safeSet(LS.sound, state.muted ? '0' : '1');
+  musicFile.muted = state.muted;
   if (!state.muted) ensureAudio();
 });
 restartBtn.addEventListener('click', () => {

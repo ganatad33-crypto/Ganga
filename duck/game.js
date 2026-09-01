@@ -302,34 +302,42 @@ function persistentWeakPool() {
   }
   return pool;
 }
-let lastQuestionKey = null;
 function pickRandomQuestion() {
   const tables = levelTables(state.level);
   const a = pick(tables);
   const b = randInt(1, 10);
   return { a, b, answer: a * b };
 }
+// היסטוריית התרגילים האחרונים — כדי שתרגיל (גם אחד "חלש" שחוזר בעדיפות) לא יופיע
+// שוב ושוב בטווח קצר; חייב "לנוח" כמה סיבובים לפני שהוא זכאי לחזור.
+const RECENT_QUESTION_HISTORY = 4;
+let recentQuestionKeys = [];
 function generateQuestion() {
   let q = null;
+  const notRecent = (f) => !recentQuestionKeys.includes(factKey(f.a, f.b));
   // עדיפות (לא דומיננטית מדי!) לתרגילים שהילד טעה בהם לאחרונה בסיבוב הזה — עד שהוא חוזר ומצליח בהם
   if (state.weakFacts.size && Math.random() < 0.35) {
-    const f = pick(Array.from(state.weakFacts.values()));
-    q = { a: f.a, b: f.b, answer: f.a * f.b };
+    const candidates = Array.from(state.weakFacts.values()).filter(notRecent);
+    if (candidates.length) {
+      const f = pick(candidates);
+      q = { a: f.a, b: f.b, answer: f.a * f.b };
+    }
   }
   // ואם אין כאלה כרגע — עדיפות קלה עוד יותר לתרגילים שקשים לו לאורך זמן, מסיבובים קודמים
   if (!q) {
-    const longTerm = persistentWeakPool();
+    const longTerm = persistentWeakPool().filter(notRecent);
     if (longTerm.length && Math.random() < 0.2) {
       const f = pick(longTerm);
       q = { a: f.a, b: f.b, answer: f.a * f.b };
     }
   }
-  if (!q) q = pickRandomQuestion();
-  // לא לשאול בדיוק את אותו תרגיל פעמיים ברצף — מרגיש כמו "תקוע" גם אם זה טכנית "חוזר בעדיפות"
-  if (lastQuestionKey && factKey(q.a, q.b) === lastQuestionKey) {
+  if (!q) {
     q = pickRandomQuestion();
+    let guard = 0;
+    while (recentQuestionKeys.includes(factKey(q.a, q.b)) && guard < 8) { q = pickRandomQuestion(); guard++; }
   }
-  lastQuestionKey = factKey(q.a, q.b);
+  recentQuestionKeys.push(factKey(q.a, q.b));
+  if (recentQuestionKeys.length > RECENT_QUESTION_HISTORY) recentQuestionKeys.shift();
   return q;
 }
 
@@ -1258,6 +1266,7 @@ restartBtn.addEventListener('click', () => {
   state.score = 0; state.level = 1; state.correctStreak = 0; state.wrongStreak = 0;
   state.bestStreak = 0; state.totalCorrect = 0; state.tableCorrect = {};
   state.weakFacts.clear(); state.badgesEarned.clear();
+  recentQuestionKeys = [];
   state.bossActive = false; state.bossHitsNeeded = 0; state.bossesDefeated = 0;
   updateHUD(); updateStreakDots(); renderBossBanner(); renderBadges(); persist();
   showToast(say('מתחילים מחדש! 🔄'));

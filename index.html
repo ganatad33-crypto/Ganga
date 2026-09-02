@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>סיכום קבוצת וואטסאפ</title>
+<meta name="color-scheme" content="light dark">
+<style>
+  :root {
+    --bg: #f3f5f2;
+    --card: #ffffff;
+    --text: #1c2420;
+    --muted: #5f6b65;
+    --line: #dde3df;
+    --accent: #128c7e;
+    --accent-strong: #075e54;
+    --accent-soft: #e5f5f1;
+    --danger: #b3261e;
+    --danger-soft: #fbe9e7;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(20,40,30,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101513;
+      --card: #1a211e;
+      --text: #e8ece9;
+      --muted: #9aa69f;
+      --line: #2b3531;
+      --accent: #2bb79a;
+      --accent-strong: #5fd3b8;
+      --accent-soft: #1e2f2a;
+      --danger: #ff8a80;
+      --danger-soft: #3a2320;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: "Heebo", "Rubik", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    font-size: 16px; line-height: 1.55;
+    padding: 24px 16px 64px;
+  }
+  main { max-width: 780px; margin: 0 auto; }
+  header { margin-bottom: 20px; }
+  h1 { font-size: 1.7rem; margin: 0 0 6px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); }
+  section.card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px;
+  }
+  h2 { font-size: 1.05rem; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  h2 .step {
+    display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: .85rem; font-weight: 700;
+  }
+  label { display: block; font-size: .9rem; color: var(--muted); margin-bottom: 4px; }
+  input[type=text], input[type=password], input[type=date], select, textarea {
+    width: 100%; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+  .field { margin-bottom: 12px; }
+  .hint { font-size: .82rem; color: var(--muted); margin-top: 6px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--muted); margin-top: 6px; }
+  .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+  .drop {
+    border: 2px dashed var(--line); border-radius: var(--radius); padding: 28px 16px; text-align: center;
+    cursor: pointer; transition: border-color .15s, background .15s; background: var(--bg);
+  }
+  .drop.over, .drop:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .drop strong { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+  .drop span { color: var(--muted); font-size: .9rem; }
+  .drop input { display: none; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 14px; }
+  .stat { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; }
+  .stat b { display: block; font-size: 1.25rem; color: var(--accent-strong); }
+  .stat span { font-size: .8rem; color: var(--muted); }
+
+  button.primary {
+    width: 100%; font: inherit; font-weight: 700; font-size: 1.05rem; color: #fff;
+    background: var(--accent); border: 0; border-radius: 12px; padding: 14px; cursor: pointer;
+    transition: background .15s, transform .05s;
+  }
+  button.primary:hover { background: var(--accent-strong); }
+  button.primary:active { transform: translateY(1px); }
+  button.primary:disabled { opacity: .55; cursor: not-allowed; }
+  button.ghost {
+    font: inherit; font-size: .9rem; color: var(--accent-strong); background: transparent;
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer;
+  }
+  button.ghost:hover { background: var(--accent-soft); }
+
+  .progress { display: none; align-items: center; gap: 12px; margin-top: 14px; color: var(--muted); font-size: .95rem; }
+  .progress.on { display: flex; }
+  .spinner {
+    width: 20px; height: 20px; border-radius: 50%; border: 3px solid var(--line);
+    border-top-color: var(--accent); animation: spin .8s linear infinite; flex: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error { display: none; background: var(--danger-soft); color: var(--danger); border-radius: 10px; padding: 12px 14px; margin-top: 12px; font-size: .95rem; white-space: pre-wrap; }
+  .error.on { display: block; }
+
+  #result { display: none; }
+  #result.on { display: block; }
+  .result-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .result-actions { display: flex; gap: 8px; }
+  .summary { line-height: 1.7; }
+  .summary h1, .summary h2, .summary h3 { margin: 18px 0 6px; line-height: 1.3; }
+  .summary h1 { font-size: 1.3rem; } .summary h2 { font-size: 1.15rem; } .summary h3 { font-size: 1.02rem; }
+  .summary ul, .summary ol { padding-inline-start: 22px; margin: 6px 0; }
+  .summary li { margin: 3px 0; }
+  .summary p { margin: 8px 0; }
+  .summary a { color: var(--accent-strong); word-break: break-all; }
+  .usage { font-size: .8rem; color: var(--muted); margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); }
+  footer { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 28px; }
+  details summary { cursor: pointer; color: var(--accent-strong); font-size: .9rem; }
+  details ol { padding-inline-start: 20px; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>סיכום קבוצת וואטסאפ</h1>
+    <p>מייצאים את הצ'אט מהטלפון, גוררים אותו לכאן, ומקבלים סיכום מסודר של הנושאים, ההחלטות והמשימות.</p>
+  </header>
+
+  <section class="card">
+    <h2><span class="step">1</span> הגדרות</h2>
+    <div class="field">
+      <label for="apiKey">מפתח API של Anthropic</label>
+      <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
+      <div class="check"><input type="checkbox" id="rememberKey"> <label for="rememberKey" style="margin:0">לזכור את המפתח בדפדפן הזה</label></div>
+      <div class="hint">המפתח נשמר רק בדפדפן שלך (localStorage) ולא נשלח לשום מקום חוץ מ-Anthropic. אפשר להנפיק מפתח ב-<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.</div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="model">מודל</label>
+        <select id="model">
+          <option value="claude-opus-5">Claude Opus 5 — הכי איכותי</option>
+          <option value="claude-sonnet-5">Claude Sonnet 5 — מהיר וזול יותר</option>
+          <option value="claude-haiku-4-5">Claude Haiku 4.5 — הכי זול</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="style">סגנון סיכום</label>
+        <select id="style">
+          <option value="balanced">מאוזן</option>
+          <option value="short">תמציתי — נקודות עיקריות בלבד</option>
+          <option value="detailed">מפורט — כולל הקשר ודיונים</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="focus">מיקוד (לא חובה)</label>
+      <input type="text" id="focus" placeholder="למשל: רק מה שקשור לטיול השנתי, או: מה סוכם לגבי התשלומים">
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="step">2</span> קובץ הצ'אט</h2>
+    <details style="margin-bottom:12px">
+      <summary>איך מייצאים צ'אט מוואטסאפ?</summary>
+      <ol>
+        <li>פותחים את הקבוצה בוואטסאפ בטלפון</li>
+        <li>לוחצים על שם הקבוצה למעלה (או על שלוש הנקודות) → <b>ייצוא צ'אט</b></li>
+        <li>בוחרים <b>ללא מדיה</b></li>
+        <li>שולחים את הקובץ לעצמכם (מייל / Drive / "הודעה לעצמי") ומורידים אותו למחשב</li>
+      </ol>
+    </details>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept=".txt,.zip,text/plain,application/zip">
+      <strong>גררו לכאן את קובץ הייצוא</strong>
+      <span>או לחצו לבחירה · קובץ .txt (אנדרואיד) או .zip (אייפון)</span>
+    </label>
+    <div id="fileInfo"></div>
+    <div class="error" id="parseError"></div>
+  </section>
+
+  <section class="card" id="rangeCard" style="display:none">
+    <h2><span class="step">3</span> טווח תאריכים</h2>
+    <div class="row">
+      <div class="field"><label for="from">מתאריך</label><input type="date" id="from"></div>
+      <div class="field"><label for="to">עד תאריך</label><input type="date" id="to"></div>
+    </div>
+    <div class="hint" id="rangeInfo"></div>
+  </section>
+
+  <section class="card">
+    <button class="primary" id="go" disabled>סכמו לי את הקבוצה</button>
+    <div class="progress" id="progress"><div class="spinner"></div><span id="progressText"></span></div>
+    <div class="error" id="apiError"></div>
+  </section>
+
+  <section class="card" id="result">
+    <div class="result-head">
+      <h2 style="margin:0">הסיכום</h2>
+      <div class="result-actions">
+        <button class="ghost" id="copy">העתקה</button>
+        <button class="ghost" id="download">הורדה כ-Markdown</button>
+      </div>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div class="usage" id="usage"></div>
+  </section>
+
+  <footer>הטקסט של הצ'אט נשלח ישירות מהדפדפן שלך ל-API של Anthropic תחת המפתח שלך, ולא נשמר בשום שרת אחר.</footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const apiKeyEl = $('apiKey'), rememberEl = $('rememberKey'), modelEl = $('model'), styleEl = $('style'), focusEl = $('focus');
+  const dropEl = $('drop'), fileEl = $('file'), fileInfoEl = $('fileInfo'), parseErrorEl = $('parseError');
+  const rangeCard = $('rangeCard'), fromEl = $('from'), toEl = $('to'), rangeInfoEl = $('rangeInfo');
+  const goBtn = $('go'), progressEl = $('progress'), progressText = $('progressText'), apiErrorEl = $('apiError');
+  const resultEl = $('result'), summaryEl = $('summary'), usageEl = $('usage');
+
+  let messages = [];      // parsed chat
+  let chatName = 'קבוצה';
+  let lastSummaryMd = '';
+
+  // ---------- settings persistence ----------
+  try {
+    const saved = localStorage.getItem('wa-sum-key');
+    if (saved) { apiKeyEl.value = saved; rememberEl.checked = true; }
+    const savedModel = localStorage.getItem('wa-sum-model');
+    if (savedModel) modelEl.value = savedModel;
+  } catch {}
+  function persistSettings() {
+    try {
+      if (rememberEl.checked) localStorage.setItem('wa-sum-key', apiKeyEl.value.trim());
+      else localStorage.removeItem('wa-sum-key');
+      localStorage.setItem('wa-sum-model', modelEl.value);
+    } catch {}
+  }
+  apiKeyEl.addEventListener('change', persistSettings);
+  rememberEl.addEventListener('change', persistSettings);
+  modelEl.addEventListener('change', persistSettings);
+
+  // ---------- file loading ----------
+  ['dragenter', 'dragover'].forEach(ev => dropEl.addEventListener(ev, e => { e.preventDefault(); dropEl.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => dropEl.addEventListener(ev, e => { e.preventDefault(); dropEl.classList.remove('over'); }));
+  dropEl.addEventListener('drop', e => { if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+  fileEl.addEventListener('change', () => { if (fileEl.files[0]) loadFile(fileEl.files[0]); });
+
+  async function loadFile(file) {
+    showError(parseErrorEl, '');
+    fileInfoEl.innerHTML = '';
+    resultEl.classList.remove('on');
+    try {
+      let text;
+      if (/\.zip$/i.test(file.name)) {
+        if (typeof JSZip === 'undefined') throw new Error('לא הצלחתי לטעון את ספריית פתיחת ה-ZIP (אין חיבור לאינטרנט?). חלצו את קובץ ה-.txt מתוך ה-ZIP והעלו אותו ישירות.');
+        const zip = await JSZip.loadAsync(file);
+        const entry = Object.values(zip.files).find(f => !f.dir && /\.txt$/i.test(f.name));
+        if (!entry) throw new Error('לא נמצא קובץ טקסט בתוך ה-ZIP.');
+        text = await entry.async('string');
+      } else {
+        text = await file.text();
+      }
+      chatName = file.name.replace(/\.(txt|zip)$/i, '').replace(/^(WhatsApp Chat with|צ'אט וואטסאפ עם|_chat)\s*/i, '').trim() || 'קבוצה';
+      messages = parseWhatsAppExport(text);
+      if (messages.length === 0) throw new Error('לא הצלחתי לזהות הודעות בקובץ. ודאו שזה קובץ ייצוא של וואטסאפ (ולא קובץ אחר).');
+      renderFileInfo();
+    } catch (err) {
+      messages = [];
+      goBtn.disabled = true;
+      rangeCard.style.display = 'none';
+      showError(parseErrorEl, err.message);
+    }
+  }
+
+  // ---------- WhatsApp export parser ----------
+  const MEDIA_RE = /^(<Media omitted>|<המדיה לא נכללה>|<מדיה הושמטה>|‎?<attached: .+>|‎?<מצורף: .+>|image omitted|video omitted|audio omitted|sticker omitted|GIF omitted|document omitted|‎?תמונה הושמטה|‎?סרטון הושמט|‎?מדבקה הושמטה|‎?אודיו הושמט|‎?מסמך הושמט|‎?GIF הושמט)$/;
+  const LINE_RE = /^\[?(\d{1,2})[./-](\d{1,2})[./-](\d{2,4}),?\s+(\d{1,2}):(\d{2})(?::\d{2})?\s*([APap]\.?[Mm]\.?)?\]?\s*[-–:]?\s*(.*)$/;
+
+  function parseWhatsAppExport(raw) {
+    const lines = raw.replace(/\r\n?/g, '\n').split('\n');
+    const entries = [];
+    let dayFirst = null;   // auto-detected; null = undecided
+    const pending = [];    // rows before date-order is known
+
+    for (const rawLine of lines) {
+      const line = rawLine.replace(/[‎‏‪-‮﻿]/g, '').replace(/ /g, ' ');
+      const m = line.match(LINE_RE);
+      if (m) {
+        const a = +m[1], b = +m[2];
+        let year = +m[3]; if (year < 100) year += 2000;
+        let hour = +m[4]; const min = +m[5];
+        const ampm = m[6] ? m[6].toLowerCase().replace(/\./g, '') : '';
+        if (ampm === 'pm' && hour < 12) hour += 12;
+        if (ampm === 'am' && hour === 12) hour = 0;
+        if (a > 12) dayFirst = true; else if (b > 12) dayFirst = false;
+
+        const rest = m[7];
+        const sep = rest.indexOf(': ');
+        let sender = null, text = rest;
+        if (sep > 0 && sep < 60) { sender = rest.slice(0, sep).trim(); text = rest.slice(sep + 2); }
+        entries.push({ a, b, year, hour, min, sender, text });
+      } else if (entries.length && line.trim()) {
+        entries[entries.length - 1].text += '\n' + line;
+      }
+    }
+    if (dayFirst === null) dayFirst = true; // Israel default
+
+    return entries
+      .filter(e => e.sender && !MEDIA_RE.test(e.text.trim()) && e.text.trim() && !/^(הודעה זו נמחקה|This message was deleted|You deleted this message|מחקת את ההודעה הזו)$/.test(e.text.trim()))
+      .map(e => {
+        const day = dayFirst ? e.a : e.b, month = dayFirst ? e.b : e.a;
+        return { date: new Date(e.year, month - 1, day, e.hour, e.min), sender: e.sender, text: e.text.trim() };
+      })
+      .filter(e => !isNaN(e.date));
+  }
+
+  // ---------- UI: stats & range ----------
+  const fmtDate = (d) => d.toLocaleDateString('he-IL');
+  const isoDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  function renderFileInfo() {
+    const first = messages[0].date, last = messages[messages.length - 1].date;
+    const senders = new Set(messages.map(m => m.sender));
+    fileInfoEl.innerHTML = `
+      <div class="stats">
+        <div class="stat"><b>${messages.length.toLocaleString('he-IL')}</b><span>הודעות</span></div>
+        <div class="stat"><b>${senders.size}</b><span>משתתפים</span></div>
+        <div class="stat"><b>${fmtDate(first)}</b><span>ההודעה הראשונה</span></div>
+        <div class="stat"><b>${fmtDate(last)}</b><span>ההודעה האחרונה</span></div>
+      </div>`;
+    fromEl.min = toEl.min = isoDate(first);
+    fromEl.max = toEl.max = isoDate(last);
+    // Default: the last 30 days of activity, so a multi-year export doesn't blow up cost by accident.
+    const defaultFrom = new Date(last); defaultFrom.setDate(defaultFrom.getDate() - 30);
+    fromEl.value = isoDate(defaultFrom < first ? first : defaultFrom);
+    toEl.value = isoDate(last);
+    rangeCard.style.display = '';
+    updateRangeInfo();
+    goBtn.disabled = false;
+  }
+
+  function selectedMessages() {
+    const from = fromEl.value ? new Date(fromEl.value + 'T00:00:00') : null;
+    const to = toEl.value ? new Date(toEl.value + 'T23:59:59') : null;
+    return messages.filter(m => (!from || m.date >= from) && (!to || m.date <= to));
+  }
+  function updateRangeInfo() {
+    const sel = selectedMessages();
+    const chars = sel.reduce((n, m) => n + m.text.length + m.sender.length + 20, 0);
+    const kTokens = chars / 2.5 / 1000;
+    const est = kTokens < 1 ? 'פחות מאלף' : `כ-${Math.round(kTokens).toLocaleString('he-IL')} אלף`;
+    rangeInfoEl.textContent = `${sel.length.toLocaleString('he-IL')} הודעות בטווח שנבחר (${est} טוקנים לקריאה)`;
+    goBtn.disabled = sel.length === 0;
+  }
+  fromEl.addEventListener('change', updateRangeInfo);
+  toEl.addEventListener('change', updateRangeInfo);
+
+  // ---------- summarization ----------
+  const STYLE_TEXT = {
+    short: 'סכם בקצרה מאוד: רק הנקודות החשובות באמת, בתבליטים קצרים. בלי פירוט של הדיון עצמו.',
+    balanced: 'סכם בצורה מאוזנת: נושאים מרכזיים עם משפט-שניים הסבר לכל אחד, החלטות, ומשימות.',
+    detailed: 'סכם בפירוט: לכל נושא תאר מה עלה, מי הציע מה, מה היו הדעות השונות ואיך זה הסתיים.',
+  };
+
+  function systemPrompt() {
+    const focus = focusEl.value.trim();
+    return `אתה מסכם שיחות קבוצתיות בוואטסאפ בעברית עבור חבר בקבוצה שלא הספיק לקרוא.
+${STYLE_TEXT[styleEl.value]}
+מבנה מומלץ (השתמש ב-Markdown עם כותרות ותבליטים; דלג על סעיפים ריקים):
+## עיקרי הדברים
+## נושאים שעלו
+## החלטות שהתקבלו
+## משימות ודברים לביצוע (ולמי הם שייכים, אם ברור)
+## תאריכים, מקומות, סכומים ולינקים שכדאי לזכור
+כללים: התבסס רק על מה שמופיע בשיחה, אל תמציא. ציין שמות של אנשים כשזה רלוונטי. אם חלק גדול מהשיחה הוא סמול-טוק בלי תוכן, אמור זאת במשפט אחד ואל תפרט אותו.${focus ? `\n\nהמשתמש ביקש להתמקד במיוחד ב: "${focus}". תן לזה עדיפות, ואת השאר סכם בקצרה.` : ''}`;
+  }
+
+  function formatChunk(msgs) {
+    let out = '', lastDay = '';
+    for (const m of msgs) {
+      const day = fmtDate(m.date);
+      if (day !== lastDay) { out += `\n=== ${day} ===\n`; lastDay = day; }
+      out += `[${String(m.date.getHours()).padStart(2, '0')}:${String(m.date.getMinutes()).padStart(2, '0')}] ${m.sender}: ${m.text.replace(/\n/g, ' / ')}\n`;
+    }
+    return out;
+  }
+
+  const CHUNK_CHARS = 150000; // ~60-100K tokens of Hebrew - comfortably inside the context window
+
+  function chunkMessages(msgs) {
+    const chunks = []; let cur = [], len = 0;
+    for (const m of msgs) {
+      const l = m.text.length + m.sender.length + 20;
+      if (len + l > CHUNK_CHARS && cur.length) { chunks.push(cur); cur = []; len = 0; }
+      cur.push(m); len += l;
+    }
+    if (cur.length) chunks.push(cur);
+    return chunks;
+  }
+
+  const usage = { input: 0, output: 0 };
+
+  async function callClaude(userText) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKeyEl.value.trim(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: modelEl.value,
+        max_tokens: 16000,
+        system: systemPrompt(),
+        messages: [{ role: 'user', content: userText }],
+      }),
+    });
+    let data;
+    try { data = await res.json(); } catch { data = null; }
+    if (!res.ok) {
+      const msg = data?.error?.message || res.statusText;
+      if (res.status === 401) throw new Error('מפתח ה-API לא תקין. בדקו שהעתקתם אותו במלואו.');
+      if (res.status === 429) throw new Error('חרגתם ממכסת הבקשות של החשבון. נסו שוב בעוד דקה, או בחרו מודל אחר.');
+      if (res.status === 400 && /credit|billing/i.test(msg)) throw new Error('אין יתרת קרדיט בחשבון Anthropic. הוסיפו אמצעי תשלום ב-console.anthropic.com.');
+      throw new Error(`שגיאה מה-API (${res.status}): ${msg}`);
+    }
+    if (data.usage) { usage.input += data.usage.input_tokens || 0; usage.output += data.usage.output_tokens || 0; }
+    if (data.stop_reason === 'refusal') throw new Error('המודל סירב לסכם את התוכן הזה.');
+    return data.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+  }
+
+  goBtn.addEventListener('click', async () => {
+    showError(apiErrorEl, '');
+    if (!apiKeyEl.value.trim()) { showError(apiErrorEl, 'צריך להכניס מפתח API של Anthropic בשלב 1.'); apiKeyEl.focus(); return; }
+    const sel = selectedMessages();
+    if (!sel.length) return;
+    persistSettings();
+
+    goBtn.disabled = true; progressEl.classList.add('on'); resultEl.classList.remove('on');
+    usage.input = 0; usage.output = 0;
+    const started = Date.now();
+    try {
+      const chunks = chunkMessages(sel);
+      const range = `${fmtDate(sel[0].date)} – ${fmtDate(sel[sel.length - 1].date)}`;
+      let summary;
+      if (chunks.length === 1) {
+        progressText.textContent = `מסכם ${sel.length.toLocaleString('he-IL')} הודעות...`;
+        summary = await callClaude(`קבוצה: ${chatName}\nטווח: ${range}\n\nהשיחה:\n${formatChunk(chunks[0])}`);
+      } else {
+        const partials = [];
+        for (let i = 0; i < chunks.length; i++) {
+          progressText.textContent = `השיחה ארוכה — מסכם חלק ${i + 1} מתוך ${chunks.length}...`;
+          partials.push(await callClaude(`קבוצה: ${chatName}\nזהו חלק ${i + 1} מתוך ${chunks.length} של השיחה (טווח כולל: ${range}).\n\nהשיחה:\n${formatChunk(chunks[i])}`));
+        }
+        progressText.textContent = 'מאחד את כל החלקים לסיכום אחד...';
+        summary = await callClaude(`להלן ${partials.length} סיכומים חלקיים של אותה קבוצה ("${chatName}", ${range}) לפי סדר כרונולוגי. אחד אותם לסיכום אחד קוהרנטי באותו מבנה, ללא כפילויות, ושמור על סדר הזמנים:\n\n${partials.map((p, i) => `--- חלק ${i + 1} ---\n${p}`).join('\n\n')}`);
+      }
+      lastSummaryMd = `# סיכום: ${chatName}\n\n_${range} · ${sel.length} הודעות_\n\n${summary}\n`;
+      summaryEl.innerHTML = renderMarkdown(summary);
+      const secs = Math.round((Date.now() - started) / 1000);
+      usageEl.textContent = `${sel.length.toLocaleString('he-IL')} הודעות · ${range} · ${modelEl.options[modelEl.selectedIndex].text.split(' — ')[0]} · ${usage.input.toLocaleString('he-IL')} טוקנים נקראו, ${usage.output.toLocaleString('he-IL')} נכתבו · ${secs} שניות`;
+      resultEl.classList.add('on');
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      showError(apiErrorEl, err.message || String(err));
+    } finally {
+      progressEl.classList.remove('on');
+      goBtn.disabled = false;
+    }
+  });
+
+  // ---------- result actions ----------
+  $('copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(lastSummaryMd); $('copy').textContent = 'הועתק ✓'; setTimeout(() => $('copy').textContent = 'העתקה', 1500); }
+    catch { showError(apiErrorEl, 'ההעתקה נכשלה — סמנו את הטקסט והעתיקו ידנית.'); }
+  });
+  $('download').addEventListener('click', () => {
+    const blob = new Blob([lastSummaryMd], { type: 'text/markdown;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `סיכום - ${chatName} - ${toEl.value || isoDate(new Date())}.md`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  // ---------- helpers ----------
+  function showError(el, msg) { el.textContent = msg; el.classList.toggle('on', !!msg); }
+
+  function escapeHtml(s) { return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function inline(s) {
+    return escapeHtml(s)
+      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+  }
+  function renderMarkdown(md) {
+    const out = []; let list = null;
+    const closeList = () => { if (list) { out.push(`</${list}>`); list = null; } };
+    for (const raw of md.split('\n')) {
+      const line = raw.trimEnd();
+      let m;
+      if ((m = line.match(/^(#{1,3})\s+(.*)$/))) { closeList(); out.push(`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`); }
+      else if ((m = line.match(/^\s*[-*•]\s+(.*)$/))) { if (list !== 'ul') { closeList(); out.push('<ul>'); list = 'ul'; } out.push(`<li>${inline(m[1])}</li>`); }
+      else if ((m = line.match(/^\s*\d+[.)]\s+(.*)$/))) { if (list !== 'ol') { closeList(); out.push('<ol>'); list = 'ol'; } out.push(`<li>${inline(m[1])}</li>`); }
+      else if (!line.trim()) { closeList(); }
+      else { closeList(); out.push(`<p>${inline(line)}</p>`); }
+    }
+    closeList();
+    return out.join('\n');
+  }
+})();
+</script>
+</body>
+</html>

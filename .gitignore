@@ -1,3 +1,12 @@
 node_modules/
 *.log
 .DS_Store
+
+# WhatsApp session credentials - never commit these
+auth/
+
+# collected messages and generated summaries are local runtime data
+data/
+summaries/
+
+.env

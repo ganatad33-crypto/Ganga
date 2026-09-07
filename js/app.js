@@ -432,14 +432,8 @@
     return WEEKDAY_NAMES[d.getDay()];
   }
 
-  function renderAllRegistrationsTable() {
-    var wrap = document.getElementById('allRegTableWrap');
-    if (!wrap) return;
-    var rows = flattenMonthRows();
-    if (!rows.length) {
-      wrap.innerHTML = '<div class="empty-note">אין עדיין רישומים לחודש זה</div>';
-      return;
-    }
+  function monthRowsTableHtml(rows) {
+    if (!rows.length) return '<div class="empty-note">אין עדיין רישומים לחודש זה</div>';
     var html = '<table><thead><tr><th>תאריך</th><th>יום</th><th>עובד</th><th>משמרת</th><th>סטטוס</th></tr></thead><tbody>';
     rows.forEach(function (r) {
       html += '<tr><td>' + r.date + '</td><td>' + weekdayNameFor(r.date) + '</td><td>' +
@@ -447,7 +441,18 @@
         (STATUS_LABEL[r.status] || r.status) + '</td></tr>';
     });
     html += '</tbody></table>';
-    wrap.innerHTML = html;
+    return html;
+  }
+
+  // Renders the same "whole month" table into both the manager's card and
+  // the public list toggle on the calendar tab (open to every user).
+  function renderAllRegistrationsTable() {
+    var rows = flattenMonthRows();
+    var html = monthRowsTableHtml(rows);
+    var mgrWrap = document.getElementById('allRegTableWrap');
+    if (mgrWrap) mgrWrap.innerHTML = html;
+    var publicWrap = document.getElementById('monthListWrap');
+    if (publicWrap) publicWrap.innerHTML = html;
   }
 
   // ---------- PDF export ----------
@@ -852,6 +857,15 @@
     document.getElementById('allRegPdfBtn').addEventListener('click', exportAllRegistrationsPdf);
     document.getElementById('historyPdfBtn').addEventListener('click', exportHistoryPdf);
     document.getElementById('myShiftsPdfBtn').addEventListener('click', exportMyShiftsPdf);
+
+    document.getElementById('toggleMonthListBtn').addEventListener('click', function () {
+      var listWrap = document.getElementById('monthListWrap');
+      var gridWrap = document.getElementById('calendarGridWrap');
+      var showingList = listWrap.style.display !== 'none';
+      listWrap.style.display = showingList ? 'none' : 'block';
+      gridWrap.style.display = showingList ? '' : 'none';
+      this.textContent = showingList ? '📋 הצג את כל החודש כרשימה' : '🗓️ הצג לוח שנה במקום רשימה';
+    });
 
     document.getElementById('closeDayModal').addEventListener('click', closeDayModal);
     document.getElementById('dayModalBackdrop').addEventListener('click', function (e) {

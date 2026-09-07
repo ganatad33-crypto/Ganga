@@ -50,17 +50,24 @@
           <div class="month-label" id="monthLabel">ינואר 2026</div>
           <button class="nav-btn" id="nextMonth">‹</button>
         </div>
-        <div class="weekday-row">
-          <div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
+        <div id="calendarGridWrap">
+          <div class="weekday-row">
+            <div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
 
-        <div class="legend">
-          <span><span class="dot approved dot-morning"></span> בוקר · 08:00+ (מאושר)</span>
-          <span><span class="dot approved dot-regular"></span> רגילה · 10:00+</span>
-          <span><span class="dot approved dot-night"></span> לילה · 20:00+</span>
-          <span><span class="dot pending dot-regular"></span> ממתין לאישור</span>
+          <div class="legend">
+            <span><span class="dot approved dot-morning"></span> בוקר · 08:00+ (מאושר)</span>
+            <span><span class="dot approved dot-regular"></span> רגילה · 10:00+</span>
+            <span><span class="dot approved dot-night"></span> לילה · 20:00+</span>
+            <span><span class="dot pending dot-regular"></span> ממתין לאישור</span>
+          </div>
         </div>
+
+        <div class="row" style="margin-top:16px;">
+          <button class="btn secondary" id="toggleMonthListBtn">📋 הצג את כל החודש כרשימה</button>
+        </div>
+        <div id="monthListWrap" style="display:none; margin-top:12px;"></div>
       </div>
     </section>
 

@@ -38,6 +38,7 @@
 
     <nav class="tabs">
       <button class="tab-btn active" data-tab="calendar">לוח משמרות</button>
+      <button class="tab-btn" data-tab="myshifts">המשמרות שלי</button>
       <button class="tab-btn" data-tab="manage" id="manageTabBtn" style="display:none;">ניהול</button>
     </nav>
 
@@ -60,6 +61,15 @@
           <span><span class="dot approved dot-night"></span> לילה · 20:00+</span>
           <span><span class="dot pending dot-regular"></span> ממתין לאישור</span>
         </div>
+      </div>
+    </section>
+
+    <!-- ===== My Shifts Panel ===== -->
+    <section class="panel" id="panel-myshifts">
+      <div class="card">
+        <h2>המשמרות שלי</h2>
+        <p class="hint">כל המשמרות שנרשמת אליהן, כולל הסטטוס שלהן - ממתין לאישור / מאושר / נדחה.</p>
+        <div class="list" id="myShiftsList"><div class="empty-note">בחר/י את שמך בראש העמוד</div></div>
       </div>
     </section>
 
@@ -124,8 +134,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- html2canvas + jsPDF are loaded on-demand (only when a PDF button is clicked) to keep the first load fast -->
   <script src="js/firebase-config.js"></script>
   <script src="js/app.js"></script>
 </body>

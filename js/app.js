@@ -38,7 +38,8 @@
     pending: [], // raw pending shift docs
     selectedDateKey: null,
     lastHistoryName: '',
-    lastHistoryRows: []
+    lastHistoryRows: [],
+    myShifts: []
   };
 
   // ---------- Helpers ----------
@@ -306,7 +307,11 @@
         joinBtn.className = 'join-btn';
         joinBtn.textContent = alreadyIn ? 'כבר נרשמת למשמרת זו' : '+ הרשמה למשמרת זו';
         joinBtn.disabled = alreadyIn;
-        joinBtn.onclick = function () { joinShift(dKey, st.key); };
+        joinBtn.onclick = function () {
+          joinBtn.disabled = true;
+          joinBtn.textContent = 'שולח בקשה...';
+          joinShift(dKey, st.key);
+        };
         block.appendChild(joinBtn);
       }
 
@@ -334,7 +339,10 @@
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function () {
       showToast('נרשמת למשמרת - ממתין לאישור המנהל');
-    }).catch(function (e) { showToast('שגיאה: ' + e.message); });
+    }).catch(function (e) {
+      showToast('שגיאה: ' + e.message);
+      if (state.selectedDateKey === dKey) renderDayModalBody();
+    });
   }
 
   function cancelShift(shiftId) {
@@ -441,12 +449,40 @@
   }
 
   // ---------- PDF export ----------
-  function exportRowsToPdf(title, subtitle, headers, rows, filename) {
-    if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
-      showToast('שגיאה: ספריית ה-PDF לא נטענה (בדוק/י חיבור לאינטרנט)');
-      return;
+  // html2canvas + jsPDF are fairly heavy (~500KB together), so they're only
+  // fetched the first time a "PDF" button is actually clicked, not on page load.
+  var pdfLibsPromise = null;
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = function () { reject(new Error('נכשלה טעינת ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  function ensurePdfLibs() {
+    if (!pdfLibsPromise) {
+      pdfLibsPromise = Promise.all([
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+      ]);
     }
+    return pdfLibsPromise;
+  }
+
+  function exportRowsToPdf(title, subtitle, headers, rows, filename) {
     if (!rows.length) { showToast('אין נתונים לייצוא'); return; }
+    showToast('טוען כלי PDF...');
+    ensurePdfLibs().then(function () {
+      buildAndSavePdf(title, subtitle, headers, rows, filename);
+    }).catch(function (e) {
+      pdfLibsPromise = null;
+      showToast('שגיאה בטעינת כלי ה-PDF: ' + e.message);
+    });
+  }
+
+  function buildAndSavePdf(title, subtitle, headers, rows, filename) {
 
     var node = document.createElement('div');
     node.style.position = 'fixed';
@@ -643,11 +679,14 @@
   var myShiftsUnsub = null;
   function subscribeMyShifts(name) {
     if (myShiftsUnsub) { myShiftsUnsub(); myShiftsUnsub = null; }
-    if (!firebaseReady || !name || name === MANAGER_NAME) return;
+    state.myShifts = [];
+    if (!name || name === MANAGER_NAME) { renderMyShiftsList(); return; }
+    if (!firebaseReady) return;
     myShiftsUnsub = db.collection('shifts').where('employeeName', '==', name).limit(300)
       .onSnapshot(function (snap) {
         var newMap = {};
         snap.forEach(function (doc) { newMap[doc.id] = doc.data(); });
+
         var storageKey = 'nvb_seen_' + name;
         var oldMapRaw = localStorage.getItem(storageKey);
         var oldMap = oldMapRaw ? JSON.parse(oldMapRaw) : null;
@@ -672,7 +711,63 @@
         var slimMap = {};
         Object.keys(newMap).forEach(function (id) { slimMap[id] = newMap[id].status; });
         localStorage.setItem(storageKey, JSON.stringify(slimMap));
-      }, function (e) { console.error(e); });
+
+        state.myShifts = Object.keys(newMap).map(function (id) {
+          return Object.assign({ id: id }, newMap[id]);
+        });
+        renderMyShiftsList();
+      }, function (e) {
+        console.error(e);
+        var wrap = document.getElementById('myShiftsList');
+        if (wrap) wrap.innerHTML = '<div class="empty-note">שגיאה בטעינה: ' + e.message + '</div>';
+      });
+  }
+
+  function renderMyShiftsList() {
+    var wrap = document.getElementById('myShiftsList');
+    if (!wrap) return;
+
+    if (!state.currentUser) {
+      wrap.innerHTML = '<div class="empty-note">בחר/י את שמך בראש העמוד</div>';
+      return;
+    }
+    if (state.currentUser === MANAGER_NAME) {
+      wrap.innerHTML = '<div class="empty-note">המסך הזה מיועד לעובדים. בתור מנהל/ת, תוכל/י לראות הכל בלשונית "ניהול".</div>';
+      return;
+    }
+    if (!state.myShifts.length) {
+      wrap.innerHTML = '<div class="empty-note">עדיין לא נרשמת לאף משמרת. עברו ל"לוח משמרות" כדי להירשם.</div>';
+      return;
+    }
+
+    var rows = state.myShifts.slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
+    wrap.innerHTML = '';
+    rows.forEach(function (r) {
+      var st = SHIFT_TYPES.filter(function (s) { return s.key === r.shiftType; })[0] || {};
+      var row = document.createElement('div');
+      row.className = 'list-row';
+      row.innerHTML =
+        '<span><b>' + r.date + '</b><span class="meta"> · ' + weekdayNameFor(r.date) + ' · ' + (st.label || r.shiftType) + '</span></span>';
+
+      var right = document.createElement('span');
+      right.style.display = 'flex';
+      right.style.alignItems = 'center';
+      right.style.gap = '8px';
+
+      var badge = document.createElement('span');
+      badge.className = 'badge ' + r.status;
+      badge.textContent = STATUS_LABEL[r.status] || r.status;
+      right.appendChild(badge);
+
+      var cancelBtn = document.createElement('button');
+      cancelBtn.className = 'mini-btn cancel';
+      cancelBtn.textContent = 'ביטול';
+      cancelBtn.onclick = function () { cancelShift(r.id); };
+      right.appendChild(cancelBtn);
+
+      row.appendChild(right);
+      wrap.appendChild(row);
+    });
   }
 
   var employeesUnsub = null;
@@ -696,6 +791,7 @@
       b.classList.toggle('active', b.dataset.tab === tab);
     });
     document.getElementById('panel-calendar').classList.toggle('active', tab === 'calendar');
+    document.getElementById('panel-myshifts').classList.toggle('active', tab === 'myshifts');
     document.getElementById('panel-manage').classList.toggle('active', tab === 'manage');
   }
 

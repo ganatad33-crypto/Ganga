@@ -221,11 +221,13 @@
       parseInt(parts[2], 10) + ' ב' + MONTH_NAMES[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
     renderDayModalBody();
     document.getElementById('dayModalBackdrop').classList.add('open');
+    history.pushState({ modal: true }, '', '#day');
   }
 
-  function closeDayModal() {
+  function closeDayModal(fromPopstate) {
     document.getElementById('dayModalBackdrop').classList.remove('open');
     state.selectedDateKey = null;
+    if (!fromPopstate) history.back();
   }
 
   function renderDayModalBody() {
@@ -552,6 +554,22 @@
     );
   }
 
+  function exportMyShiftsPdf() {
+    if (!state.currentUser || !state.myShifts.length) { showToast('אין עדיין משמרות לייצוא'); return; }
+    var rows = state.myShifts.slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
+    var tableRows = rows.map(function (r) {
+      var st = SHIFT_TYPES.filter(function (s) { return s.key === r.shiftType; })[0] || {};
+      return [r.date, weekdayNameFor(r.date), st.label || r.shiftType, STATUS_LABEL[r.status] || r.status];
+    });
+    exportRowsToPdf(
+      'נותנים בראש 2026 - המשמרות שלי',
+      state.currentUser,
+      ['תאריך', 'יום', 'משמרת', 'סטטוס'],
+      tableRows,
+      'המשמרות-שלי-' + state.currentUser + '.pdf'
+    );
+  }
+
   function exportHistoryPdf() {
     if (!state.lastHistoryName || !state.lastHistoryRows.length) { showToast('אין נתוני היסטוריה לייצוא'); return; }
     var tableRows = state.lastHistoryRows.map(function (r) {
@@ -809,7 +827,21 @@
       btn.addEventListener('click', function () {
         if (btn.dataset.tab === 'manage' && !isManager()) return;
         switchTab(btn.dataset.tab);
+        history.pushState({ tab: btn.dataset.tab }, '', '#' + btn.dataset.tab);
       });
+    });
+
+    // Makes the phone's/browser's back button move between tabs and close the
+    // open day modal, instead of leaving the app - important once it's
+    // installed as a home-screen app, where "back" is the only nav control.
+    window.addEventListener('popstate', function (e) {
+      if (document.getElementById('dayModalBackdrop').classList.contains('open')) {
+        closeDayModal(true);
+        return;
+      }
+      var tab = (e.state && e.state.tab) || 'calendar';
+      if (tab === 'manage' && !isManager()) tab = 'calendar';
+      switchTab(tab);
     });
 
     document.getElementById('prevMonth').addEventListener('click', function () { changeMonth(-1); });
@@ -819,6 +851,7 @@
 
     document.getElementById('allRegPdfBtn').addEventListener('click', exportAllRegistrationsPdf);
     document.getElementById('historyPdfBtn').addEventListener('click', exportHistoryPdf);
+    document.getElementById('myShiftsPdfBtn').addEventListener('click', exportMyShiftsPdf);
 
     document.getElementById('closeDayModal').addEventListener('click', closeDayModal);
     document.getElementById('dayModalBackdrop').addEventListener('click', function (e) {
@@ -876,6 +909,7 @@
   // ---------- Boot ----------
   function boot() {
     wireEvents();
+    history.replaceState({ tab: 'calendar' }, '', '#calendar');
     renderMonthLabel();
     renderUserSelect();
 

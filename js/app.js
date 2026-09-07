@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var MANAGER_NAME = 'טייאר';
+  var MANAGER_NAME = 'אמיר';
   var YEAR = 2026;
 
   var SHIFT_TYPES = [

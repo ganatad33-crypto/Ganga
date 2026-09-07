@@ -23,6 +23,13 @@
     if (typeof firebaseConfig !== 'undefined' && firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('PASTE_') !== 0) {
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
+      // Caches data on the device so a reopen (or a flaky connection) shows
+      // the last-known list/shifts immediately instead of looking empty.
+      if (typeof db.enablePersistence === 'function') {
+        db.enablePersistence({ synchronizeTabs: true }).catch(function (e) {
+          console.warn('Offline cache not enabled:', e.code);
+        });
+      }
       firebaseReady = true;
     }
   } catch (e) {

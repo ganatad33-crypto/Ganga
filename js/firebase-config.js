@@ -7,10 +7,10 @@
 // 4. תראו אובייקט firebaseConfig - העתיקו את הערכים לכאן במקום הכתובות PASTE_...
 
 const firebaseConfig = {
-  apiKey: "PASTE_API_KEY_HERE",
-  authDomain: "PASTE_AUTH_DOMAIN_HERE",
-  projectId: "PASTE_PROJECT_ID_HERE",
-  storageBucket: "PASTE_STORAGE_BUCKET_HERE",
-  messagingSenderId: "PASTE_SENDER_ID_HERE",
-  appId: "PASTE_APP_ID_HERE"
+  apiKey: "AIzaSyAoLOvbTSPRptlzTKfuWQK4IzePVCmSZf4",
+  authDomain: "notnaim-broash-331d1.firebaseapp.com",
+  projectId: "notnaim-broash-331d1",
+  storageBucket: "notnaim-broash-331d1.firebasestorage.app",
+  messagingSenderId: "510787909924",
+  appId: "1:510787909924:web:6ca266bc71896556101bb1"
 };

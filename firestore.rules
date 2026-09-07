@@ -1,0 +1,36 @@
+rules_version = '2';
+
+// חוקי אבטחה בסיסיים לאפליקציית "נותנים בראש 2026".
+// אין באפליקציה מנגנון התחברות (כל אחד עם הקישור נכנס), לכן החוקים כאן
+// שומרים רק על מבנה הנתונים (שדות חובה, ערכים חוקיים) ולא על "מי מותר לו".
+// ראו הסבר על המשמעות של זה בקובץ README.md, בסעיף "אבטחה ומגבלות".
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /shifts/{shiftId} {
+      allow read: if true;
+
+      allow create: if request.resource.data.keys().hasAll(['date', 'shiftType', 'employeeName', 'status'])
+                    && request.resource.data.date is string
+                    && request.resource.data.shiftType in ['morning', 'regular', 'night']
+                    && request.resource.data.employeeName is string
+                    && request.resource.data.status == 'pending';
+
+      // עדכון סטטוס (אישור/דחייה ע"י המנהל)
+      allow update: if request.resource.data.status in ['pending', 'approved', 'rejected'];
+
+      // ביטול הרשמה (ע"י העובד או המנהל)
+      allow delete: if true;
+    }
+
+    match /employees/{employeeId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name'])
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0;
+      allow update: if false;
+      allow delete: if true;
+    }
+  }
+}

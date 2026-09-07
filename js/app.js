@@ -11,8 +11,10 @@
   ];
 
   var MONTH_NAMES = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+  var WEEKDAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
   var STATUS_LABEL = { pending: 'ממתין לאישור', approved: 'מאושר', rejected: 'נדחה' };
+  var SHIFT_ORDER = { morning: 0, regular: 1, night: 2 };
 
   // ---------- Firebase ----------
   var db = null;
@@ -34,7 +36,9 @@
     employees: [], // {id, name}
     shiftsByDate: {}, // 'YYYY-MM-DD' -> { morning: [entries], regular: [...], night: [...] }
     pending: [], // raw pending shift docs
-    selectedDateKey: null
+    selectedDateKey: null,
+    lastHistoryName: '',
+    lastHistoryRows: []
   };
 
   // ---------- Helpers ----------
@@ -139,9 +143,22 @@
 
   // ---------- Calendar rendering ----------
   function renderMonthLabel() {
-    document.getElementById('monthLabel').textContent = MONTH_NAMES[state.month] + ' ' + YEAR;
+    var label = MONTH_NAMES[state.month] + ' ' + YEAR;
+    document.getElementById('monthLabel').textContent = label;
     document.getElementById('prevMonth').disabled = state.month === 0;
     document.getElementById('nextMonth').disabled = state.month === 11;
+
+    document.getElementById('allRegMonthLabel').textContent = label;
+    document.getElementById('allRegPrevMonth').disabled = state.month === 0;
+    document.getElementById('allRegNextMonth').disabled = state.month === 11;
+  }
+
+  function changeMonth(delta) {
+    var next = state.month + delta;
+    if (next < 0 || next > 11) return;
+    state.month = next;
+    renderMonthLabel();
+    subscribeMonth();
   }
 
   function summarizeDay(dKey) {
@@ -374,14 +391,158 @@
     });
   }
 
+  // ---------- Manager: all registrations this month ----------
+  function flattenMonthRows() {
+    var rows = [];
+    Object.keys(state.shiftsByDate).forEach(function (dKey) {
+      var dayData = state.shiftsByDate[dKey];
+      SHIFT_TYPES.forEach(function (st) {
+        (dayData[st.key] || []).forEach(function (entry) {
+          rows.push({
+            date: dKey,
+            shiftKey: st.key,
+            shiftLabel: st.label,
+            employeeName: entry.employeeName,
+            status: entry.status
+          });
+        });
+      });
+    });
+    rows.sort(function (a, b) {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      if (SHIFT_ORDER[a.shiftKey] !== SHIFT_ORDER[b.shiftKey]) return SHIFT_ORDER[a.shiftKey] - SHIFT_ORDER[b.shiftKey];
+      return (a.employeeName || '').localeCompare(b.employeeName || '', 'he');
+    });
+    return rows;
+  }
+
+  function weekdayNameFor(dKey) {
+    var parts = dKey.split('-').map(Number);
+    var d = new Date(parts[0], parts[1] - 1, parts[2]);
+    return WEEKDAY_NAMES[d.getDay()];
+  }
+
+  function renderAllRegistrationsTable() {
+    var wrap = document.getElementById('allRegTableWrap');
+    if (!wrap) return;
+    var rows = flattenMonthRows();
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty-note">אין עדיין רישומים לחודש זה</div>';
+      return;
+    }
+    var html = '<table><thead><tr><th>תאריך</th><th>יום</th><th>עובד</th><th>משמרת</th><th>סטטוס</th></tr></thead><tbody>';
+    rows.forEach(function (r) {
+      html += '<tr><td>' + r.date + '</td><td>' + weekdayNameFor(r.date) + '</td><td>' +
+        escapeHtml(r.employeeName) + '</td><td>' + r.shiftLabel + '</td><td>' +
+        (STATUS_LABEL[r.status] || r.status) + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  }
+
+  // ---------- PDF export ----------
+  function exportRowsToPdf(title, subtitle, headers, rows, filename) {
+    if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+      showToast('שגיאה: ספריית ה-PDF לא נטענה (בדוק/י חיבור לאינטרנט)');
+      return;
+    }
+    if (!rows.length) { showToast('אין נתונים לייצוא'); return; }
+
+    var node = document.createElement('div');
+    node.style.position = 'fixed';
+    node.style.top = '-10000px';
+    node.style.left = '0';
+    node.style.width = '780px';
+    node.style.background = '#ffffff';
+    node.style.color = '#111827';
+    node.style.direction = 'rtl';
+    node.style.fontFamily = 'Arial, sans-serif';
+    node.style.padding = '24px';
+
+    var html = '<h2 style="margin:0 0 4px;font-size:20px;">' + escapeHtml(title) + '</h2>';
+    if (subtitle) html += '<p style="margin:0 0 16px;color:#555;font-size:13px;">' + escapeHtml(subtitle) + '</p>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:12.5px;">';
+    html += '<thead><tr>' + headers.map(function (h) {
+      return '<th style="text-align:right;border-bottom:2px solid #333;padding:6px 8px;">' + escapeHtml(h) + '</th>';
+    }).join('') + '</tr></thead><tbody>';
+    rows.forEach(function (row, i) {
+      var bg = i % 2 === 0 ? '#ffffff' : '#f3f4f6';
+      html += '<tr style="background:' + bg + ';">' + row.map(function (cell) {
+        return '<td style="text-align:right;border-bottom:1px solid #e5e7eb;padding:6px 8px;">' + escapeHtml(String(cell)) + '</td>';
+      }).join('') + '</tr>';
+    });
+    html += '</tbody></table>';
+    node.innerHTML = html;
+    document.body.appendChild(node);
+
+    showToast('מכין PDF...');
+    html2canvas(node, { scale: 2 }).then(function (canvas) {
+      document.body.removeChild(node);
+      var pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+      var pageWidth = pdf.internal.pageSize.getWidth();
+      var pageHeight = pdf.internal.pageSize.getHeight();
+      var imgWidth = pageWidth;
+      var imgHeight = (canvas.height * imgWidth) / canvas.width;
+      var imgData = canvas.toDataURL('image/png');
+      var heightLeft = imgHeight;
+      var position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      pdf.save(filename);
+    }).catch(function (e) {
+      if (node.parentNode) document.body.removeChild(node);
+      showToast('שגיאה ביצירת PDF: ' + e.message);
+    });
+  }
+
+  function exportAllRegistrationsPdf() {
+    var rows = flattenMonthRows();
+    var tableRows = rows.map(function (r) {
+      return [r.date, weekdayNameFor(r.date), r.employeeName, r.shiftLabel, STATUS_LABEL[r.status] || r.status];
+    });
+    exportRowsToPdf(
+      'נותנים בראש 2026 - דוח משמרות',
+      MONTH_NAMES[state.month] + ' ' + YEAR,
+      ['תאריך', 'יום', 'עובד', 'משמרת', 'סטטוס'],
+      tableRows,
+      'דוח-משמרות-' + MONTH_NAMES[state.month] + '-' + YEAR + '.pdf'
+    );
+  }
+
+  function exportHistoryPdf() {
+    if (!state.lastHistoryName || !state.lastHistoryRows.length) { showToast('אין נתוני היסטוריה לייצוא'); return; }
+    var tableRows = state.lastHistoryRows.map(function (r) {
+      var st = SHIFT_TYPES.filter(function (s) { return s.key === r.shiftType; })[0] || {};
+      return [r.date, st.label || r.shiftType, STATUS_LABEL[r.status] || r.status];
+    });
+    exportRowsToPdf(
+      'נותנים בראש 2026 - היסטוריית עבודה',
+      state.lastHistoryName,
+      ['תאריך', 'משמרת', 'סטטוס'],
+      tableRows,
+      'היסטוריה-' + state.lastHistoryName + '.pdf'
+    );
+  }
+
   // ---------- Manager: history ----------
   var historyUnsub = null;
   function loadHistoryFor(name) {
     var wrap = document.getElementById('historyTableWrap');
     var statsWrap = document.getElementById('historyStats');
+    var pdfBtn = document.getElementById('historyPdfBtn');
     if (!name) {
       wrap.innerHTML = '<div class="empty-note">בחר/י עובד כדי לראות היסטוריה</div>';
       statsWrap.innerHTML = '';
+      pdfBtn.style.display = 'none';
+      state.lastHistoryName = '';
+      state.lastHistoryRows = [];
       return;
     }
     if (!firebaseReady) return;
@@ -392,6 +553,9 @@
         var rows = [];
         snap.forEach(function (doc) { rows.push(doc.data()); });
         rows.sort(function (a, b) { return b.date.localeCompare(a.date); });
+        state.lastHistoryName = name;
+        state.lastHistoryRows = rows;
+        pdfBtn.style.display = rows.length ? '' : 'none';
 
         var approved = rows.filter(function (r) { return r.status === 'approved'; }).length;
         var pending = rows.filter(function (r) { return r.status === 'pending'; }).length;
@@ -450,6 +614,7 @@
         });
         state.shiftsByDate = map;
         renderCalendarGrid();
+        renderAllRegistrationsTable();
         if (state.selectedDateKey) renderDayModalBody();
       }, function (e) {
         console.error(e);
@@ -470,6 +635,44 @@
       }, function (e) {
         console.error(e);
       });
+  }
+
+  // Watches the current (non-manager) user's own shifts and toasts a
+  // notification whenever the manager approves/rejects one, comparing
+  // against the last-seen statuses stored per-name in this browser.
+  var myShiftsUnsub = null;
+  function subscribeMyShifts(name) {
+    if (myShiftsUnsub) { myShiftsUnsub(); myShiftsUnsub = null; }
+    if (!firebaseReady || !name || name === MANAGER_NAME) return;
+    myShiftsUnsub = db.collection('shifts').where('employeeName', '==', name).limit(300)
+      .onSnapshot(function (snap) {
+        var newMap = {};
+        snap.forEach(function (doc) { newMap[doc.id] = doc.data(); });
+        var storageKey = 'nvb_seen_' + name;
+        var oldMapRaw = localStorage.getItem(storageKey);
+        var oldMap = oldMapRaw ? JSON.parse(oldMapRaw) : null;
+
+        if (oldMap) {
+          var changes = [];
+          Object.keys(newMap).forEach(function (id) {
+            var oldStatus = oldMap[id];
+            var newStatus = newMap[id].status;
+            if (oldStatus === 'pending' && (newStatus === 'approved' || newStatus === 'rejected')) {
+              changes.push({ date: newMap[id].date, shiftType: newMap[id].shiftType, status: newStatus });
+            }
+          });
+          changes.slice(0, 5).forEach(function (ch, idx) {
+            var st = SHIFT_TYPES.filter(function (s) { return s.key === ch.shiftType; })[0] || {};
+            var msg = (ch.status === 'approved' ? '✅ המשמרת שלך ב-' : '❌ המשמרת שלך ב-') +
+              ch.date + ' (' + (st.label || ch.shiftType) + ') ' + (ch.status === 'approved' ? 'אושרה' : 'נדחתה');
+            setTimeout(function () { showToast(msg); }, idx * 2600);
+          });
+        }
+
+        var slimMap = {};
+        Object.keys(newMap).forEach(function (id) { slimMap[id] = newMap[id].status; });
+        localStorage.setItem(storageKey, JSON.stringify(slimMap));
+      }, function (e) { console.error(e); });
   }
 
   var employeesUnsub = null;
@@ -502,6 +705,7 @@
       state.currentUser = e.target.value;
       localStorage.setItem('nvb_myname', state.currentUser);
       renderUserSelect();
+      subscribeMyShifts(state.currentUser);
       if (state.selectedDateKey) renderDayModalBody();
     });
 
@@ -512,12 +716,13 @@
       });
     });
 
-    document.getElementById('prevMonth').addEventListener('click', function () {
-      if (state.month > 0) { state.month--; renderMonthLabel(); subscribeMonth(); }
-    });
-    document.getElementById('nextMonth').addEventListener('click', function () {
-      if (state.month < 11) { state.month++; renderMonthLabel(); subscribeMonth(); }
-    });
+    document.getElementById('prevMonth').addEventListener('click', function () { changeMonth(-1); });
+    document.getElementById('nextMonth').addEventListener('click', function () { changeMonth(1); });
+    document.getElementById('allRegPrevMonth').addEventListener('click', function () { changeMonth(-1); });
+    document.getElementById('allRegNextMonth').addEventListener('click', function () { changeMonth(1); });
+
+    document.getElementById('allRegPdfBtn').addEventListener('click', exportAllRegistrationsPdf);
+    document.getElementById('historyPdfBtn').addEventListener('click', exportHistoryPdf);
 
     document.getElementById('closeDayModal').addEventListener('click', closeDayModal);
     document.getElementById('dayModalBackdrop').addEventListener('click', function (e) {
@@ -563,6 +768,7 @@
     state.currentUser = name;
     localStorage.setItem('nvb_myname', name);
     renderUserSelect();
+    subscribeMyShifts(name);
   }
 
   function promptAddMyName() {
@@ -587,6 +793,7 @@
     subscribeEmployees();
     subscribeMonth();
     subscribePending();
+    subscribeMyShifts(state.currentUser);
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(function () {});

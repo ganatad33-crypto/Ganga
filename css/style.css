@@ -83,8 +83,15 @@ body { direction: rtl; }
 .user-picker select {
   border: none; background: rgba(0,0,0,0.25); color: #fff;
   padding: 7px 10px; border-radius: 999px; font-size: 14px; font-family: inherit;
-  max-width: 44vw;
+  max-width: 40vw;
 }
+
+.add-name-btn {
+  border: 1px dashed rgba(255,255,255,0.55); background: transparent; color: #fff;
+  padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer;
+  white-space: nowrap;
+}
+.add-name-btn:hover { background: rgba(255,255,255,0.12); }
 
 /* ---------- Tabs ---------- */
 

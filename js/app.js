@@ -529,21 +529,46 @@
       if (e.key === 'Enter') addEmployee();
     });
 
+    document.getElementById('addMyNameBtn').addEventListener('click', promptAddMyName);
+
     document.getElementById('historyEmployeeSelect').addEventListener('change', function (e) {
       loadHistoryFor(e.target.value);
     });
   }
 
-  function addEmployee() {
+  function addEmployeeName(name, selectAfter) {
     if (!firebaseReady) { showToast('יש להגדיר קודם את חיבור Firebase (ראו README.md)'); return; }
-    var input = document.getElementById('newEmployeeName');
-    var name = input.value.trim();
+    name = (name || '').trim();
     if (!name) return;
     if (name === MANAGER_NAME) { showToast('השם הזה שמור למנהל/ת'); return; }
-    if (state.employees.some(function (e) { return e.name === name; })) { showToast('העובד כבר קיים ברשימה'); return; }
+    if (state.employees.some(function (e) { return e.name === name; })) {
+      if (selectAfter) selectUser(name);
+      return;
+    }
     db.collection('employees').add({ name: name, createdAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .then(function () { input.value = ''; showToast('העובד נוסף בהצלחה'); })
+      .then(function () {
+        showToast('השם "' + name + '" נוסף בהצלחה');
+        if (selectAfter) selectUser(name);
+      })
       .catch(function (e) { showToast('שגיאה: ' + e.message); });
+  }
+
+  function addEmployee() {
+    var input = document.getElementById('newEmployeeName');
+    addEmployeeName(input.value);
+    input.value = '';
+  }
+
+  function selectUser(name) {
+    state.currentUser = name;
+    localStorage.setItem('nvb_myname', name);
+    renderUserSelect();
+  }
+
+  function promptAddMyName() {
+    var name = window.prompt('מה השם שלך? (יופיע ברשימה כדי שתוכל/י להירשם למשמרות)');
+    if (name === null) return;
+    addEmployeeName(name, true);
   }
 
   // ---------- Boot ----------

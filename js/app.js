@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var MANAGER_NAME = 'אמיר';
+  var MANAGER_NAME = 'אמיר טייאר';
   var YEAR = 2026;
 
   var SHIFT_TYPES = [
@@ -15,6 +15,19 @@
 
   var STATUS_LABEL = { pending: 'ממתין לאישור', approved: 'מאושר', rejected: 'נדחה' };
   var SHIFT_ORDER = { morning: 0, regular: 1, night: 2 };
+
+  // A fixed, distinct color per employee (derived from their name) so the
+  // same person always shows the same color everywhere in the app.
+  var EMPLOYEE_PALETTE = [
+    '#f87171', '#fb923c', '#fbbf24', '#a3e635', '#34d399',
+    '#22d3ee', '#60a5fa', '#a78bfa', '#f472b6', '#facc15',
+    '#4ade80', '#38bdf8'
+  ];
+  function colorForName(name) {
+    var hash = 0;
+    for (var i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+    return EMPLOYEE_PALETTE[hash % EMPLOYEE_PALETTE.length];
+  }
 
   // ---------- Firebase ----------
   var db = null;
@@ -114,7 +127,9 @@
     state.employees.forEach(function (emp) {
       var row = document.createElement('div');
       row.className = 'list-row';
-      row.innerHTML = '<span>' + escapeHtml(emp.name) + '</span>';
+      row.innerHTML = '<span style="display:flex;align-items:center;gap:8px;">' +
+        '<span class="name-swatch" style="background:' + colorForName(emp.name) + '"></span>' +
+        escapeHtml(emp.name) + '</span>';
       var btn = document.createElement('button');
       btn.className = 'btn danger';
       btn.textContent = 'הסרה';
@@ -169,16 +184,15 @@
     subscribeMonth();
   }
 
-  function summarizeDay(dKey) {
+  // One row per shift type (fixed position: morning/regular/night, always
+  // in that order) so the shift a dot belongs to is read from its position
+  // in the cell, not its color - color is reserved for the employee.
+  function shiftRowsFor(dKey) {
     var data = state.shiftsByDate[dKey];
-    var result = [];
-    SHIFT_TYPES.forEach(function (st) {
+    return SHIFT_TYPES.map(function (st) {
       var entries = (data && data[st.key]) || [];
-      if (!entries.length) return;
-      var hasApproved = entries.some(function (e) { return e.status === 'approved'; });
-      result.push({ key: st.key, cls: st.cls, approved: hasApproved });
+      return { key: st.key, color: st.color, entries: entries };
     });
-    return result;
   }
 
   function renderCalendarGrid() {
@@ -203,14 +217,29 @@
       num.textContent = d;
       cell.appendChild(num);
 
-      var dots = document.createElement('div');
-      dots.className = 'day-dots';
-      summarizeDay(dKey).forEach(function (s) {
-        var dot = document.createElement('span');
-        dot.className = 'dot ' + s.cls + ' ' + (s.approved ? 'approved' : 'pending');
-        dots.appendChild(dot);
+      var rowsWrap = document.createElement('div');
+      rowsWrap.className = 'shift-rows';
+      shiftRowsFor(dKey).forEach(function (row) {
+        var rowEl = document.createElement('div');
+        rowEl.className = 'shift-row';
+        rowEl.style.borderInlineStartColor = row.entries.length ? row.color : 'transparent';
+        var shown = row.entries.slice(0, 4);
+        shown.forEach(function (entry) {
+          var dot = document.createElement('span');
+          dot.className = 'emp-dot' + (entry.status === 'approved' ? ' approved' : ' pending');
+          dot.style.background = entry.status === 'approved' ? colorForName(entry.employeeName) : 'transparent';
+          dot.style.borderColor = colorForName(entry.employeeName);
+          rowEl.appendChild(dot);
+        });
+        if (row.entries.length > shown.length) {
+          var more = document.createElement('span');
+          more.className = 'emp-more';
+          more.textContent = '+' + (row.entries.length - shown.length);
+          rowEl.appendChild(more);
+        }
+        rowsWrap.appendChild(rowEl);
       });
-      cell.appendChild(dots);
+      cell.appendChild(rowsWrap);
 
       cell.addEventListener('click', (function (key) {
         return function () { openDayModal(key); };
@@ -272,7 +301,14 @@
           var row = document.createElement('div');
           row.className = 'person-row';
           var left = document.createElement('span');
-          left.textContent = entry.employeeName;
+          left.style.display = 'flex';
+          left.style.alignItems = 'center';
+          left.style.gap = '7px';
+          var swatch = document.createElement('span');
+          swatch.className = 'name-swatch';
+          swatch.style.background = colorForName(entry.employeeName);
+          left.appendChild(swatch);
+          left.appendChild(document.createTextNode(entry.employeeName));
           row.appendChild(left);
 
           var right = document.createElement('span');
@@ -385,7 +421,9 @@
       var row = document.createElement('div');
       row.className = 'list-row';
       row.innerHTML =
-        '<span><b>' + escapeHtml(item.employeeName) + '</b>' +
+        '<span style="display:flex;align-items:center;gap:7px;">' +
+        '<span class="name-swatch" style="background:' + colorForName(item.employeeName) + '"></span>' +
+        '<b>' + escapeHtml(item.employeeName) + '</b>' +
         '<span class="meta"> · ' + item.date + ' · ' + (st.label || item.shiftType) + '</span></span>';
       var actions = document.createElement('span');
       actions.style.display = 'flex';
@@ -444,7 +482,9 @@
     var html = '<table><thead><tr><th>תאריך</th><th>יום</th><th>עובד</th><th>משמרת</th><th>סטטוס</th></tr></thead><tbody>';
     rows.forEach(function (r) {
       html += '<tr><td>' + r.date + '</td><td>' + weekdayNameFor(r.date) + '</td><td>' +
-        escapeHtml(r.employeeName) + '</td><td>' + r.shiftLabel + '</td><td>' +
+        '<span style="display:inline-flex;align-items:center;gap:6px;">' +
+        '<span class="name-swatch" style="background:' + colorForName(r.employeeName) + '"></span>' +
+        escapeHtml(r.employeeName) + '</span></td><td>' + r.shiftLabel + '</td><td>' +
         (STATUS_LABEL[r.status] || r.status) + '</td></tr>';
     });
     html += '</tbody></table>';

@@ -25,6 +25,12 @@
 
 * { box-sizing: border-box; }
 
+button {
+  touch-action: manipulation;
+  transition: transform .08s ease, opacity .08s ease;
+}
+button:active:not(:disabled) { transform: scale(0.94); opacity: .88; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -155,20 +161,41 @@ body { direction: rtl; }
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  min-height: 62px;
+  min-height: 80px;
   padding: 6px 5px;
   cursor: pointer;
-  display: flex; flex-direction: column; gap: 5px;
+  touch-action: manipulation;
+  display: flex; flex-direction: column; gap: 4px;
   transition: transform .1s ease, background .15s ease;
 }
 
-.day-cell:active { transform: scale(0.96); }
+.day-cell:active { transform: scale(0.96); background: var(--card-hover); }
 .day-cell:hover { background: var(--card-hover); }
 .day-cell.empty { visibility: hidden; pointer-events: none; }
 .day-cell.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 
 .day-num { font-size: 13px; font-weight: 700; }
 .day-cell.today .day-num { color: #93c5fd; }
+
+/* Each row is a fixed shift slot (morning/regular/night, in that order) -
+   the colored start-border says which shift; dots inside are per-employee. */
+.shift-rows { display: flex; flex-direction: column; gap: 3px; margin-top: auto; }
+
+.shift-row {
+  display: flex; align-items: center; gap: 2px;
+  min-height: 11px;
+  border-inline-start: 3px solid var(--border);
+  padding-inline-start: 4px;
+  border-radius: 2px;
+}
+
+.emp-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  border: 1.4px solid transparent;
+}
+.emp-dot.pending { background: transparent !important; }
+
+.emp-more { font-size: 8.5px; color: var(--text-faint); font-weight: 700; margin-inline-start: 1px; }
 
 .day-dots { display: flex; gap: 3px; flex-wrap: wrap; margin-top: auto; }
 
@@ -229,6 +256,7 @@ body { direction: rtl; }
 }
 .shift-block-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .shift-swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.name-swatch { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
 .shift-title { font-weight: 700; font-size: 14.5px; }
 .shift-time { color: var(--text-faint); font-size: 12px; }
 

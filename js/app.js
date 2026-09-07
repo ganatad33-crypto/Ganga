@@ -223,13 +223,15 @@
         var rowEl = document.createElement('div');
         rowEl.className = 'shift-row';
         rowEl.style.borderInlineStartColor = row.entries.length ? row.color : 'transparent';
-        var shown = row.entries.slice(0, 4);
+        var shown = row.entries.slice(0, 3);
         shown.forEach(function (entry) {
-          var dot = document.createElement('span');
-          dot.className = 'emp-dot' + (entry.status === 'approved' ? ' approved' : ' pending');
-          dot.style.background = entry.status === 'approved' ? colorForName(entry.employeeName) : 'transparent';
-          dot.style.borderColor = colorForName(entry.employeeName);
-          rowEl.appendChild(dot);
+          var chip = document.createElement('span');
+          chip.className = 'emp-chip' + (entry.status === 'approved' ? ' approved' : ' pending');
+          chip.style.color = colorForName(entry.employeeName);
+          chip.style.borderColor = colorForName(entry.employeeName);
+          chip.textContent = entry.employeeName;
+          chip.title = entry.employeeName;
+          rowEl.appendChild(chip);
         });
         if (row.entries.length > shown.length) {
           var more = document.createElement('span');

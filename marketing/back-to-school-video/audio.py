@@ -1,7 +1,10 @@
 """Synthesizes the soundtrack (music + sound effects) for the video -> audio.wav.
 Timings match the scene timeline in index.html."""
+import sys
 import wave
 import numpy as np
+
+V2 = len(sys.argv) > 1 and sys.argv[1] == "v2"
 
 SR = 44100
 DUR = 58.4
@@ -251,6 +254,20 @@ add(sfx, 49.9, filt(rng.standard_normal(len(t)), lo=2500, hi=8000) * np.sin(np.p
 add(sfx, 52.9, blip(400, 800, 0.15), 0.35)
 add(sfx, 53.8, ding(1318, 0.8), 0.3)
 
+# ---------- v2 extras ----------
+if V2:
+    t = tt(0.9)  # bus horn (two-tone)
+    horn2 = filt(saw(311, t) + saw(392, t), hi=1800) * np.minimum(1, t / 0.02) * np.minimum(1, (0.9 - t) / 0.08)
+    add(sfx, 34.7, horn2[: int(0.35 * SR)], 0.35)
+    add(sfx, 35.15, horn2, 0.35)
+    for k in range(8):  # wall clock ticking in the quiet morning
+        t = tt(0.03)
+        add(sfx, 37.6 + k, filt(rng.standard_normal(len(t)), lo=2000) * np.exp(-t * 200), 0.25)
+    for tm in (52.6, 52.8):  # characters pop in
+        add(sfx, tm, blip(500, 1000, 0.12), 0.3)
+    for tm in (53.4, 53.6):  # sunglasses on
+        add(sfx, tm, ding(2637, 0.3), 0.15)
+
 # ---------- mix ----------
 fade = np.ones(N)
 fi = int(57.6 * SR)
@@ -259,7 +276,7 @@ mix = (0.8 * mus + sfx) * fade
 mix = np.tanh(mix / np.max(np.abs(mix)) * 1.6) * 0.89
 st = np.stack([mix, mix], 1)
 st = (st * 32767).astype(np.int16)
-with wave.open('audio.wav', 'wb') as w:
+with wave.open('audio-v2.wav' if V2 else 'audio.wav', 'wb') as w:
     w.setnchannels(2)
     w.setsampwidth(2)
     w.setframerate(SR)

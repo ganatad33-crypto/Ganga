@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>נגמרו החגים</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  body { font-family: 'Rubik', 'Noto Color Emoji', sans-serif; font-weight: 500; color: #fff; }
+  .disp { font-family: 'Secular One', 'Rubik', 'Noto Color Emoji', sans-serif; }
+  .scene { position: absolute; inset: 0; display: none; overflow: hidden; }
+  .abs { position: absolute; left: 0; right: 0; text-align: center; }
+  .o0 { opacity: 0; }
+
+  /* ---------- S1: news ---------- */
+  #s1 { background: radial-gradient(circle at 50% 40%, #1d2b64 0%, #0b1030 70%); }
+  #s1 .stripes { position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, rgba(255,255,255,.03) 0 40px, transparent 40px 80px); }
+  #s1 .live { position: absolute; top: 250px; right: 70px; display: flex; gap: 18px; align-items: center; font-size: 46px; font-weight: 900; }
+  #s1 .dot { width: 30px; height: 30px; border-radius: 50%; background: #ff2d2d; box-shadow: 0 0 24px #ff2d2d; }
+  #s1 .flash { top: 520px; margin: 0 auto; width: 720px; background: #e0112b; font-size: 150px; line-height: 1.15; padding: 10px 0 20px; border-radius: 24px; box-shadow: 0 20px 60px rgba(224,17,43,.5); }
+  #s1 .h1 { top: 800px; font-size: 104px; line-height: 1.1; }
+  #s1 .h2 { top: 930px; font-size: 104px; line-height: 1.1; color: #ffd400; }
+  #s1 .sub { top: 1110px; font-size: 58px; color: #c9d3ff; }
+  #s1 .ticker { position: absolute; top: 1480px; left: 0; right: 0; height: 120px; background: #ffd400; color: #0b1030; overflow: hidden; }
+  #s1 .ticker .lbl { position: absolute; right: 0; top: 0; bottom: 0; width: 230px; background: #e0112b; color: #fff; font-size: 56px; display: flex; align-items: center; justify-content: center; z-index: 2; }
+  #s1 .ticker .txt { position: absolute; top: 22px; white-space: nowrap; font-size: 60px; font-weight: 900; }
+
+  /* ---------- S2: stats ---------- */
+  #s2 { background: linear-gradient(160deg, #ffb300 0%, #ff6a00 100%); color: #2a1200; }
+  #s2 .title { top: 270px; font-size: 118px; color: #fff; text-shadow: 0 8px 0 rgba(0,0,0,.15); }
+  #s2 .row { position: absolute; left: 70px; right: 70px; height: 250px; background: #fff; border-radius: 40px; box-shadow: 0 16px 0 rgba(0,0,0,.12); display: flex; align-items: center; padding: 0 50px; gap: 34px; }
+  #s2 .emo { font-size: 110px; }
+  #s2 .lab { font-size: 54px; line-height: 1.2; flex: 1; }
+  #s2 .num { font-size: 96px; font-weight: 900; color: #ff4d00; white-space: nowrap; direction: ltr; }
+  #s2 .num.small { font-size: 50px; direction: rtl; }
+
+  /* ---------- S3: calendar ---------- */
+  #s3 { background: #fff7e8; color: #222; }
+  #s3 .title { top: 250px; font-size: 104px; color: #222; }
+  #s3 .cal { position: absolute; top: 420px; left: 50px; right: 50px; background: #fff; border-radius: 36px; box-shadow: 0 20px 50px rgba(0,0,0,.12); padding: 30px 24px 34px; }
+  #s3 .cal .mh { text-align: center; font-size: 62px; margin-bottom: 18px; color: #1e6bff; }
+  #s3 .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+  #s3 .wd { text-align: center; font-size: 40px; color: #999; padding-bottom: 6px; }
+  #s3 .cell { position: relative; height: 118px; border-radius: 18px; background: #f3f5fb; font-size: 40px; padding: 8px 12px; color: #555; }
+  #s3 .cell.empty { background: transparent; }
+  #s3 .stamp { position: absolute; left: 2px; right: 2px; top: 52px; text-align: center; font-size: 22px; font-weight: 900; color: #e0112b; border: 5px solid #e0112b; border-radius: 12px; padding: 4px 0; background: rgba(255,255,255,.85); white-space: nowrap; }
+  #s3 .stamp.go { color: #fff; background: #14b85a; border-color: #14b85a; font-size: 24px; }
+  #s3 .verdict { top: 1450px; font-size: 76px; line-height: 1.25; }
+  #s3 .verdict b { color: #e0112b; font-weight: 900; }
+
+  /* ---------- S4: chat ---------- */
+  #s4 { background: #0b141a; }
+  #s4 .wall { position: absolute; inset: 0; background: #efeae2; background-image: radial-gradient(rgba(0,0,0,.05) 2px, transparent 2px); background-size: 38px 38px; }
+  #s4 .hdr { position: absolute; top: 0; left: 0; right: 0; height: 400px; background: #075e54; display: flex; align-items: flex-end; padding: 0 50px 40px; gap: 30px; }
+  #s4 .av { width: 130px; height: 130px; border-radius: 50%; background: #ffd400; font-size: 80px; display: flex; align-items: center; justify-content: center; }
+  #s4 .gname { font-size: 64px; font-weight: 900; }
+  #s4 .gsub { font-size: 40px; color: #b8e0d9; margin-top: 6px; }
+  #s4 .area { position: absolute; top: 400px; bottom: 300px; left: 0; right: 0; overflow: hidden; }
+  #s4 .list { position: absolute; bottom: 20px; left: 40px; right: 40px; display: flex; flex-direction: column; gap: 22px; align-items: flex-start; }
+  #s4 .b { display: none; max-width: 860px; background: #fff; color: #111; border-radius: 34px 0 34px 34px; padding: 22px 34px 16px; box-shadow: 0 3px 0 rgba(0,0,0,.08); transform-origin: 100% 0; }
+  #s4 .b .n { font-size: 38px; font-weight: 900; margin-bottom: 4px; }
+  #s4 .b .m { font-size: 56px; line-height: 1.3; }
+  #s4 .b .tm { font-size: 30px; color: #999; text-align: left; margin-top: 4px; }
+  #s4 .sys { display: none; align-self: center; background: #fff3c4; color: #5a4a00; font-size: 42px; padding: 16px 34px; border-radius: 24px; }
+  #s4 .bar { position: absolute; bottom: 0; left: 0; right: 0; height: 300px; background: #f0f0f0; }
+  #s4 .typing { position: absolute; bottom: 150px; right: 40px; left: 40px; height: 110px; background: #fff; border-radius: 55px; color: #999; font-size: 44px; display: flex; align-items: center; padding: 0 44px; }
+
+  /* ---------- S5: reveal ---------- */
+  #s5 { background: linear-gradient(170deg, #6a11cb 0%, #ff2e93 100%); }
+  #s5 canvas { position: absolute; inset: 0; }
+  #s5 .a { top: 340px; font-size: 190px; color: #ffe600; text-shadow: 0 12px 0 rgba(0,0,0,.2); }
+  #s5 .b1 { top: 640px; font-size: 96px; }
+  #s5 .b2 { top: 760px; font-size: 96px; }
+  #s5 .c { top: 1020px; font-size: 64px; color: #ffe6f4; }
+  #s5 .dancers { position: absolute; top: 1130px; left: 0; right: 0; display: flex; justify-content: center; gap: 30px; font-size: 150px; }
+  #s5 .d { display: inline-block; }
+  #s5 .note { top: 1420px; font-size: 48px; color: #ffe6f4; }
+
+  /* ---------- S6: checklist ---------- */
+  #s6 { background: linear-gradient(180deg, #d9fff0 0%, #9ff0d0 100%); color: #083b2b; }
+  #s6 .clock { top: 260px; font-size: 64px; color: #0b7a55; }
+  #s6 .title { top: 350px; font-size: 118px; }
+  #s6 .plan { top: 540px; font-size: 64px; color: #0b7a55; }
+  #s6 .item { position: absolute; right: 60px; left: 60px; height: 190px; background: #fff; border-radius: 34px; display: flex; align-items: center; gap: 30px; padding: 0 40px; box-shadow: 0 12px 0 rgba(0,0,0,.08); }
+  #s6 .box { flex: none; width: 96px; height: 96px; border: 7px solid #0b7a55; border-radius: 22px; position: relative; }
+  #s6 .tick { position: absolute; inset: -20px -10px -10px -20px; font-size: 110px; line-height: 1; color: #14b85a; font-weight: 900; text-align: center; }
+  #s6 .itxt { font-size: 56px; line-height: 1.25; }
+
+  /* ---------- S7: twist ---------- */
+  #s7 { background: #0d0d0d; }
+  #s7 .red { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, #ff1f1f 0%, #6a0000 70%); }
+  #s7 .wait { top: 520px; font-size: 170px; }
+  #s7 .han { top: 800px; font-size: 230px; color: #ffd400; line-height: 1; }
+  #s7 .in2 { top: 1080px; font-size: 104px; }
+  #s7 .sh { top: 1330px; font-size: 60px; color: #ffd6d6; }
+  #s7 .siren { top: 250px; font-size: 150px; }
+
+  /* ---------- S8: end ---------- */
+  #s8 { background: linear-gradient(180deg, #1e6bff 0%, #00c6ff 100%); }
+  #s8 .l1 { top: 460px; font-size: 130px; }
+  #s8 .l2 { top: 640px; font-size: 110px; color: #ffe600; }
+  #s8 .heart { top: 820px; font-size: 220px; }
+  #s8 .cta { position: absolute; top: 1180px; left: 110px; right: 110px; background: #25d366; border-radius: 80px; padding: 34px 0; text-align: center; font-size: 66px; font-weight: 900; box-shadow: 0 14px 0 rgba(0,0,0,.18); }
+  #s8 .foot { top: 1430px; font-size: 52px; color: #e6f3ff; }
+
+  #fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<!-- S1: breaking news -->
+<section class="scene" id="s1">
+  <div class="stripes"></div>
+  <div class="live"><span class="dot"></span><span>שידור חי</span></div>
+  <div class="abs flash disp">מבזק</div>
+  <div class="abs h1 disp">הודעה דרמטית</div>
+  <div class="abs h2 disp">לכל הורי ישראל</div>
+  <div class="abs sub">מומלץ לשבת לפני הצפייה 🪑</div>
+  <div class="ticker">
+    <div class="txt">גורמים בכירים מאשרים: זה באמת קורה • ההורים מתבקשים לא להתרגש מדי • עדכון חם • גורמים בכירים מאשרים: זה באמת קורה • ההורים מתבקשים לא להתרגש מדי • עדכון חם •</div>
+    <div class="lbl disp">עכשיו</div>
+  </div>
+</section>
+
+<!-- S2: stats -->
+<section class="scene" id="s2">
+  <div class="abs title disp">תשרי במספרים 📊</div>
+  <div class="row" style="top:520px"><span class="emo">🍗</span><span class="lab">ארוחות חג אצל סבתא</span><span class="num" data-to="14">0</span></div>
+  <div class="row" style="top:810px"><span class="emo">😩</span><span class="lab">פעמים ששמעתם<br>"משעמם לי"</span><span class="num" data-to="3742">0</span></div>
+  <div class="row" style="top:1100px"><span class="emo">💸</span><span class="lab">הוצאות על<br>אטרקציות</span><span class="num small" data-text="עדיף לא לדעת 🙈">₪</span></div>
+  <div class="row" style="top:1390px"><span class="emo">🧠</span><span class="lab">שפיות הורית שנשארה</span><span class="num" data-from="100" data-to="3" data-suffix="%">100%</span></div>
+</section>
+
+<!-- S3: calendar -->
+<section class="scene" id="s3">
+  <div class="abs title disp">לוח השנה של תשרי</div>
+  <div class="cal">
+    <div class="mh disp">תשרי תשפ״ז</div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="abs verdict disp">ימי עבודה רגילים החודש:<br><b>בערך 2.5</b> 🤯</div>
+</section>
+
+<!-- S4: parents group chat -->
+<section class="scene" id="s4">
+  <div class="wall"></div>
+  <div class="hdr">
+    <div class="av">🏫</div>
+    <div><div class="gname">הורי כיתה ג׳2 🍎</div><div class="gsub">34 משתתפים</div></div>
+  </div>
+  <div class="area"><div class="list" id="chat"></div></div>
+  <div class="bar"><div class="typing">הקלד הודעה...</div></div>
+</section>
+
+<!-- S5: reveal -->
+<section class="scene" id="s5">
+  <canvas id="confetti" width="1080" height="1920"></canvas>
+  <div class="abs a disp">זה רשמי!</div>
+  <div class="abs b1 disp">ביום ראשון 4.10</div>
+  <div class="abs b2 disp">חוזרים למסגרות 🎒</div>
+  <div class="abs c">תגובת ההורים:</div>
+  <div class="dancers"><span class="d">💃</span><span class="d">🕺</span><span class="d">🥳</span><span class="d">🍾</span></div>
+  <div class="abs note">(השכנים כבר התלוננו על הרעש)</div>
+</section>
+
+<!-- S6: checklist -->
+<section class="scene" id="s6">
+  <div class="abs clock">⏰ יום ראשון, 08:05</div>
+  <div class="abs title disp">הבית. ריק.</div>
+  <div class="abs plan">התוכנית:</div>
+  <div class="item" style="top:680px"><div class="box"><div class="tick">✓</div></div><div class="itxt">☕ קפה חם. שנשאר חם.</div></div>
+  <div class="item" style="top:900px"><div class="box"><div class="tick">✓</div></div><div class="itxt">🚽 שירותים. לבד.<br>עם דלת סגורה.</div></div>
+  <div class="item" style="top:1120px"><div class="box"><div class="tick">✓</div></div><div class="itxt">🛋️ לבהות בקיר. בשקט.</div></div>
+  <div class="item" style="top:1340px"><div class="box"><div class="tick">✓</div></div><div class="itxt">🍫 לאכול את השוקולד<br>שהחבאתם מהילדים</div></div>
+</section>
+
+<!-- S7: twist -->
+<section class="scene" id="s7">
+  <div class="red"></div>
+  <div class="abs siren">🚨</div>
+  <div class="abs wait disp">רגע...</div>
+  <div class="abs han disp">חנוכה</div>
+  <div class="abs in2 disp">בעוד חודשיים 😱</div>
+  <div class="abs sh">...אבל עד אז: שקט 🤫</div>
+</section>
+
+<!-- S8: end card -->
+<section class="scene" id="s8">
+  <div class="abs l1 disp">תנשמו עמוק.</div>
+  <div class="abs l2 disp">הרווחתם את זה</div>
+  <div class="abs heart">💙</div>
+  <div class="cta">שלחו לקבוצת ההורים 😉</div>
+  <div class="abs foot">שנת לימודים (סוף סוף) רגילה ✏️</div>
+</section>
+
+<div id="fade"></div>
+
+<script>
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, t0, d) => clamp((t - t0) / d);
+const easeOut = p => 1 - Math.pow(1 - p, 3);
+const back = p => { const c1 = 2.2, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+function pop(el, t, t0, d = 0.45, extra = '') {
+  const p = prog(t, t0, d);
+  el.style.opacity = p > 0 ? clamp(p * 3) : 0;
+  el.style.transform = `${extra} scale(${p > 0 ? back(p) : 0})`;
+}
+function rise(el, t, t0, d = 0.5, dist = 90) {
+  const p = easeOut(prog(t, t0, d));
+  el.style.opacity = p;
+  el.style.transform = `translateY(${(1 - p) * dist}px)`;
+}
+function slam(el, t, t0, d = 0.35) {
+  const p = prog(t, t0, d);
+  el.style.opacity = p > 0 ? 1 : 0;
+  el.style.transform = `scale(${3 - 2 * easeOut(p)})`;
+}
+
+const SCENES = [
+  ['s1', 0, 4.5], ['s2', 4.5, 13], ['s3', 13, 20.3], ['s4', 20.3, 29.8],
+  ['s5', 29.8, 37.3], ['s6', 37.3, 46], ['s7', 46, 51.6], ['s8', 51.6, 58.5],
+];
+
+/* ---------- build calendar ---------- */
+const HEB = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','יא','יב','יג','יד','טו','טז','יז','יח','יט','כ','כא','כב','כג','כד','כה','כו','כז','כח','כט','ל'];
+const STAMPS = { 1:'ר״ה', 2:'ר״ה', 3:'צום', 4:'מתאוששים', 5:'גשר', 6:'גשר', 7:'שישי', 8:'שבת', 9:'ערב חג', 10:'כיפור',
+  11:'מתאוששים', 12:'קונים סכך', 13:'בונים סוכה', 14:'ערב חג', 15:'סוכות', 16:'חוה״מ', 17:'חוה״מ', 18:'חוה״מ',
+  19:'חוה״מ', 20:'חוה״מ', 21:'הושע״ר', 22:'שמח״ת' };
+const STAMP_T0 = 13.9, STAMP_DT = 0.16;
+(function buildCal() {
+  const g = $('#grid');
+  ['א','ב','ג','ד','ה','ו','ש'].forEach(d => g.insertAdjacentHTML('beforeend', `<div class="wd">${d}׳</div>`));
+  for (let i = 0; i < 6; i++) g.insertAdjacentHTML('beforeend', '<div class="cell empty"></div>'); // 1 Tishrei 5787 = Saturday
+  for (let d = 1; d <= 30; d++) {
+    let s = '';
+    if (STAMPS[d]) s = `<div class="stamp" data-i="${d}" data-rot="${((d * 37) % 17) - 8}">${STAMPS[d]}</div>`;
+    if (d === 23) s = `<div class="stamp go" data-i="23" data-rot="0">חוזרים! 🎒</div>`;
+    g.insertAdjacentHTML('beforeend', `<div class="cell">${HEB[d - 1]}${s}</div>`);
+  }
+})();
+
+/* ---------- build chat ---------- */
+const CHAT = [
+  [20.8, 'אמא של נועה', '#d6336c', 'מישהו יודע מתי חוזרים??? 😩', '07:02'],
+  [21.9, 'אבא של איתי', '#1c7ed6', 'יום ראשון 4.10', '07:02'],
+  [22.8, 'אמא של נועה', '#d6336c', 'בטוח???', '07:03'],
+  [23.6, 'אבא של איתי', '#1c7ed6', 'בדקתי 3 פעמים באתר של משרד החינוך', '07:03'],
+  [24.7, 'רונית', '#2f9e44', '🙏🙏🙏', '07:03'],
+  [25.3, 'מיכל', '#e8590c', 'אמן!!!', '07:04'],
+  [26.0, 'יוסי', '#7048e8', 'אני כבר מחכה ליד השער של בית הספר 🏃‍♂️', '07:04'],
+  [27.2, 'הגננת', '#0c8599', 'אל תשכחו כובע, בקבוק מים ובגדים להחלפה 🙂', '07:05'],
+];
+const SYS_T = 28.5;
+(function buildChat() {
+  const c = $('#chat');
+  for (const [, n, col, m, tm] of CHAT)
+    c.insertAdjacentHTML('beforeend', `<div class="b"><div class="n" style="color:${col}">${n}</div><div class="m">${m}</div><div class="tm">${tm}</div></div>`);
+  c.insertAdjacentHTML('beforeend', `<div class="sys">12 משתתפים השתיקו את הקבוצה 🔕</div>`);
+})();
+
+/* ---------- confetti (deterministic) ---------- */
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const COLORS = ['#ffe600', '#00e5ff', '#ffffff', '#7CFF6B', '#ff9f1c', '#ff5ca8'];
+const PARTS = Array.from({ length: 220 }, () => ({
+  t0: 29.95 + rnd() * 0.25, x: 540 + (rnd() - .5) * 200, y: 1500,
+  vx: (rnd() - .5) * 1700, vy: -1600 - rnd() * 1500, w: 18 + rnd() * 18, h: 10 + rnd() * 12,
+  c: COLORS[Math.floor(rnd() * COLORS.length)], spin: (rnd() - .5) * 14, sway: rnd() * 6,
+}));
+const PARTS2 = Array.from({ length: 90 }, (_, i) => ({ x: rnd() * 1080, sp: 260 + rnd() * 260, w: 16 + rnd() * 14, h: 9 + rnd() * 10,
+  c: COLORS[Math.floor(rnd() * COLORS.length)], ph: rnd() * 6, off: rnd() * 2200 }));
+function drawConfetti(t) {
+  const cv = $('#confetti'), ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, 1080, 1920);
+  const draw = (x, y, w, h, a, c) => { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = c; ctx.fillRect(-w / 2, -h / 2, w, h); ctx.restore(); };
+  for (const p of PARTS) {
+    const dt = t - p.t0; if (dt < 0) continue;
+    const drag = 1 - Math.exp(-2.2 * dt);
+    const x = p.x + p.vx / 2.2 * drag + Math.sin(dt * 3 + p.sway) * 30;
+    const y = p.y + p.vy / 2.2 * drag + 900 * dt * dt * 0.5;
+    if (y > 2000) continue;
+    draw(x, y, p.w, p.h * Math.abs(Math.cos(dt * p.spin)), dt * p.spin, p.c);
+  }
+  const dt2 = t - 31;
+  if (dt2 > 0) for (const p of PARTS2) {
+    const y = ((dt2 * p.sp + p.off) % 2200) - 150;
+    draw(p.x + Math.sin(dt2 * 2 + p.ph) * 40, y, p.w, p.h * Math.abs(Math.cos(dt2 * 4 + p.ph)), dt2 * 3 + p.ph, p.c);
+  }
+}
+
+/* ---------- main seek ---------- */
+window.seek = function (t) {
+  for (const [id, a, b] of SCENES) {
+    const el = document.getElementById(id);
+    const on = t >= a && t < b;
+    el.style.display = on ? 'block' : 'none';
+    if (on) {
+      const p = easeOut(prog(t, a, 0.35));
+      el.style.opacity = a === 0 ? 1 : p;
+      el.style.transform = a === 0 ? '' : `scale(${1.08 - 0.08 * p})`;
+    }
+  }
+  $('#fade').style.opacity = clamp((t - 57.6) / 0.8);
+
+  // S1
+  if (t < 4.5) {
+    const blink = Math.floor(t * 3) % 2 === 0;
+    $('#s1 .dot').style.opacity = blink ? 1 : .25;
+    slam($('#s1 .flash'), t, 0.15);
+    $('#s1 .flash').style.background = t > 0.5 && Math.floor(t * 4) % 2 ? '#ff2d2d' : '#e0112b';
+    pop($('#s1 .h1'), t, 0.75);
+    pop($('#s1 .h2'), t, 1.25);
+    rise($('#s1 .sub'), t, 2.2);
+    const tx = $('#s1 .ticker .txt');
+    tx.style.left = (-tx.offsetWidth + 230 + (t - 0.3) * 330 + 700) + 'px';
+    rise($('#s1 .ticker'), t, 0.2, 0.4, 140);
+  }
+
+  // S2
+  if (t >= 4.5 && t < 13) {
+    rise($('#s2 .title'), t, 4.6);
+    $$('#s2 .row').forEach((row, i) => {
+      const t0 = 5.4 + i * 1.75;
+      pop(row, t, t0, 0.5);
+      const n = row.querySelector('.num');
+      const p = easeOut(prog(t, t0 + 0.3, 1.1));
+      if (n.dataset.text) {
+        n.textContent = t < t0 + 0.9 ? '₪ ' + Math.floor(p * 99999).toLocaleString('en-US') : n.dataset.text;
+      } else {
+        const from = +(n.dataset.from || 0), to = +n.dataset.to;
+        n.textContent = Math.round(from + (to - from) * p).toLocaleString('en-US') + (n.dataset.suffix || '');
+      }
+    });
+  }
+
+  // S3
+  if (t >= 13 && t < 20.3) {
+    rise($('#s3 .title'), t, 13.1);
+    rise($('#s3 .cal'), t, 13.2, 0.5, 120);
+    $$('#s3 .stamp').forEach(s => {
+      const d = +s.dataset.i;
+      const t0 = d === 23 ? STAMP_T0 + 22 * STAMP_DT + 0.35 : STAMP_T0 + (d - 1) * STAMP_DT;
+      const p = prog(t, t0, 0.18);
+      s.style.opacity = p > 0 ? 1 : 0;
+      s.style.transform = `rotate(${s.dataset.rot}deg) scale(${2.2 - 1.2 * easeOut(p)})`;
+    });
+    pop($('#s3 .verdict'), t, 18.4, 0.55);
+  }
+
+  // S4
+  if (t >= 20.3 && t < 29.8) {
+    const bs = $$('#s4 .b');
+    CHAT.forEach(([t0], i) => {
+      bs[i].style.display = t >= t0 ? 'block' : 'none';
+      pop(bs[i], t, t0, 0.35);
+    });
+    const sys = $('#s4 .sys');
+    sys.style.display = t >= SYS_T ? 'block' : 'none';
+    pop(sys, t, SYS_T, 0.4);
+    const typing = Math.floor(t * 2.5) % 4;
+    $('#s4 .gsub').textContent = (t < SYS_T && CHAT.some(([t0]) => t > t0 - 0.7 && t < t0)) ? 'מישהו מקליד' + '.'.repeat(typing) : '34 משתתפים';
+  }
+
+  // S5
+  if (t >= 29.8 && t < 37.3) {
+    drawConfetti(t);
+    slam($('#s5 .a'), t, 29.9);
+    const wob = t > 30.3 ? Math.sin(t * 8) * 3 : 0;
+    $('#s5 .a').style.transform += ` rotate(${wob}deg)`;
+    pop($('#s5 .b1'), t, 30.8);
+    pop($('#s5 .b2'), t, 31.4);
+    rise($('#s5 .c'), t, 32.6);
+    $$('#s5 .d').forEach((d, i) => {
+      const t0 = 33.0 + i * 0.2, p = prog(t, t0, 0.4);
+      const bounce = t > t0 + 0.4 ? -Math.abs(Math.sin((t - t0) * 7 + i)) * 70 : 0;
+      const rot = t > t0 + 0.4 ? Math.sin((t - t0) * 7 + i) * 14 : 0;
+      d.style.opacity = p > 0 ? 1 : 0;
+      d.style.transform = `translateY(${bounce}px) rotate(${rot}deg) scale(${p > 0 ? back(p) : 0})`;
+    });
+    rise($('#s5 .note'), t, 34.8);
+  }
+
+  // S6
+  if (t >= 37.3 && t < 46) {
+    rise($('#s6 .clock'), t, 37.4);
+    pop($('#s6 .title'), t, 37.7);
+    rise($('#s6 .plan'), t, 38.4);
+    $$('#s6 .item').forEach((it, i) => {
+      const t0 = 38.9 + i * 1.65;
+      rise(it, t, t0, 0.45, 100);
+      pop(it.querySelector('.tick'), t, t0 + 0.75, 0.35);
+    });
+  }
+
+  // S7
+  if (t >= 46 && t < 51.6) {
+    const red = $('#s7 .red');
+    red.style.opacity = t < 47.4 ? 0 : (Math.floor((t - 47.4) * 4) % 2 ? .55 : 1);
+    pop($('#s7 .wait'), t, 46.25, 0.5);
+    $('#s7 .wait').style.opacity = t > 47.3 ? 0 : $('#s7 .wait').style.opacity;
+    const shake = t > 47.4 && t < 49.6 ? `translate(${Math.sin(t * 90) * 14}px, ${Math.cos(t * 70) * 10}px)` : '';
+    slam($('#s7 .han'), t, 47.4, 0.3);
+    $('#s7 .han').style.transform = shake + ' ' + $('#s7 .han').style.transform;
+    pop($('#s7 .in2'), t, 48.1, 0.4);
+    pop($('#s7 .siren'), t, 47.4, 0.3, `rotate(${Math.sin(t * 20) * 15}deg)`);
+    rise($('#s7 .sh'), t, 49.9);
+  }
+
+  // S8
+  if (t >= 51.6) {
+    rise($('#s8 .l1'), t, 51.7);
+    rise($('#s8 .l2'), t, 52.3);
+    const beat = t > 53.3 ? 1 + Math.max(0, Math.sin((t - 53.3) * Math.PI * 2)) * 0.08 : 1;
+    pop($('#s8 .heart'), t, 52.9, 0.5, `scale(${beat})`);
+    const pulse = t > 54.4 ? 1 + Math.sin((t - 54.4) * 5) * 0.03 : 1;
+    pop($('#s8 .cta'), t, 53.8, 0.5, `scale(${pulse})`);
+    rise($('#s8 .foot'), t, 54.8);
+  }
+};
+window.DURATION = 58.4;
+seek(0);
+</script>
+</body>
+</html>

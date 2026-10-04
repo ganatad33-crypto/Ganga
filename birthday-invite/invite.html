@@ -173,7 +173,7 @@ function limb(pts, color, w) {
   ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke();
 }
 function head(p, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 6.28); ctx.fill(); }
-function acro(t, cx, cy, s, k) {
+function acro(t, cx, cy, s, k, sil = false) {
   ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s);
   // mat
   ctx.fillStyle = "rgba(255,255,255,.18)"; rrect(-300, -6, 600, 26, 13); ctx.fill();
@@ -184,17 +184,17 @@ function acro(t, cx, cy, s, k) {
   b.foot[1] += bob; b.hand[1] += bob;
   ctx.shadowColor = "rgba(0,0,0,.25)"; ctx.shadowBlur = 20;
   // base (parent)
-  const P = "#ffe066";
+  const P = sil ? "rgba(25,8,50,.75)" : "#ffe066";
   limb([b.sh, b.hip, b.knee, b.foot], P, 30);
   limb([b.sh, b.hand], P, 24);
   head(b.head, 36, P);
   // kid (flyer)
-  const K = "#ffffff";
+  const K = sil ? "rgba(25,8,50,.75)" : "#ffffff";
   limb([kidPose.sh, kidPose.hip, kidPose.foot], K, 24);
   limb([kidPose.handA, kidPose.sh, kidPose.handB], K, 18);
   head(kidPose.head, 30, K);
   // smiles
-  [[b.head, 36], [kidPose.head, 30]].forEach(([h, r]) => {
+  if (!sil) [[b.head, 36], [kidPose.head, 30]].forEach(([h, r]) => {
     ctx.shadowColor = "transparent"; ctx.fillStyle = "#3a1450";
     ctx.beginPath(); ctx.arc(h[0] - r * .35, h[1] - r * .15, r * .12, 0, 6.28); ctx.arc(h[0] + r * .35, h[1] - r * .15, r * .12, 0, 6.28); ctx.fill();
     ctx.strokeStyle = "#3a1450"; ctx.lineWidth = r * .12; ctx.beginPath(); ctx.arc(h[0], h[1] + r * .05, r * .45, .2 * Math.PI, .8 * Math.PI); ctx.stroke();
@@ -243,7 +243,7 @@ function scene2(t) { // class birthday + names
   ctx.globalAlpha = 1;
 }
 
-function scene3(t) { // acro yoga reveal
+function scene3(t) { // secret activity — hints only, revealed on the day
   const A = win(t, 11, 18.1, .3, .45);
   if (A <= 0) return;
   ctx.globalAlpha = A;
@@ -251,18 +251,26 @@ function scene3(t) { // acro yoga reveal
   // teaser
   const teaser = Math.min(seg(s, 0, .3), 1 - seg(s, .75, .95));
   text("ומה עושים?", W / 2, 860, { size: 110, alpha: teaser, scale: lerp(.8, 1, easeOut(seg(s, 0, .4))) });
-  // reveal
   const r = seg(s, .9, 1.5);
   const sun = ctx.createLinearGradient(0, 260, 0, 420); sun.addColorStop(0, "#fff8c4"); sun.addColorStop(1, "#ffb22e");
-  text("אקרו יוגה!", W / 2, 330, { size: 170, color: sun, scale: easeBack(r), rot: Math.sin(s * 3) * .02 * r, stroke: "#0b4a4f", strokeW: 20 });
-  text("הורים וילדים — עפים ביחד", W / 2, 490, { size: 60, font: "Heebo", alpha: seg(s, 1.7, 2.2) });
+  text("פעילות סודית!", W / 2, 320, { size: 150, color: sun, scale: easeBack(r), rot: Math.sin(s * 3) * .02 * r, stroke: "#0b4a4f", strokeW: 20 });
+  text("לא נגלה... רק נרמוז 🤫", W / 2, 480, { size: 62, font: "Heebo", alpha: seg(s, 1.6, 2.1) });
+  // mystery silhouette behind a glowing question mark
   const fly = easeInOut(seg(s, 2.2, 3.8));
-  ctx.globalAlpha = A * seg(s, 1.2, 1.8);
-  acro(t, W / 2 + 40, 1230, 1.55, fly);
+  ctx.globalAlpha = A * seg(s, 1.4, 2) * .9;
+  ctx.save(); ctx.filter = "blur(5px)"; acro(t, W / 2 + 40, 1060, 1.3, fly, true); ctx.restore();
   ctx.globalAlpha = A;
-  text("איזון · אמון · המון צחוק", W / 2, 1420, { size: 56, font: "Heebo", alpha: seg(s, 4, 4.5), scale: lerp(.85, 1, easeBack(seg(s, 4, 4.5))) });
-  text("🤸", 200, 1600, { size: 120, alpha: seg(s, 4.6, 5), rot: Math.sin(t * 3) * .2, shadow: null });
-  text("💛", 880, 1600, { size: 110, alpha: seg(s, 4.8, 5.2), scale: 1 + Math.sin(t * 6) * .06, shadow: null });
+  const q = easeBack(seg(s, 1.8, 2.4));
+  text("?", W / 2, 820, { size: 330, color: "#ffe066", scale: q * (1 + Math.sin(t * 4) * .05), rot: Math.sin(t * 2) * .08, stroke: "#0b4a4f", strokeW: 18, blur: 50, shadow: "rgba(255,230,100,.6)" });
+  const hints = [["רמז 1:", "איזון 🤹"], ["רמז 2:", "אמון 🤝"], ["רמז 3:", "קצת מרחפים... ✈️"]];
+  hints.forEach(([h, v], i) => {
+    const a = seg(s, 2.8 + i * .55, 3.2 + i * .55), y = 1260 + i * 125;
+    ctx.save(); ctx.globalAlpha = A * a;
+    const x = lerp(W + 500, W / 2, easeBack(a));
+    ctx.fillStyle = "rgba(255,255,255,.16)"; rrect(x - 400, y - 52, 800, 104, 52); ctx.fill(); ctx.restore();
+    text(h + " " + v, lerp(W + 500, W / 2, easeBack(a)), y, { size: 56, alpha: a });
+  });
+  text("הכול יתגלה ביום החגיגה!", W / 2, 1700, { size: 66, color: "#fff", stroke: "#0b4a4f", strokeW: 12, alpha: seg(s, 4.7, 5.1), scale: lerp(.7, 1, easeBack(seg(s, 4.7, 5.2))) });
   ctx.globalAlpha = 1;
 }
 
@@ -297,7 +305,7 @@ function scene5(t) { // what awaits
   ctx.globalAlpha = A;
   const s = t - 24;
   text("מה מחכה לכם?", W / 2, 420, { size: 120, scale: easeBack(seg(s, 0, .5)) });
-  const items = [["🤸", "אקרו יוגה הורה–ילד"], ["🎉", "חגיגה לכל החוגגים"], ["🎁", "ועוד הפתעות שאסור לפספס"]];
+  const items = [["🤫", "פעילות סודית הורה–ילד"], ["🎉", "חגיגה לכל החוגגים"], ["🎁", "ועוד הפתעות שאסור לפספס"]];
   items.forEach(([ico, label], i) => {
     const k = easeBack(seg(s, .6 + i * .45, 1.1 + i * .45));
     const y = 720 + i * 260, x = lerp(W + 600, W / 2, k);

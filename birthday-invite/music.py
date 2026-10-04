@@ -1,5 +1,5 @@
 """Synthesizes an original upbeat backing track (C-G-Am-F pop loop) -> music.wav"""
-import sys, wave
+import os, sys, wave
 import numpy as np
 
 SR = 44100
@@ -54,7 +54,7 @@ bars = int(DUR / (4 * BEAT)) + 1
 for b in range(bars):
     t0 = b * 4 * BEAT
     root, chord = CHORDS[b % 4]
-    intro = b < 2
+    intro = b < 2 and not os.environ.get("PROMO")
     add(tone(root + 12, 4 * BEAT, "pad", .05) * 0 + sum(tone(m, 4 * BEAT, "pad", .045) for m in chord), t0)
     for i in range(16):  # 16th arpeggio
         add(tone(chord[[0, 1, 2, 1][i % 4]] + 12 * (i % 8 >= 4), BEAT / 2, "pluck", .07), t0 + i * BEAT / 4)
@@ -71,6 +71,16 @@ for b in range(bars):
             st = phrase_start + off * BEAT
             if t0 <= st < t0 + 4 * BEAT:
                 add(tone(m, ln * BEAT, "lead", .09), st)
+
+if os.environ.get("PROMO"):  # whoosh into + boom on every cut
+    rng = np.random.default_rng(9)
+    for bar in (1, 2, 4, 6, 8, 10, 12, 14):
+        c = bar * 4 * BEAT
+        L = int(.45 * SR); tt = np.arange(L) / SR
+        n = rng.standard_normal(L); n = np.convolve(n, np.ones(6) / 6, "same")
+        add(n * (tt / tt[-1]) ** 2 * .22, c - .45)
+        Lb = int(.7 * SR); tb = np.arange(Lb) / SR
+        add(np.sin(2*np.pi*(40 + 80*np.exp(-tb*12))*tb) * np.exp(-tb*4.5) * .7, c)
 
 # final fade
 fade = int(1.5 * SR)

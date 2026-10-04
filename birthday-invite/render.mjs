@@ -26,7 +26,7 @@ if (ONLY) {
   }
 } else {
   const ff = spawn("ffmpeg", ["-y", "-f", "image2pipe", "-framerate", String(FPS), "-c:v", "mjpeg", "-i", "-",
-    "-i", "birthday-invite/music.wav", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "20",
+    "-i", process.env.MUSIC || "birthday-invite/music.wav", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "20",
     "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", OUT], { stdio: ["pipe", "inherit", "inherit"] });
   const total = Math.round(dur * FPS);
   for (let i = 0; i < total; i++) {

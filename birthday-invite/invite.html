@@ -12,7 +12,7 @@
   @font-face { font-family: Rubik; font-weight: 500; src: url(../fonts/rubik-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
   @font-face { font-family: Heebo; font-weight: 700; src: url(../fonts/heebo-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
   @font-face { font-family: Heebo; font-weight: 500; src: url(../fonts/heebo-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
-  html, body { margin: 0; background: #1a0b3d; }
+  html, body { margin: 0; background: #0d0d0d; }
   canvas { display: block; width: 100vw; max-width: 540px; height: auto; margin: 0 auto; }
 </style>
 </head>
@@ -24,10 +24,13 @@ const CONFIG = {
   names: ["יאיר", "מיה", "לביא ג.", "לביא", "יאיר", "עלמה"],
   date: "27.10",
   day: "יום שלישי",
-  time: "",   // למשל "17:00" — אם ריק, מופיע "פרטים בקבוצת הכיתה"
-  place: "",  // למשל "הגינה של בית הספר"
+  time: "",   // למשל "17:00" — אם ריק, מופיע "שעה ומקום — בקבוצת הכיתה"
+  place: "",
 };
-const DURATION = 33;
+
+// Promo-style cut: everything is timed to the music (128 BPM, 1 bar = 1.875s)
+const B = 60 / 128, BAR = 4 * B;
+const DURATION = 16 * BAR + .5;
 
 const cv = document.getElementById("c");
 const ctx = cv.getContext("2d");
@@ -39,331 +42,291 @@ const seg = (t, a, b) => clamp((t - a) / (b - a));
 const lerp = (a, b, k) => a + (b - a) * k;
 const easeOut = k => 1 - Math.pow(1 - k, 3);
 const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-const easeBack = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const easeBack = k => { const c1 = 2.2, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
 function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
-// fade in/out window for a scene
-function win(t, a, b, fi = .35, fo = .35) { return Math.min(seg(t, a, a + fi), 1 - seg(t, b - fo, b)); }
+const pop = (s, a, d = .28) => easeBack(seg(s, a, a + d));          // scale-in
+const beatPulse = t => 1 + .035 * Math.exp(-((t % B) / B) * 6);      // thump on every beat
 
+const NEON = "#e6ff00", PINK = "#ff2e88", BLUE = "#2e5bff", PURPLE = "#7b2eff", INK = "#0d0d0d", WHITE = "#ffffff", GREEN = "#00d26a";
 const EMOJI = '"Noto Color Emoji"';
+
+function setFont(size, weight = 700, font = "Rubik") { ctx.font = `${weight} ${size}px ${font}, ${EMOJI}`; }
 function text(str, x, y, o = {}) {
-  const { size = 80, font = "Rubik", weight = 700, color = "#fff", alpha = 1, scale = 1, rot = 0,
-          stroke = null, strokeW = 0, shadow = "rgba(0,0,0,.35)", blur = 18, align = "center" } = o;
-  if (alpha <= 0.001 || scale <= 0.001) return;
+  const { size = 80, font = "Rubik", weight = 700, color = WHITE, alpha = 1, scale = 1, rot = 0,
+          stroke = null, strokeW = 0, shadow = null, blur = 0, align = "center" } = o;
+  if (alpha <= .001 || scale <= .001) return;
   ctx.save();
   ctx.globalAlpha *= clamp(alpha);
   ctx.translate(x, y); ctx.rotate(rot); ctx.scale(scale, scale);
-  ctx.font = `${weight} ${size}px ${font}, ${EMOJI}`;
+  setFont(size, weight, font);
   ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.direction = "rtl";
-  if (shadow) { ctx.shadowColor = shadow; ctx.shadowBlur = blur; ctx.shadowOffsetY = 6; }
+  if (shadow) { ctx.shadowColor = shadow; ctx.shadowBlur = blur; ctx.shadowOffsetY = 8; }
   if (stroke) { ctx.lineJoin = "round"; ctx.lineWidth = strokeW; ctx.strokeStyle = stroke; ctx.strokeText(str, 0, 0); ctx.shadowColor = "transparent"; }
-  if (color.addColorStop) { ctx.fillStyle = color; } else ctx.fillStyle = color;
-  ctx.fillText(str, 0, 0);
+  ctx.fillStyle = color; ctx.fillText(str, 0, 0);
   ctx.restore();
 }
 function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+// text on a marker-style highlight box (the classic "reels caption" look)
+function tag(str, x, y, o = {}) {
+  const { size = 80, bg = NEON, fg = INK, rot = 0, scale = 1, alpha = 1, pad = .38, radius = 18, shadow = true, font = "Rubik" } = o;
+  if (scale <= .001 || alpha <= .001) return;
+  setFont(size, 700, font);
+  const w = ctx.measureText(str).width + size * pad * 2, h = size * 1.45;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(x, y); ctx.rotate(rot); ctx.scale(scale, scale);
+  if (shadow) { ctx.fillStyle = "rgba(0,0,0,.9)"; rrect(-w / 2 + 12, -h / 2 + 12, w, h, radius); ctx.fill(); }
+  ctx.fillStyle = bg; rrect(-w / 2, -h / 2, w, h, radius); ctx.fill();
+  ctx.restore();
+  text(str, x, y + size * .04, { size, color: fg, rot, scale, alpha, font });
+}
+// rubber-stamp sticker that slams in
+function stamp(str, x, y, s, at, o = {}) {
+  const { size = 74, color = "#ff1f3d", rot = -.18 } = o;
+  const k = seg(s, at, at + .22); if (k <= 0) return;
+  const sc = lerp(2.6, 1, easeOut(k));
+  setFont(size); const w = ctx.measureText(str).width + 90, h = size * 1.6;
+  ctx.save(); ctx.globalAlpha *= clamp(k * 2); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(sc, sc);
+  ctx.strokeStyle = color; ctx.lineWidth = 12; rrect(-w / 2, -h / 2, w, h, 20); ctx.stroke();
+  ctx.lineWidth = 4; rrect(-w / 2 + 16, -h / 2 + 16, w - 32, h - 32, 12); ctx.stroke();
+  ctx.restore();
+  text(str, x, y + 4, { size, color, rot, scale: sc, alpha: clamp(k * 2) });
+}
 
-// ---------- background ----------
-const PALETTES = [
-  ["#2b0f6b", "#8a1fa8", "#ff4f9a"],   // purple → pink
-  ["#0b3b8c", "#5b2bd6", "#ff6fb5"],
-  ["#0a5c63", "#1b8f8a", "#ffc94d"],   // teal → sun (acro)
-  ["#7a1238", "#e3384f", "#ffb03a"],   // warm (parents)
-  ["#23137a", "#3f5bf0", "#43e0c6"],
-  ["#2b0f6b", "#c01f8e", "#ffb03a"],
-];
-const SCENE_STARTS = [0, 4.5, 11, 18, 24, 28];
-function hex(c) { return [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)); }
-function mix(a, b, k) { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], k))).join(",")})`; }
-function palette(t) {
-  let i = 0; while (i < SCENE_STARTS.length - 1 && t >= SCENE_STARTS[i + 1]) i++;
-  const next = Math.min(i + 1, PALETTES.length - 1);
-  const k = i === next ? 0 : easeInOut(seg(t, SCENE_STARTS[next] - .8, SCENE_STARTS[next]));
-  return PALETTES[i].map((c, j) => mix(c, PALETTES[next][j], k));
+// ---------- backgrounds ----------
+function stripes(t, color, alpha = .08, gap = 90) {
+  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = gap * .35;
+  ctx.translate(W / 2, H / 2); ctx.rotate(-.5);
+  const off = (t * 120) % gap;
+  for (let x = -1600; x < 1600; x += gap) { ctx.beginPath(); ctx.moveTo(x + off, -1600); ctx.lineTo(x + off, 1600); ctx.stroke(); }
+  ctx.restore();
 }
-const STARS = (() => { const r = rng(7); return Array.from({ length: 70 }, () => ({ x: r() * W, y: r() * H, s: 2 + r() * 5, p: r() * 6.28, f: 1 + r() * 2 })); })();
-function background(t) {
-  const [a, b, c] = palette(t);
-  const g = ctx.createLinearGradient(0, 0, W * .3, H);
-  g.addColorStop(0, a); g.addColorStop(.6, b); g.addColorStop(1, c);
+function dots(color, alpha = .12) {
+  ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = color;
+  for (let y = 30; y < H; y += 46) for (let x = (y / 46 % 2) * 23 + 20; x < W; x += 46) { ctx.beginPath(); ctx.arc(x, y, 4, 0, 6.28); ctx.fill(); }
+  ctx.restore();
+}
+function bg(color, t, pattern = "stripes", pc = WHITE) {
+  ctx.fillStyle = color; ctx.fillRect(0, 0, W, H);
+  if (pattern === "stripes") stripes(t, pc); else if (pattern === "dots") dots(pc);
+  // vignette
+  const g = ctx.createRadialGradient(W / 2, H / 2, 500, W / 2, H / 2, 1250);
+  g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.35)");
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  // soft moving blobs
-  const blobs = [[.2, .25, 420, .7], [.85, .55, 520, .5], [.4, .9, 460, .9]];
-  blobs.forEach(([bx, by, r, sp], i) => {
-    const x = bx * W + Math.sin(t * sp + i) * 120, y = by * H + Math.cos(t * sp * .8 + i * 2) * 140;
-    const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
-    rg.addColorStop(0, "rgba(255,255,255,.16)"); rg.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
-  });
-  // twinkles
-  STARS.forEach(s => {
-    const a = .25 + .75 * Math.max(0, Math.sin(t * s.f + s.p));
-    ctx.globalAlpha = a * .8; ctx.fillStyle = "#fff";
-    star(s.x, s.y + Math.sin(t * .5 + s.p) * 10, s.s, s.s * .4, 4);
-    ctx.globalAlpha = 1;
-  });
-}
-function star(x, y, R, r, n = 5) {
-  ctx.beginPath();
-  for (let i = 0; i < n * 2; i++) {
-    const rad = i % 2 ? r : R, a = i * Math.PI / n - Math.PI / 2;
-    ctx.lineTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad);
-  }
-  ctx.closePath(); ctx.fill();
 }
 
 // ---------- confetti ----------
-const CONF_COLORS = ["#ffd23f", "#ff5d8f", "#3bceac", "#5ab0ff", "#ffffff", "#ff9f1c", "#b388ff"];
-function makeBurst(t0, ox, oy, n, seed, spread = 1) {
+const CONF = [NEON, PINK, BLUE, WHITE, "#ff9f1c", GREEN];
+function burst(t0, ox, oy, n, seed, spread = 1) {
   const r = rng(seed);
   return Array.from({ length: n }, () => {
-    const ang = -Math.PI / 2 + (r() - .5) * Math.PI * 1.4 * spread, sp = 900 + r() * 1500;
-    return { t0: t0 + r() * .15, ox, oy, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, rot: r() * 6, vr: (r() - .5) * 14,
-             w: 14 + r() * 18, h: 8 + r() * 12, c: CONF_COLORS[(r() * CONF_COLORS.length) | 0], shape: r() < .3 ? 1 : 0, sw: r() * 6 };
+    const a = -Math.PI / 2 + (r() - .5) * Math.PI * 1.5 * spread, sp = 1000 + r() * 1700;
+    return { t0, ox, oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, rot: r() * 6, vr: (r() - .5) * 16,
+             w: 16 + r() * 20, h: 9 + r() * 12, c: CONF[(r() * CONF.length) | 0], sw: r() * 6 };
   });
 }
-const BURSTS = [
-  ...makeBurst(.85, W / 2, 900, 160, 11),
-  ...makeBurst(11.9, W / 2, 1000, 120, 12),
-  ...makeBurst(28.3, 200, 1900, 110, 13, .5),
-  ...makeBurst(28.3, 880, 1900, 110, 14, .5),
-  ...makeBurst(30.5, W / 2, 1000, 140, 15),
-];
+const PARTS = [...burst(2 * BAR, W / 2, 1000, 170, 3), ...burst(14 * BAR + 1.4, W / 2, 1390, 200, 4),
+               ...burst(15 * BAR, 150, 1950, 90, 5, .5), ...burst(15 * BAR, 930, 1950, 90, 6, .5)];
 function confetti(t) {
-  BURSTS.forEach(p => {
-    const dt = t - p.t0; if (dt < 0 || dt > 5) return;
-    const drag = 1 - Math.exp(-2.2 * dt);
-    const x = p.ox + p.vx / 2.2 * drag + Math.sin(dt * 3 + p.sw) * 30 * dt;
-    const y = p.oy + p.vy / 2.2 * drag + 380 * dt * dt * .5 + 260 * dt;
-    if (y > H + 50) return;
-    ctx.save(); ctx.translate(x, y); ctx.rotate(p.rot + p.vr * dt);
-    ctx.scale(1, Math.cos(dt * 8 + p.sw)); ctx.globalAlpha = clamp(5 - dt);
-    ctx.fillStyle = p.c;
-    if (p.shape) { ctx.beginPath(); ctx.arc(0, 0, p.w / 2.4, 0, 6.28); ctx.fill(); } else ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-    ctx.restore();
+  PARTS.forEach(p => {
+    const dt = t - p.t0; if (dt < 0 || dt > 4) return;
+    const d = 1 - Math.exp(-2.4 * dt);
+    const x = p.ox + p.vx / 2.4 * d + Math.sin(dt * 3 + p.sw) * 30 * dt, y = p.oy + p.vy / 2.4 * d + 300 * dt + 200 * dt * dt;
+    if (y > H + 40) return;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(p.rot + p.vr * dt); ctx.scale(1, Math.cos(dt * 9 + p.sw));
+    ctx.globalAlpha = clamp(4 - dt); ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
   });
 }
 
-// ---------- balloon ----------
-const BAL_COLORS = ["#ff4f7b", "#ffc43d", "#3bceac", "#4d9bff", "#b06bff", "#ff8a3d"];
-function balloon(x, y, color, name, scale = 1, sway = 0) {
-  ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale); ctx.rotate(sway);
-  // string
-  ctx.strokeStyle = "rgba(255,255,255,.8)"; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(0, 150); ctx.bezierCurveTo(25, 210, -25, 260, 8, 330); ctx.stroke();
-  // body
-  const g = ctx.createRadialGradient(-45, -60, 10, 0, 0, 170);
-  g.addColorStop(0, "#ffffffcc"); g.addColorStop(.18, color); g.addColorStop(1, shade(color, -.35));
-  ctx.fillStyle = g; ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14;
-  ctx.beginPath(); ctx.ellipse(0, 0, 125, 150, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowColor = "transparent";
-  ctx.beginPath(); ctx.moveTo(-16, 160); ctx.lineTo(16, 160); ctx.lineTo(0, 142); ctx.closePath(); ctx.fillStyle = shade(color, -.3); ctx.fill();
-  ctx.restore();
-  text(name, x, y - 8 * scale, { size: 62 * scale, color: "#fff", stroke: "rgba(0,0,0,.25)", strokeW: 10 * scale, blur: 8 });
-}
-function shade(c, k) { const [r, g, b] = hex(c); const f = v => Math.round(clamp(k < 0 ? v * (1 + k) : v + (255 - v) * k, 0, 255)); return `rgb(${f(r)},${f(g)},${f(b)})`; }
+// ---------- cuts ----------
+const CUTS = [];
+const cut = (bars, fn) => { const start = CUTS.length ? CUTS[CUTS.length - 1].end : 0; CUTS.push({ start, end: start + bars * BAR, fn }); };
 
-// ---------- acro-yoga figures ----------
-const BASE_REST = { head: [-170, -40], sh: [-120, -32], hip: [0, -30], knee: [70, -130], foot: [120, -40], hand: [-40, -80] };
-const BASE_FLY = { head: [-170, -40], sh: [-120, -32], hip: [0, -30], knee: [-5, -150], foot: [-10, -265], hand: [-165, -255] };
-const KID_REST = { head: [250, -215], sh: [250, -180], hip: [250, -100], foot: [250, 0], handA: [215, -100], handB: [285, -100] };
-const KID_FLY = { head: [-140, -345], sh: [-100, -310], hip: [-10, -285], foot: [120, -330], handA: [-165, -255], handB: [-165, -255] };
-function pose(A, B, k) { const o = {}; for (const j in A) o[j] = [lerp(A[j][0], B[j][0], k), lerp(A[j][1], B[j][1], k)]; return o; }
-function limb(pts, color, w) {
-  ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.lineJoin = "round";
-  ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke();
-}
-function head(p, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 6.28); ctx.fill(); }
-function acro(t, cx, cy, s, k, sil = false) {
-  ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s);
-  // mat
-  ctx.fillStyle = "rgba(255,255,255,.18)"; rrect(-300, -6, 600, 26, 13); ctx.fill();
-  const b = pose(BASE_REST, BASE_FLY, k);
-  const bob = k >= 1 ? Math.sin(t * 2.4) * 6 : 0;
-  const kidPose = pose(KID_REST, KID_FLY, k);
-  for (const j in kidPose) kidPose[j][1] += bob;
-  b.foot[1] += bob; b.hand[1] += bob;
-  ctx.shadowColor = "rgba(0,0,0,.25)"; ctx.shadowBlur = 20;
-  // base (parent)
-  const P = sil ? "rgba(25,8,50,.75)" : "#ffe066";
-  limb([b.sh, b.hip, b.knee, b.foot], P, 30);
-  limb([b.sh, b.hand], P, 24);
-  head(b.head, 36, P);
-  // kid (flyer)
-  const K = sil ? "rgba(25,8,50,.75)" : "#ffffff";
-  limb([kidPose.sh, kidPose.hip, kidPose.foot], K, 24);
-  limb([kidPose.handA, kidPose.sh, kidPose.handB], K, 18);
-  head(kidPose.head, 30, K);
-  // smiles
-  if (!sil) [[b.head, 36], [kidPose.head, 30]].forEach(([h, r]) => {
-    ctx.shadowColor = "transparent"; ctx.fillStyle = "#3a1450";
-    ctx.beginPath(); ctx.arc(h[0] - r * .35, h[1] - r * .15, r * .12, 0, 6.28); ctx.arc(h[0] + r * .35, h[1] - r * .15, r * .12, 0, 6.28); ctx.fill();
-    ctx.strokeStyle = "#3a1450"; ctx.lineWidth = r * .12; ctx.beginPath(); ctx.arc(h[0], h[1] + r * .05, r * .45, .2 * Math.PI, .8 * Math.PI); ctx.stroke();
+// 1. HOOK
+cut(1, (s, t) => {
+  bg(INK, t, "stripes", NEON);
+  const shake = Math.sin(s * 60) * 14 * (1 - seg(s, 0, .5));
+  text("✋", W / 2, 640, { size: 260, scale: pop(s, 0, .3) * beatPulse(t) });
+  text("עצרו", W / 2 + shake, 930, { size: 230, color: WHITE, scale: pop(s, .05) });
+  tag("הכול!", W / 2 - shake, 1190, { size: 200, bg: NEON, scale: pop(s, B), rot: -.05 });
+});
+// 2. ANNOUNCEMENT
+cut(1, (s, t) => {
+  bg(PINK, t, "dots", WHITE);
+  text("📣", W / 2, 640, { size: 220, scale: pop(s, 0) * beatPulse(t), rot: Math.sin(t * 8) * .1 });
+  text("יש לנו", W / 2, 900, { size: 150, scale: pop(s, .05) });
+  tag("הודעה חשובה", W / 2, 1100, { size: 120, bg: INK, fg: NEON, scale: pop(s, B), rot: .04 });
+  text("(ממש חשובה)", W / 2, 1290, { size: 60, font: "Heebo", alpha: seg(s, 2 * B, 2 * B + .2) });
+});
+// 3. DATE
+cut(2, (s, t) => {
+  bg(INK, t, "stripes", PINK);
+  tag("שמרו את התאריך", W / 2, 470, { size: 92, bg: PINK, fg: WHITE, scale: pop(s, 0), rot: -.04 });
+  const z = lerp(1.6, 1, easeOut(seg(s, 0, .35))) * beatPulse(t);
+  // glitchy RGB split on the date
+  const j = s < .5 ? 14 * (1 - s / .5) : 3 * Math.sin(t * 40) * (Math.sin(t * 3) > .9);
+  text(CONFIG.date, W / 2 - j, 960, { size: 360, color: "rgba(255,46,136,.9)", scale: z });
+  text(CONFIG.date, W / 2 + j, 960, { size: 360, color: "rgba(46,91,255,.9)", scale: z });
+  text(CONFIG.date, W / 2, 960, { size: 360, color: NEON, scale: z });
+  tag(CONFIG.day, W / 2, 1290, { size: 96, bg: WHITE, fg: INK, scale: pop(s, 2 * B), rot: .03 });
+  stamp("ביומן! ✍️", 790, 1560, s, 4 * B, { color: NEON, rot: -.2 });
+});
+// 4. CLASS BIRTHDAY + NAMES
+cut(2, (s, t) => {
+  bg(BLUE, t, "dots", WHITE);
+  text("חוגגים 🎉", W / 2, 330, { size: 120, scale: pop(s, 0) });
+  tag("יום הולדת כיתתי!", W / 2, 520, { size: 118, bg: NEON, fg: INK, scale: pop(s, B), rot: -.03 });
+  const colors = [PINK, NEON, WHITE, "#ff9f1c", GREEN, PINK];
+  CONFIG.names.forEach((nm, i) => {
+    const row = Math.floor(i / 2), col = i % 2;
+    const x = col ? 300 : 780, y = 820 + row * 270;
+    tag(nm, x, y, { size: 104, bg: colors[i % colors.length], fg: INK, scale: pop(s, 2 * B + i * B * .5, .22) * beatPulse(t + i * .1), rot: (i % 2 ? .05 : -.05) });
   });
-  ctx.restore();
-}
-
-// ---------- scenes ----------
-function scene1(t) { // save the date
-  const A = win(t, 0, 4.6, .3, .45);
-  if (A <= 0) return;
-  ctx.globalAlpha = A;
-  text("שריינו את התאריך!", W / 2, 560 - 40 * (1 - easeOut(seg(t, .1, .7))), { size: 84, alpha: seg(t, .1, .6) });
-  const k = easeBack(seg(t, .7, 1.3));
-  const pulse = 1 + Math.sin(t * 5) * .02 * seg(t, 1.3, 1.6);
-  // glow ring
-  if (t > .7) {
-    const rr = 300 + easeOut(seg(t, .7, 1.8)) * 400;
-    ctx.strokeStyle = `rgba(255,255,255,${.6 * (1 - seg(t, .7, 1.8))})`; ctx.lineWidth = 14;
-    ctx.beginPath(); ctx.arc(W / 2, 900, rr, 0, 6.28); ctx.stroke();
+  text("כל החוגגים בחגיגה אחת ענקית!", W / 2, 1650, { size: 62, font: "Heebo", alpha: seg(s, 6 * B, 6 * B + .2) });
+});
+// 5. SECRET ACTIVITY (redacted)
+cut(2, (s, t) => {
+  bg(INK, t, "stripes", WHITE);
+  const dotsN = Math.min(3, Math.floor(s / (B / 2)));
+  text("והשנה" + ".".repeat(dotsN), W / 2, 520, { size: 150, scale: pop(s, 0) });
+  text("אנחנו עושים", W / 2, 760, { size: 110, alpha: seg(s, 2 * B, 2 * B + .1) });
+  // redaction bar wipes across
+  const k = easeOut(seg(s, 3 * B, 3 * B + .35));
+  if (k > 0) {
+    const w = 860 * k, jx = Math.sin(t * 50) * 3;
+    ctx.fillStyle = "#000"; rrect(W / 2 + 430 - w + jx, 880, w, 170, 14); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.lineWidth = 3; ctx.stroke();
+    // glitch slices
+    for (let i = 0; i < 5; i++) if (Math.sin(t * 23 + i * 7) > .7) { ctx.fillStyle = [PINK, NEON, BLUE][i % 3]; ctx.fillRect(W / 2 - 430 + ((i * 197 + t * 900) % 800), 890 + i * 30, 70, 8); }
   }
-  const gold = ctx.createLinearGradient(0, 800, 0, 1000); gold.addColorStop(0, "#fff6b0"); gold.addColorStop(1, "#ffb22e");
-  text(CONFIG.date, W / 2, 900, { size: 300, scale: k * pulse, color: gold, stroke: "#7a1f6e", strokeW: 22, blur: 40 });
-  text(CONFIG.day, W / 2, 1150, { size: 76, font: "Heebo", alpha: seg(t, 1.5, 2), scale: lerp(.7, 1, easeBack(seg(t, 1.5, 2))) });
-  text("משהו גדול מגיע...", W / 2, 1300, { size: 58, font: "Heebo", weight: 500, alpha: seg(t, 2.3, 2.9) * .9 });
-  ctx.globalAlpha = 1;
-}
-
-function scene2(t) { // class birthday + names
-  const A = win(t, 4.5, 11.1, .4, .45);
-  if (A <= 0) return;
-  ctx.globalAlpha = A;
-  const s = t - 4.5;
-  text("חוגגים", W / 2, 260, { size: 90, scale: easeBack(seg(s, .1, .6)) });
-  const pink = ctx.createLinearGradient(0, 330, 0, 450); pink.addColorStop(0, "#ffffff"); pink.addColorStop(1, "#ffe066");
-  text("יום הולדת כיתתי!", W / 2, 390, { size: 118, color: pink, scale: easeBack(seg(s, .4, 1)), stroke: "#6b1460", strokeW: 16 });
-  text("ל־" + CONFIG.names.length + " חוגגים מדהימים", W / 2, 520, { size: 52, font: "Heebo", weight: 500, alpha: seg(s, 1, 1.5) });
-  const n = CONFIG.names.length, cols = 2;
-  CONFIG.names.forEach((name, i) => {
-    const row = Math.floor(i / cols), col = i % cols;
-    const tx = col ? 300 : 780, ty = 760 + row * 380 + (col ? 70 : 0);
-    const k = easeBack(seg(s, 1.3 + i * .45, 2.3 + i * .45));
-    const y = lerp(H + 300, ty, k) + Math.sin(t * 1.6 + i) * 14;
-    balloon(tx + Math.sin(t * 1.1 + i * 2) * 10, y, BAL_COLORS[i % BAL_COLORS.length], name, .95, Math.sin(t * 1.3 + i) * .05);
-  });
-  ctx.globalAlpha = 1;
-}
-
-function scene3(t) { // secret activity — hints only, revealed on the day
-  const A = win(t, 11, 18.1, .3, .45);
-  if (A <= 0) return;
-  ctx.globalAlpha = A;
-  const s = t - 11;
-  // teaser
-  const teaser = Math.min(seg(s, 0, .3), 1 - seg(s, .75, .95));
-  text("ומה עושים?", W / 2, 860, { size: 110, alpha: teaser, scale: lerp(.8, 1, easeOut(seg(s, 0, .4))) });
-  const r = seg(s, .9, 1.5);
-  const sun = ctx.createLinearGradient(0, 260, 0, 420); sun.addColorStop(0, "#fff8c4"); sun.addColorStop(1, "#ffb22e");
-  text("פעילות סודית!", W / 2, 320, { size: 150, color: sun, scale: easeBack(r), rot: Math.sin(s * 3) * .02 * r, stroke: "#0b4a4f", strokeW: 20 });
-  text("לא נגלה... רק נרמוז 🤫", W / 2, 480, { size: 62, font: "Heebo", alpha: seg(s, 1.6, 2.1) });
-  // mystery silhouette behind a glowing question mark
-  const fly = easeInOut(seg(s, 2.2, 3.8));
-  ctx.globalAlpha = A * seg(s, 1.4, 2) * .9;
-  ctx.save(); ctx.filter = "blur(5px)"; acro(t, W / 2 + 40, 1060, 1.3, fly, true); ctx.restore();
-  ctx.globalAlpha = A;
-  const q = easeBack(seg(s, 1.8, 2.4));
-  text("?", W / 2, 820, { size: 330, color: "#ffe066", scale: q * (1 + Math.sin(t * 4) * .05), rot: Math.sin(t * 2) * .08, stroke: "#0b4a4f", strokeW: 18, blur: 50, shadow: "rgba(255,230,100,.6)" });
-  const hints = [["רמז 1:", "איזון 🤹"], ["רמז 2:", "אמון 🤝"], ["רמז 3:", "קצת מרחפים... ✈️"]];
-  hints.forEach(([h, v], i) => {
-    const a = seg(s, 2.8 + i * .55, 3.2 + i * .55), y = 1260 + i * 125;
-    ctx.save(); ctx.globalAlpha = A * a;
-    const x = lerp(W + 500, W / 2, easeBack(a));
-    ctx.fillStyle = "rgba(255,255,255,.16)"; rrect(x - 400, y - 52, 800, 104, 52); ctx.fill(); ctx.restore();
-    text(h + " " + v, lerp(W + 500, W / 2, easeBack(a)), y, { size: 56, alpha: a });
-  });
-  text("הכול יתגלה ביום החגיגה!", W / 2, 1700, { size: 66, color: "#fff", stroke: "#0b4a4f", strokeW: 12, alpha: seg(s, 4.7, 5.1), scale: lerp(.7, 1, easeBack(seg(s, 4.7, 5.2))) });
-  ctx.globalAlpha = 1;
-}
-
-function scene4(t) { // parents must join
-  const A = win(t, 18, 24.1, .3, .45);
-  if (A <= 0) return;
-  ctx.globalAlpha = A;
-  const s = t - 18;
-  const shake = s < 1.2 ? Math.sin(s * 40) * 10 * (1 - seg(s, .3, 1.2)) * seg(s, .2, .3) : 0;
-  text("הורים,", W / 2 + shake, 420, { size: 150, scale: easeBack(seg(s, 0, .5)) });
-  text("הפעם לא יושבים בצד!", W / 2, 600, { size: 92, color: "#ffe066", scale: easeBack(seg(s, .6, 1.1)), stroke: "#6b0f2c", strokeW: 14 });
-  // card
-  const ck = easeBack(seg(s, 1.4, 2));
-  ctx.save(); ctx.translate(W / 2, 1010); ctx.scale(ck, ck);
-  ctx.fillStyle = "rgba(255,255,255,.95)"; ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 16;
-  rrect(-430, -230, 860, 460, 48); ctx.fill(); ctx.restore();
-  if (ck > .05) {
-    text("🤝", W / 2, 880, { size: 150 * ck, shadow: null });
-    text("לפחות הורה אחד", W / 2, 1040, { size: 80 * ck, color: "#c01f5a", shadow: null });
-    text("מגיע, מתנסה ומשתתף עם הילד", W / 2, 1140, { size: 54 * ck, font: "Heebo", color: "#3a1450", shadow: null });
-  }
-  // equation
-  const e = seg(s, 2.6, 3.1);
-  text("ילד  +  הורה  =  צוות מנצח", W / 2, 1420, { size: 74, alpha: e, scale: lerp(.6, 1, easeBack(e)) });
-  text("(מבטיחים שזה הכי כיף שיש 😉)", W / 2, 1560, { size: 50, font: "Heebo", weight: 500, alpha: seg(s, 3.6, 4.1) * .95 });
-  ctx.globalAlpha = 1;
-}
-
-function scene5(t) { // what awaits
-  const A = win(t, 24, 28.2, .3, .4);
-  if (A <= 0) return;
-  ctx.globalAlpha = A;
-  const s = t - 24;
-  text("מה מחכה לכם?", W / 2, 420, { size: 120, scale: easeBack(seg(s, 0, .5)) });
-  const items = [["🤫", "פעילות סודית הורה–ילד"], ["🎉", "חגיגה לכל החוגגים"], ["🎁", "ועוד הפתעות שאסור לפספס"]];
-  items.forEach(([ico, label], i) => {
-    const k = easeBack(seg(s, .6 + i * .45, 1.1 + i * .45));
-    const y = 720 + i * 260, x = lerp(W + 600, W / 2, k);
-    ctx.save(); ctx.globalAlpha = A * seg(s, .6 + i * .45, .8 + i * .45);
-    ctx.fillStyle = "rgba(255,255,255,.16)"; rrect(x - 460, y - 95, 920, 190, 95); ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,.5)"; ctx.lineWidth = 4; ctx.stroke();
+  stamp("מסווג 🤫", W / 2, 965, s, 4.5 * B, { size: 100, color: "#ff1f3d", rot: -.14 });
+  tag("👀 תגלו רק ביום החגיגה", W / 2, 1330, { size: 76, bg: NEON, fg: INK, scale: pop(s, 6 * B), rot: .03 });
+});
+// 6. HINTS — one big word every 2 beats, color flip
+const HINTS = [["רמז #1", "איזון", "🤹", PINK], ["רמז #2", "אמון", "🤝", NEON], ["רמז #3", "מרחפים", "✈️", BLUE], ["רמז #4", "צחוק", "😂", PURPLE]];
+cut(2, (s, t) => {
+  const i = Math.min(3, Math.floor(s / (2 * B))), ls = s - i * 2 * B;
+  const [lbl, word, emo, col] = HINTS[i];
+  const dark = col === NEON;
+  bg(col, t, "dots", dark ? INK : WHITE);
+  tag(lbl, W / 2, 470, { size: 80, bg: INK, fg: dark ? NEON : WHITE, scale: pop(ls, 0, .2), rot: -.04 });
+  text(emo, W / 2, 800, { size: 240, scale: pop(ls, .05, .25) * beatPulse(t), rot: Math.sin(t * 6) * .08 });
+  text(word, W / 2, 1120, { size: 230, color: dark ? INK : WHITE, scale: lerp(1.4, 1, easeOut(seg(ls, 0, .25))) });
+  text("נחשתם? 😉", W / 2, 1600, { size: 70, font: "Heebo", color: dark ? INK : WHITE, alpha: i === 3 ? seg(ls, B, B + .15) : 0 });
+});
+// 7. PARENTS — entry ticket
+cut(2, (s, t) => {
+  bg(NEON, t, "stripes", INK);
+  const shake = Math.sin(s * 70) * 12 * (1 - seg(s, 0, .4));
+  text("⚠️ הורים,", W / 2 + shake, 360, { size: 140, color: INK, scale: pop(s, 0) });
+  tag("שימו לב!", W / 2, 540, { size: 110, bg: INK, fg: NEON, scale: pop(s, B), rot: -.04 });
+  // ticket
+  const k = easeBack(seg(s, 2 * B, 2 * B + .4));
+  if (k > 0) {
+    ctx.save(); ctx.translate(lerp(W + 700, W / 2, k), 1050); ctx.rotate(lerp(.4, -.035, k));
+    ctx.fillStyle = "rgba(0,0,0,.9)"; ctx.beginPath(); ticketPath(14, 14); ctx.fill();
+    ctx.fillStyle = WHITE; ctx.beginPath(); ticketPath(0, 0); ctx.fill();
+    ctx.setLineDash([18, 14]); ctx.strokeStyle = "#bbb"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-300, -230); ctx.lineTo(-300, 230); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = PINK; rrect(-450, -230, 150, 460, [36, 0, 0, 36]); ctx.fill();
     ctx.restore();
-    text(ico, x + 360, y, { size: 96, shadow: null });
-    text(label, x + 270, y, { size: 62, align: "right", alpha: seg(s, .6 + i * .45, .8 + i * .45) });
-  });
-  ctx.globalAlpha = 1;
+    const tx = lerp(W + 700, W / 2, k) + 70, rot = lerp(.4, -.035, k);
+    text("🎟️ כרטיס כניסה", tx, 900, { size: 66, color: "#666", rot });
+    text("ילד + הורה", tx, 1030, { size: 130, color: INK, rot });
+    text("זוג אחד = כרטיס אחד", tx, 1160, { size: 54, font: "Heebo", color: PINK, rot });
+    text("27.10", lerp(W + 700, W / 2, k) - 375, 1060, { size: 64, color: WHITE, rot: rot - Math.PI / 2 });
+  }
+  tag("לפחות הורה 1 משתתף עם הילד!", W / 2, 1480, { size: 70, bg: PINK, fg: WHITE, scale: pop(s, 5 * B), rot: .02 });
+  text("לא צופים מהצד — נכנסים לפעולה 💪", W / 2, 1650, { size: 56, font: "Heebo", color: INK, alpha: seg(s, 6 * B, 6 * B + .2) });
+});
+function ticketPath(ox, oy) {
+  const w = 900, h = 460, r = 36, n = 34;
+  ctx.moveTo(-w / 2 + r + ox, -h / 2 + oy);
+  ctx.lineTo(w / 2 - r + ox, -h / 2 + oy); ctx.arcTo(w / 2 + ox, -h / 2 + oy, w / 2 + ox, -h / 2 + r + oy, r);
+  ctx.lineTo(w / 2 + ox, -n + oy); ctx.arc(w / 2 + ox, oy, n, -Math.PI / 2, Math.PI / 2, true);
+  ctx.lineTo(w / 2 + ox, h / 2 - r + oy); ctx.arcTo(w / 2 + ox, h / 2 + oy, w / 2 - r + ox, h / 2 + oy, r);
+  ctx.lineTo(-w / 2 + r + ox, h / 2 + oy); ctx.arcTo(-w / 2 + ox, h / 2 + oy, -w / 2 + ox, h / 2 - r + oy, r);
+  ctx.lineTo(-w / 2 + ox, n + oy); ctx.arc(-w / 2 + ox, oy, n, Math.PI / 2, -Math.PI / 2, true);
+  ctx.lineTo(-w / 2 + ox, -h / 2 + r + oy); ctx.arcTo(-w / 2 + ox, -h / 2 + oy, -w / 2 + r + ox, -h / 2 + oy, r);
+  ctx.closePath();
 }
-
-function scene6(t) { // finale
-  const A = Math.min(seg(t, 28, 28.4), 1 - seg(t, DURATION - .6, DURATION));
-  if (A <= 0) return;
-  ctx.globalAlpha = A;
-  const s = t - 28;
-  text("נתראה ב־", W / 2, 340, { size: 100, scale: easeBack(seg(s, .1, .6)) });
-  const gold = ctx.createLinearGradient(0, 430, 0, 640); gold.addColorStop(0, "#fff6b0"); gold.addColorStop(1, "#ffb22e");
-  text(CONFIG.date, W / 2, 540, { size: 250, color: gold, scale: easeBack(seg(s, .3, .9)) * (1 + Math.sin(t * 4) * .02), stroke: "#6b1460", strokeW: 20, blur: 40 });
-  text(CONFIG.day, W / 2, 720, { size: 64, font: "Heebo", alpha: seg(s, .8, 1.2) });
-  // names chips
-  const names = CONFIG.names;
-  names.forEach((nm, i) => {
-    const row = Math.floor(i / 3), col = i % 3;
-    const x = W / 2 + (1 - col) * 310, y = 900 + row * 140;
-    const k = easeBack(seg(s, 1 + i * .12, 1.4 + i * .12));
-    ctx.save(); ctx.translate(x, y); ctx.scale(k, k);
-    ctx.fillStyle = BAL_COLORS[i % BAL_COLORS.length]; ctx.shadowColor = "rgba(0,0,0,.25)"; ctx.shadowBlur = 20;
-    rrect(-140, -55, 280, 110, 55); ctx.fill(); ctx.restore();
-    text(nm, x, y, { size: 56, scale: k, shadow: null });
+// 8. WHAT YOU GET
+cut(2, (s, t) => {
+  bg(PURPLE, t, "dots", WHITE);
+  text("מה מחכה לכם?", W / 2, 420, { size: 120, scale: pop(s, 0) });
+  const items = ["פעילות סודית הורה–ילד 🤫", "חגיגה לכל החוגגים 🎉", "הפתעות שאסור לפספס 🎁"];
+  items.forEach((it, i) => {
+    const a = 1.5 * B + i * 1.5 * B, k = easeBack(seg(s, a, a + .3)), y = 760 + i * 250;
+    ctx.save(); ctx.globalAlpha = clamp(k); ctx.translate(lerp(W + 600, W / 2, k), y);
+    ctx.fillStyle = "rgba(0,0,0,.85)"; rrect(-460 + 12, -95 + 12, 920, 190, 30); ctx.fill();
+    ctx.fillStyle = WHITE; rrect(-460, -95, 920, 190, 30); ctx.fill();
+    ctx.fillStyle = GREEN; rrect(300, -70, 140, 140, 70); ctx.fill();
+    ctx.restore();
+    const x = lerp(W + 600, W / 2, k);
+    text("✓", x + 370, y + 4, { size: 100, color: WHITE, scale: pop(s, a + .15, .2) });
+    text(it, x + 250, y, { size: 58, color: INK, align: "right", alpha: clamp(k) });
   });
-  const when = [CONFIG.time && ("בשעה " + CONFIG.time), CONFIG.place].filter(Boolean).join(" · ");
-  text(when || "שעה ומקום — בקבוצת הכיתה", W / 2, 1250, { size: 56, font: "Heebo", alpha: seg(s, 2, 2.4) });
-  const p = easeBack(seg(s, 2.5, 3));
-  ctx.save(); ctx.translate(W / 2, 1450); ctx.scale(p * (1 + Math.sin(t * 5) * .03), p);
-  ctx.fillStyle = "#ffe066"; ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 30; rrect(-420, -85, 840, 170, 85); ctx.fill(); ctx.restore();
-  text("מגיעים בזוג: ילד + הורה!", W / 2, 1450, { size: 64, color: "#5a0f4a", scale: p, shadow: null });
-  text("אל תפספסו 🎈", W / 2, 1680, { size: 80, alpha: seg(s, 3.3, 3.7) });
-  ctx.globalAlpha = 1;
-}
+});
+// 9. CTA — tap to RSVP
+cut(2, (s, t) => {
+  const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, PINK); g.addColorStop(1, PURPLE);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); stripes(t, WHITE, .06);
+  tag("נתראה ב־", W / 2, 300, { size: 96, bg: INK, fg: WHITE, scale: pop(s, 0), rot: -.04 });
+  text(CONFIG.date, W / 2, 560, { size: 300, color: NEON, scale: pop(s, .1, .3) * beatPulse(t), stroke: INK, strokeW: 18 });
+  text(CONFIG.day, W / 2, 770, { size: 80, alpha: seg(s, B, B + .15) });
+  const when = [CONFIG.time && ("בשעה " + CONFIG.time), CONFIG.place].filter(Boolean).join(" · ") || "שעה ומקום — בקבוצת הכיתה";
+  text(when, W / 2, 890, { size: 54, font: "Heebo", alpha: seg(s, 1.5 * B, 1.5 * B + .15) });
+  text(CONFIG.names.join(" · "), W / 2, 1010, { size: 54, font: "Heebo", color: NEON, alpha: seg(s, 2 * B, 2 * B + .15) });
+  // RSVP button with finger tap
+  const tapT = 3.5 * B, tapped = s >= tapT;
+  const bk = pop(s, 2.5 * B, .3), press = tapped ? 1 - .08 * Math.exp(-(s - tapT) * 10) : 1;
+  ctx.save(); ctx.translate(W / 2, 1390); ctx.scale(bk * press * (tapped ? 1 : beatPulse(t)), bk * press);
+  ctx.fillStyle = "rgba(0,0,0,.85)"; rrect(-400 + 14, -110 + 14, 800, 220, 110); ctx.fill();
+  ctx.fillStyle = tapped ? GREEN : NEON; rrect(-400, -110, 800, 220, 110); ctx.fill();
+  ctx.restore();
+  text(tapped ? "אנחנו מגיעים! 🙌" : "אנחנו בפנים? 👈", W / 2, 1394, { size: 86, color: INK, scale: bk * press });
+  if (tapped) { // ripple
+    const rk = seg(s, tapT, tapT + .6);
+    ctx.strokeStyle = `rgba(255,255,255,${1 - rk})`; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(W / 2 + 120, 1420, 40 + rk * 380, 0, 6.28); ctx.stroke();
+  }
+  const fk = seg(s, 2.8 * B, tapT), fy = lerp(1900, 1450, easeOut(fk)) + (tapped ? 20 * Math.exp(-(s - tapT) * 8) : 0);
+  text("👆", W / 2 + 140, fy + 70, { size: 150, alpha: fk > 0 ? 1 - seg(s, tapT + .8, tapT + 1.1) : 0 });
+  tag("ילד + הורה = צוות מנצח 💪", W / 2, 1700, { size: 64, bg: WHITE, fg: INK, scale: pop(s, tapT + .5), rot: .03 });
+});
 
+// ---------- master ----------
+function storyBar(t) {
+  const n = CUTS.length, gap = 10, w = (W - 60 - gap * (n - 1)) / n;
+  CUTS.forEach((c, i) => {
+    const x = W - 30 - (i + 1) * w - i * gap; // RTL: fills right → left
+    ctx.fillStyle = "rgba(255,255,255,.35)"; rrect(x, 28, w, 9, 5); ctx.fill();
+    const k = seg(t, c.start, c.end);
+    if (k > 0) { ctx.fillStyle = WHITE; rrect(x + w * (1 - k), 28, w * k, 9, 5); ctx.fill(); }
+  });
+}
 function render(t) {
-  ctx.clearRect(0, 0, W, H);
-  background(t);
-  scene1(t); scene2(t); scene3(t); scene4(t); scene5(t); scene6(t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.clearRect(0, 0, W, H);
+  const i = Math.max(0, CUTS.findIndex(c => t < c.end));
+  const c = CUTS[i === -1 ? CUTS.length - 1 : i] || CUTS[CUTS.length - 1];
+  const s = t - c.start;
+  // punch-in on every cut
+  const z = lerp(1.08, 1, easeOut(seg(s, 0, .3)));
+  ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+  c.fn(s, t);
+  ctx.restore();
   confetti(t);
+  // white flash on each cut
+  const f = 1 - seg(s, 0, .12);
+  if (f > 0 && t > .05) { ctx.fillStyle = `rgba(255,255,255,${.55 * f})`; ctx.fillRect(0, 0, W, H); }
+  storyBar(Math.min(t, CUTS[CUTS.length - 1].end));
+  // fade to black at the very end
+  const e = seg(t, DURATION - .45, DURATION);
+  if (e > 0) { ctx.fillStyle = `rgba(0,0,0,${e})`; ctx.fillRect(0, 0, W, H); }
 }
 
 window.DURATION = DURATION;
 window.render = render;
 window.ready = document.fonts.load('700 40px Rubik', 'א27').then(() => Promise.all([
-  document.fonts.load('500 40px Heebo', '27'), document.fonts.load('700 40px Heebo', '27'),
-  document.fonts.load('500 40px Rubik'), document.fonts.load('700 40px Heebo'), document.fonts.load('500 40px Heebo'),
+  document.fonts.load('500 40px Heebo', 'א27'), document.fonts.load('700 40px Heebo', 'א27'),
   document.fonts.load('40px "Noto Color Emoji"', '🤸'),
 ]));
-// live preview when opened in a browser (render.mjs sets ?render)
 if (!location.search.includes("render")) {
   window.ready.then(() => { const t0 = performance.now(); (function loop() { render(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); })(); });
 }

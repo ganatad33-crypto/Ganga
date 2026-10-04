@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>הזמנה ליום הולדת כיתתי</title>
+<style>
+  @font-face { font-family: Rubik; font-weight: 700; src: url(../fonts/rubik-hebrew-700-normal.woff2) format("woff2"); }
+  @font-face { font-family: Rubik; font-weight: 500; src: url(../fonts/rubik-hebrew-500-normal.woff2) format("woff2"); }
+  @font-face { font-family: Heebo; font-weight: 700; src: url(../fonts/heebo-hebrew-700-normal.woff2) format("woff2"); }
+  @font-face { font-family: Heebo; font-weight: 500; src: url(../fonts/heebo-hebrew-500-normal.woff2) format("woff2"); }
+  @font-face { font-family: Rubik; font-weight: 700; src: url(../fonts/rubik-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+  @font-face { font-family: Rubik; font-weight: 500; src: url(../fonts/rubik-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+  @font-face { font-family: Heebo; font-weight: 700; src: url(../fonts/heebo-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+  @font-face { font-family: Heebo; font-weight: 500; src: url(../fonts/heebo-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+  html, body { margin: 0; background: #1a0b3d; }
+  canvas { display: block; width: 100vw; max-width: 540px; height: auto; margin: 0 auto; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// ===== פרטי האירוע — לשנות כאן ולהריץ מחדש את render.mjs =====
+const CONFIG = {
+  names: ["יאיר", "מיה", "לביא ג.", "לביא", "יאיר", "עלמה"],
+  date: "27.10",
+  day: "יום שלישי",
+  time: "",   // למשל "17:00" — אם ריק, מופיע "פרטים בקבוצת הכיתה"
+  place: "",  // למשל "הגינה של בית הספר"
+};
+const DURATION = 33;
+
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d");
+const W = 1080, H = 1920;
+
+// ---------- helpers ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, k) => a + (b - a) * k;
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const easeBack = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+// fade in/out window for a scene
+function win(t, a, b, fi = .35, fo = .35) { return Math.min(seg(t, a, a + fi), 1 - seg(t, b - fo, b)); }
+
+const EMOJI = '"Noto Color Emoji"';
+function text(str, x, y, o = {}) {
+  const { size = 80, font = "Rubik", weight = 700, color = "#fff", alpha = 1, scale = 1, rot = 0,
+          stroke = null, strokeW = 0, shadow = "rgba(0,0,0,.35)", blur = 18, align = "center" } = o;
+  if (alpha <= 0.001 || scale <= 0.001) return;
+  ctx.save();
+  ctx.globalAlpha *= clamp(alpha);
+  ctx.translate(x, y); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `${weight} ${size}px ${font}, ${EMOJI}`;
+  ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.direction = "rtl";
+  if (shadow) { ctx.shadowColor = shadow; ctx.shadowBlur = blur; ctx.shadowOffsetY = 6; }
+  if (stroke) { ctx.lineJoin = "round"; ctx.lineWidth = strokeW; ctx.strokeStyle = stroke; ctx.strokeText(str, 0, 0); ctx.shadowColor = "transparent"; }
+  if (color.addColorStop) { ctx.fillStyle = color; } else ctx.fillStyle = color;
+  ctx.fillText(str, 0, 0);
+  ctx.restore();
+}
+function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+
+// ---------- background ----------
+const PALETTES = [
+  ["#2b0f6b", "#8a1fa8", "#ff4f9a"],   // purple → pink
+  ["#0b3b8c", "#5b2bd6", "#ff6fb5"],
+  ["#0a5c63", "#1b8f8a", "#ffc94d"],   // teal → sun (acro)
+  ["#7a1238", "#e3384f", "#ffb03a"],   // warm (parents)
+  ["#23137a", "#3f5bf0", "#43e0c6"],
+  ["#2b0f6b", "#c01f8e", "#ffb03a"],
+];
+const SCENE_STARTS = [0, 4.5, 11, 18, 24, 28];
+function hex(c) { return [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)); }
+function mix(a, b, k) { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], k))).join(",")})`; }
+function palette(t) {
+  let i = 0; while (i < SCENE_STARTS.length - 1 && t >= SCENE_STARTS[i + 1]) i++;
+  const next = Math.min(i + 1, PALETTES.length - 1);
+  const k = i === next ? 0 : easeInOut(seg(t, SCENE_STARTS[next] - .8, SCENE_STARTS[next]));
+  return PALETTES[i].map((c, j) => mix(c, PALETTES[next][j], k));
+}
+const STARS = (() => { const r = rng(7); return Array.from({ length: 70 }, () => ({ x: r() * W, y: r() * H, s: 2 + r() * 5, p: r() * 6.28, f: 1 + r() * 2 })); })();
+function background(t) {
+  const [a, b, c] = palette(t);
+  const g = ctx.createLinearGradient(0, 0, W * .3, H);
+  g.addColorStop(0, a); g.addColorStop(.6, b); g.addColorStop(1, c);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // soft moving blobs
+  const blobs = [[.2, .25, 420, .7], [.85, .55, 520, .5], [.4, .9, 460, .9]];
+  blobs.forEach(([bx, by, r, sp], i) => {
+    const x = bx * W + Math.sin(t * sp + i) * 120, y = by * H + Math.cos(t * sp * .8 + i * 2) * 140;
+    const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, "rgba(255,255,255,.16)"); rg.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  });
+  // twinkles
+  STARS.forEach(s => {
+    const a = .25 + .75 * Math.max(0, Math.sin(t * s.f + s.p));
+    ctx.globalAlpha = a * .8; ctx.fillStyle = "#fff";
+    star(s.x, s.y + Math.sin(t * .5 + s.p) * 10, s.s, s.s * .4, 4);
+    ctx.globalAlpha = 1;
+  });
+}
+function star(x, y, R, r, n = 5) {
+  ctx.beginPath();
+  for (let i = 0; i < n * 2; i++) {
+    const rad = i % 2 ? r : R, a = i * Math.PI / n - Math.PI / 2;
+    ctx.lineTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad);
+  }
+  ctx.closePath(); ctx.fill();
+}
+
+// ---------- confetti ----------
+const CONF_COLORS = ["#ffd23f", "#ff5d8f", "#3bceac", "#5ab0ff", "#ffffff", "#ff9f1c", "#b388ff"];
+function makeBurst(t0, ox, oy, n, seed, spread = 1) {
+  const r = rng(seed);
+  return Array.from({ length: n }, () => {
+    const ang = -Math.PI / 2 + (r() - .5) * Math.PI * 1.4 * spread, sp = 900 + r() * 1500;
+    return { t0: t0 + r() * .15, ox, oy, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, rot: r() * 6, vr: (r() - .5) * 14,
+             w: 14 + r() * 18, h: 8 + r() * 12, c: CONF_COLORS[(r() * CONF_COLORS.length) | 0], shape: r() < .3 ? 1 : 0, sw: r() * 6 };
+  });
+}
+const BURSTS = [
+  ...makeBurst(.85, W / 2, 900, 160, 11),
+  ...makeBurst(11.9, W / 2, 1000, 120, 12),
+  ...makeBurst(28.3, 200, 1900, 110, 13, .5),
+  ...makeBurst(28.3, 880, 1900, 110, 14, .5),
+  ...makeBurst(30.5, W / 2, 1000, 140, 15),
+];
+function confetti(t) {
+  BURSTS.forEach(p => {
+    const dt = t - p.t0; if (dt < 0 || dt > 5) return;
+    const drag = 1 - Math.exp(-2.2 * dt);
+    const x = p.ox + p.vx / 2.2 * drag + Math.sin(dt * 3 + p.sw) * 30 * dt;
+    const y = p.oy + p.vy / 2.2 * drag + 380 * dt * dt * .5 + 260 * dt;
+    if (y > H + 50) return;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(p.rot + p.vr * dt);
+    ctx.scale(1, Math.cos(dt * 8 + p.sw)); ctx.globalAlpha = clamp(5 - dt);
+    ctx.fillStyle = p.c;
+    if (p.shape) { ctx.beginPath(); ctx.arc(0, 0, p.w / 2.4, 0, 6.28); ctx.fill(); } else ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    ctx.restore();
+  });
+}
+
+// ---------- balloon ----------
+const BAL_COLORS = ["#ff4f7b", "#ffc43d", "#3bceac", "#4d9bff", "#b06bff", "#ff8a3d"];
+function balloon(x, y, color, name, scale = 1, sway = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale); ctx.rotate(sway);
+  // string
+  ctx.strokeStyle = "rgba(255,255,255,.8)"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, 150); ctx.bezierCurveTo(25, 210, -25, 260, 8, 330); ctx.stroke();
+  // body
+  const g = ctx.createRadialGradient(-45, -60, 10, 0, 0, 170);
+  g.addColorStop(0, "#ffffffcc"); g.addColorStop(.18, color); g.addColorStop(1, shade(color, -.35));
+  ctx.fillStyle = g; ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14;
+  ctx.beginPath(); ctx.ellipse(0, 0, 125, 150, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.beginPath(); ctx.moveTo(-16, 160); ctx.lineTo(16, 160); ctx.lineTo(0, 142); ctx.closePath(); ctx.fillStyle = shade(color, -.3); ctx.fill();
+  ctx.restore();
+  text(name, x, y - 8 * scale, { size: 62 * scale, color: "#fff", stroke: "rgba(0,0,0,.25)", strokeW: 10 * scale, blur: 8 });
+}
+function shade(c, k) { const [r, g, b] = hex(c); const f = v => Math.round(clamp(k < 0 ? v * (1 + k) : v + (255 - v) * k, 0, 255)); return `rgb(${f(r)},${f(g)},${f(b)})`; }
+
+// ---------- acro-yoga figures ----------
+const BASE_REST = { head: [-170, -40], sh: [-120, -32], hip: [0, -30], knee: [70, -130], foot: [120, -40], hand: [-40, -80] };
+const BASE_FLY = { head: [-170, -40], sh: [-120, -32], hip: [0, -30], knee: [-5, -150], foot: [-10, -265], hand: [-165, -255] };
+const KID_REST = { head: [250, -215], sh: [250, -180], hip: [250, -100], foot: [250, 0], handA: [215, -100], handB: [285, -100] };
+const KID_FLY = { head: [-140, -345], sh: [-100, -310], hip: [-10, -285], foot: [120, -330], handA: [-165, -255], handB: [-165, -255] };
+function pose(A, B, k) { const o = {}; for (const j in A) o[j] = [lerp(A[j][0], B[j][0], k), lerp(A[j][1], B[j][1], k)]; return o; }
+function limb(pts, color, w) {
+  ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke();
+}
+function head(p, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 6.28); ctx.fill(); }
+function acro(t, cx, cy, s, k) {
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s);
+  // mat
+  ctx.fillStyle = "rgba(255,255,255,.18)"; rrect(-300, -6, 600, 26, 13); ctx.fill();
+  const b = pose(BASE_REST, BASE_FLY, k);
+  const bob = k >= 1 ? Math.sin(t * 2.4) * 6 : 0;
+  const kidPose = pose(KID_REST, KID_FLY, k);
+  for (const j in kidPose) kidPose[j][1] += bob;
+  b.foot[1] += bob; b.hand[1] += bob;
+  ctx.shadowColor = "rgba(0,0,0,.25)"; ctx.shadowBlur = 20;
+  // base (parent)
+  const P = "#ffe066";
+  limb([b.sh, b.hip, b.knee, b.foot], P, 30);
+  limb([b.sh, b.hand], P, 24);
+  head(b.head, 36, P);
+  // kid (flyer)
+  const K = "#ffffff";
+  limb([kidPose.sh, kidPose.hip, kidPose.foot], K, 24);
+  limb([kidPose.handA, kidPose.sh, kidPose.handB], K, 18);
+  head(kidPose.head, 30, K);
+  // smiles
+  [[b.head, 36], [kidPose.head, 30]].forEach(([h, r]) => {
+    ctx.shadowColor = "transparent"; ctx.fillStyle = "#3a1450";
+    ctx.beginPath(); ctx.arc(h[0] - r * .35, h[1] - r * .15, r * .12, 0, 6.28); ctx.arc(h[0] + r * .35, h[1] - r * .15, r * .12, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = "#3a1450"; ctx.lineWidth = r * .12; ctx.beginPath(); ctx.arc(h[0], h[1] + r * .05, r * .45, .2 * Math.PI, .8 * Math.PI); ctx.stroke();
+  });
+  ctx.restore();
+}
+
+// ---------- scenes ----------
+function scene1(t) { // save the date
+  const A = win(t, 0, 4.6, .3, .45);
+  if (A <= 0) return;
+  ctx.globalAlpha = A;
+  text("שריינו את התאריך!", W / 2, 560 - 40 * (1 - easeOut(seg(t, .1, .7))), { size: 84, alpha: seg(t, .1, .6) });
+  const k = easeBack(seg(t, .7, 1.3));
+  const pulse = 1 + Math.sin(t * 5) * .02 * seg(t, 1.3, 1.6);
+  // glow ring
+  if (t > .7) {
+    const rr = 300 + easeOut(seg(t, .7, 1.8)) * 400;
+    ctx.strokeStyle = `rgba(255,255,255,${.6 * (1 - seg(t, .7, 1.8))})`; ctx.lineWidth = 14;
+    ctx.beginPath(); ctx.arc(W / 2, 900, rr, 0, 6.28); ctx.stroke();
+  }
+  const gold = ctx.createLinearGradient(0, 800, 0, 1000); gold.addColorStop(0, "#fff6b0"); gold.addColorStop(1, "#ffb22e");
+  text(CONFIG.date, W / 2, 900, { size: 300, scale: k * pulse, color: gold, stroke: "#7a1f6e", strokeW: 22, blur: 40 });
+  text(CONFIG.day, W / 2, 1150, { size: 76, font: "Heebo", alpha: seg(t, 1.5, 2), scale: lerp(.7, 1, easeBack(seg(t, 1.5, 2))) });
+  text("משהו גדול מגיע...", W / 2, 1300, { size: 58, font: "Heebo", weight: 500, alpha: seg(t, 2.3, 2.9) * .9 });
+  ctx.globalAlpha = 1;
+}
+
+function scene2(t) { // class birthday + names
+  const A = win(t, 4.5, 11.1, .4, .45);
+  if (A <= 0) return;
+  ctx.globalAlpha = A;
+  const s = t - 4.5;
+  text("חוגגים", W / 2, 260, { size: 90, scale: easeBack(seg(s, .1, .6)) });
+  const pink = ctx.createLinearGradient(0, 330, 0, 450); pink.addColorStop(0, "#ffffff"); pink.addColorStop(1, "#ffe066");
+  text("יום הולדת כיתתי!", W / 2, 390, { size: 118, color: pink, scale: easeBack(seg(s, .4, 1)), stroke: "#6b1460", strokeW: 16 });
+  text("ל־" + CONFIG.names.length + " חוגגים מדהימים", W / 2, 520, { size: 52, font: "Heebo", weight: 500, alpha: seg(s, 1, 1.5) });
+  const n = CONFIG.names.length, cols = 2;
+  CONFIG.names.forEach((name, i) => {
+    const row = Math.floor(i / cols), col = i % cols;
+    const tx = col ? 300 : 780, ty = 760 + row * 380 + (col ? 70 : 0);
+    const k = easeBack(seg(s, 1.3 + i * .45, 2.3 + i * .45));
+    const y = lerp(H + 300, ty, k) + Math.sin(t * 1.6 + i) * 14;
+    balloon(tx + Math.sin(t * 1.1 + i * 2) * 10, y, BAL_COLORS[i % BAL_COLORS.length], name, .95, Math.sin(t * 1.3 + i) * .05);
+  });
+  ctx.globalAlpha = 1;
+}
+
+function scene3(t) { // acro yoga reveal
+  const A = win(t, 11, 18.1, .3, .45);
+  if (A <= 0) return;
+  ctx.globalAlpha = A;
+  const s = t - 11;
+  // teaser
+  const teaser = Math.min(seg(s, 0, .3), 1 - seg(s, .75, .95));
+  text("ומה עושים?", W / 2, 860, { size: 110, alpha: teaser, scale: lerp(.8, 1, easeOut(seg(s, 0, .4))) });
+  // reveal
+  const r = seg(s, .9, 1.5);
+  const sun = ctx.createLinearGradient(0, 260, 0, 420); sun.addColorStop(0, "#fff8c4"); sun.addColorStop(1, "#ffb22e");
+  text("אקרו יוגה!", W / 2, 330, { size: 170, color: sun, scale: easeBack(r), rot: Math.sin(s * 3) * .02 * r, stroke: "#0b4a4f", strokeW: 20 });
+  text("הורים וילדים — עפים ביחד", W / 2, 490, { size: 60, font: "Heebo", alpha: seg(s, 1.7, 2.2) });
+  const fly = easeInOut(seg(s, 2.2, 3.8));
+  ctx.globalAlpha = A * seg(s, 1.2, 1.8);
+  acro(t, W / 2 + 40, 1230, 1.55, fly);
+  ctx.globalAlpha = A;
+  text("איזון · אמון · המון צחוק", W / 2, 1420, { size: 56, font: "Heebo", alpha: seg(s, 4, 4.5), scale: lerp(.85, 1, easeBack(seg(s, 4, 4.5))) });
+  text("🤸", 200, 1600, { size: 120, alpha: seg(s, 4.6, 5), rot: Math.sin(t * 3) * .2, shadow: null });
+  text("💛", 880, 1600, { size: 110, alpha: seg(s, 4.8, 5.2), scale: 1 + Math.sin(t * 6) * .06, shadow: null });
+  ctx.globalAlpha = 1;
+}
+
+function scene4(t) { // parents must join
+  const A = win(t, 18, 24.1, .3, .45);
+  if (A <= 0) return;
+  ctx.globalAlpha = A;
+  const s = t - 18;
+  const shake = s < 1.2 ? Math.sin(s * 40) * 10 * (1 - seg(s, .3, 1.2)) * seg(s, .2, .3) : 0;
+  text("הורים,", W / 2 + shake, 420, { size: 150, scale: easeBack(seg(s, 0, .5)) });
+  text("הפעם לא יושבים בצד!", W / 2, 600, { size: 92, color: "#ffe066", scale: easeBack(seg(s, .6, 1.1)), stroke: "#6b0f2c", strokeW: 14 });
+  // card
+  const ck = easeBack(seg(s, 1.4, 2));
+  ctx.save(); ctx.translate(W / 2, 1010); ctx.scale(ck, ck);
+  ctx.fillStyle = "rgba(255,255,255,.95)"; ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 16;
+  rrect(-430, -230, 860, 460, 48); ctx.fill(); ctx.restore();
+  if (ck > .05) {
+    text("🤝", W / 2, 880, { size: 150 * ck, shadow: null });
+    text("לפחות הורה אחד", W / 2, 1040, { size: 80 * ck, color: "#c01f5a", shadow: null });
+    text("מגיע, מתנסה ומשתתף עם הילד", W / 2, 1140, { size: 54 * ck, font: "Heebo", color: "#3a1450", shadow: null });
+  }
+  // equation
+  const e = seg(s, 2.6, 3.1);
+  text("ילד  +  הורה  =  צוות מנצח", W / 2, 1420, { size: 74, alpha: e, scale: lerp(.6, 1, easeBack(e)) });
+  text("(מבטיחים שזה הכי כיף שיש 😉)", W / 2, 1560, { size: 50, font: "Heebo", weight: 500, alpha: seg(s, 3.6, 4.1) * .95 });
+  ctx.globalAlpha = 1;
+}
+
+function scene5(t) { // what awaits
+  const A = win(t, 24, 28.2, .3, .4);
+  if (A <= 0) return;
+  ctx.globalAlpha = A;
+  const s = t - 24;
+  text("מה מחכה לכם?", W / 2, 420, { size: 120, scale: easeBack(seg(s, 0, .5)) });
+  const items = [["🤸", "אקרו יוגה הורה–ילד"], ["🎉", "חגיגה לכל החוגגים"], ["🎁", "ועוד הפתעות שאסור לפספס"]];
+  items.forEach(([ico, label], i) => {
+    const k = easeBack(seg(s, .6 + i * .45, 1.1 + i * .45));
+    const y = 720 + i * 260, x = lerp(W + 600, W / 2, k);
+    ctx.save(); ctx.globalAlpha = A * seg(s, .6 + i * .45, .8 + i * .45);
+    ctx.fillStyle = "rgba(255,255,255,.16)"; rrect(x - 460, y - 95, 920, 190, 95); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.5)"; ctx.lineWidth = 4; ctx.stroke();
+    ctx.restore();
+    text(ico, x + 360, y, { size: 96, shadow: null });
+    text(label, x + 270, y, { size: 62, align: "right", alpha: seg(s, .6 + i * .45, .8 + i * .45) });
+  });
+  ctx.globalAlpha = 1;
+}
+
+function scene6(t) { // finale
+  const A = Math.min(seg(t, 28, 28.4), 1 - seg(t, DURATION - .6, DURATION));
+  if (A <= 0) return;
+  ctx.globalAlpha = A;
+  const s = t - 28;
+  text("נתראה ב־", W / 2, 340, { size: 100, scale: easeBack(seg(s, .1, .6)) });
+  const gold = ctx.createLinearGradient(0, 430, 0, 640); gold.addColorStop(0, "#fff6b0"); gold.addColorStop(1, "#ffb22e");
+  text(CONFIG.date, W / 2, 540, { size: 250, color: gold, scale: easeBack(seg(s, .3, .9)) * (1 + Math.sin(t * 4) * .02), stroke: "#6b1460", strokeW: 20, blur: 40 });
+  text(CONFIG.day, W / 2, 720, { size: 64, font: "Heebo", alpha: seg(s, .8, 1.2) });
+  // names chips
+  const names = CONFIG.names;
+  names.forEach((nm, i) => {
+    const row = Math.floor(i / 3), col = i % 3;
+    const x = W / 2 + (1 - col) * 310, y = 900 + row * 140;
+    const k = easeBack(seg(s, 1 + i * .12, 1.4 + i * .12));
+    ctx.save(); ctx.translate(x, y); ctx.scale(k, k);
+    ctx.fillStyle = BAL_COLORS[i % BAL_COLORS.length]; ctx.shadowColor = "rgba(0,0,0,.25)"; ctx.shadowBlur = 20;
+    rrect(-140, -55, 280, 110, 55); ctx.fill(); ctx.restore();
+    text(nm, x, y, { size: 56, scale: k, shadow: null });
+  });
+  const when = [CONFIG.time && ("בשעה " + CONFIG.time), CONFIG.place].filter(Boolean).join(" · ");
+  text(when || "שעה ומקום — בקבוצת הכיתה", W / 2, 1250, { size: 56, font: "Heebo", alpha: seg(s, 2, 2.4) });
+  const p = easeBack(seg(s, 2.5, 3));
+  ctx.save(); ctx.translate(W / 2, 1450); ctx.scale(p * (1 + Math.sin(t * 5) * .03), p);
+  ctx.fillStyle = "#ffe066"; ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 30; rrect(-420, -85, 840, 170, 85); ctx.fill(); ctx.restore();
+  text("מגיעים בזוג: ילד + הורה!", W / 2, 1450, { size: 64, color: "#5a0f4a", scale: p, shadow: null });
+  text("אל תפספסו 🎈", W / 2, 1680, { size: 80, alpha: seg(s, 3.3, 3.7) });
+  ctx.globalAlpha = 1;
+}
+
+function render(t) {
+  ctx.clearRect(0, 0, W, H);
+  background(t);
+  scene1(t); scene2(t); scene3(t); scene4(t); scene5(t); scene6(t);
+  confetti(t);
+}
+
+window.DURATION = DURATION;
+window.render = render;
+window.ready = document.fonts.load('700 40px Rubik', 'א27').then(() => Promise.all([
+  document.fonts.load('500 40px Heebo', '27'), document.fonts.load('700 40px Heebo', '27'),
+  document.fonts.load('500 40px Rubik'), document.fonts.load('700 40px Heebo'), document.fonts.load('500 40px Heebo'),
+  document.fonts.load('40px "Noto Color Emoji"', '🤸'),
+]));
+// live preview when opened in a browser (render.mjs sets ?render)
+if (!location.search.includes("render")) {
+  window.ready.then(() => { const t0 = performance.now(); (function loop() { render(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); })(); });
+}
+</script>
+</body>
+</html>

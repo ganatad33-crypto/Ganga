@@ -22,6 +22,33 @@
 <script src="env.js"></script>
 <script>
 const W = 1920, H = 1080, FPS = 30, DURATION = 92.4;
+
+// ---------- 60-second edit ----------
+// Pauses between lines are trimmed (never a spoken word); cuts are in original-audio seconds.
+// Add ?full to the URL for the uncut 92s version.
+const EDIT = location.search.includes('full') ? null : {
+  length: 60, end: 86.6,
+  cuts: [[0, 2.0], [4.9, 7.1], [9.9, 10.75], [11.45, 12.25], [14.0, 14.95], [17.6, 18.8], [19.45, 20.3],
+    [24.9, 26.1], [27.9, 29.2], [29.85, 30.4], [37.85, 38.35], [38.95, 39.6], [47.9, 48.85], [51.5, 52.0],
+    [54.2, 55.25], [56.4, 57.35], [59.2, 60.0], [60.6, 62.2], [65.0, 65.8], [68.6, 70.0], [72.5, 74.7],
+    [76.2, 77.0], [78.95, 79.55], [81.2, 82.6]],
+};
+const SEGS = (() => {
+  if (!EDIT) return [[0, DURATION]];
+  const segs = []; let s = 0;
+  for (const [a, b] of EDIT.cuts) { if (a > s) segs.push([s, a]); s = b; }
+  if (EDIT.end > s) segs.push([s, EDIT.end]);
+  return segs;
+})();
+const KEPT = SEGS.reduce((n, [a, b]) => n + b - a, 0);
+const OUT_DURATION = EDIT ? EDIT.length : DURATION;
+const TEMPO = KEPT / OUT_DURATION; // tiny speed-up so the edit lands exactly on the target length
+// output time -> original timeline time
+function warp(tn) {
+  let tc = tn * TEMPO;
+  for (const [a, b] of SEGS) { if (tc <= b - a) return a + tc; tc -= b - a; }
+  return SEGS[SEGS.length - 1][1];
+}
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const tl = document.createElement('canvas'); tl.width = W; tl.height = H; const tx = tl.getContext('2d');
 const tint = document.createElement('canvas'); tint.width = W; tint.height = H; const tix = tint.getContext('2d');
@@ -336,9 +363,9 @@ function drawFinal(c, t, sc) {
   const lines = [['בקרוב', 85.2], ['כל שבוע', 85.9], ['בכל המשרדים', 86.6]];
   c.save(); c.direction = 'rtl'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '900 48px Frank';
   const full = 'בקרוב   ✦   כל שבוע   ✦   בכל המשרדים';
-  const a = clamp((t - 85.2) / 0.8) * clamp((sc.t1 - 0.8 - t) / 0.8);
+  const a = clamp((t - 84.3) / 0.6) * clamp((sc.t1 - 0.8 - t) / 0.8);
   c.globalAlpha = a; c.fillStyle = 'rgba(233,225,211,.85)'; c.fillText(full, W / 2, 760);
-  const b = clamp((t - 87.6) / 0.6) * clamp((sc.t1 - 0.8 - t) / 0.8);
+  const b = clamp((t - 85.2) / 0.5) * clamp((sc.t1 - 0.8 - t) / 0.8);
   c.globalAlpha = b * (hash(Math.floor(t * 14)) > 0.12 ? 1 : 0.2); c.font = '46px Glitch'; c.fillStyle = BLOOD_HI;
   c.fillText('ובשבוע הבא: יום שלישי', W / 2, 850);
   c.restore();
@@ -346,15 +373,14 @@ function drawFinal(c, t, sc) {
 
 function drawWarning(c, t) {
   // fake "rated" card before the narration
-  const a = clamp((t - 0.4) / 0.6) * clamp((3.45 - t) / 0.4);
+  const a = clamp((t - (EDIT ? 2.0 : 0.4)) / 0.3) * clamp((3.6 - t) / 0.25);
   if (a <= 0) return;
   c.save(); c.globalAlpha = a; c.direction = 'rtl'; c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.strokeStyle = BLOOD; c.lineWidth = 4; c.strokeRect(W / 2 - 560, 380, 1120, 320);
+  c.strokeStyle = BLOOD; c.lineWidth = 4; c.strokeRect(W / 2 - 560, 390, 1120, 230);
   c.fillStyle = BLOOD; c.font = '900 44px Frank'; c.fillText('אזהרה', W / 2, 440);
   c.fillStyle = BONE; c.font = '900 38px Frank';
   c.fillText('הטריילר הבא אושר לצפייה', W / 2, 520);
   c.fillText('רק למי שעדיין לא חזר לעבודה', W / 2, 575);
-  c.fillStyle = 'rgba(233,225,211,.5)'; c.font = '900 26px Frank'; c.fillText('מכיל: שעון מעורר · מיילים · ישיבת צוות', W / 2, 645);
   c.restore();
 }
 
@@ -467,18 +493,27 @@ function render(t) {
   if (fade < 1) { ctx.fillStyle = `rgba(0,0,0,${1 - fade})`; ctx.fillRect(0, 0, W, H); }
 }
 
+// renders output time tn (after the edit), with its own fade in/out
+function renderOut(tn) {
+  render(warp(tn));
+  const f = clamp(tn / 0.5) * clamp((OUT_DURATION - tn) / 1.2);
+  if (f < 1) { ctx.globalAlpha = 1; ctx.fillStyle = `rgba(0,0,0,${1 - f})`; ctx.fillRect(0, 0, W, H); }
+}
+
 window.render = render;
+Object.assign(window, { renderOut, SEGS, TEMPO, OUT_DURATION, EDIT });
 window.ready = document.fonts.load('100px Wet', 'יום').then(() => Promise.all([
   document.fonts.load('900 100px Frank', 'יום'), document.fonts.load('100px Glitch', 'יום')]));
 
 // live playback mode (skipped when driven by the renderer)
 if (!location.search.includes('render')) {
   const au = document.getElementById('au'), btn = document.getElementById('play');
+  if (EDIT) au.src = 'audio-60.mp3';
   window.ready.then(() => {
     render(0);
     btn.hidden = false;
     btn.onclick = () => { btn.hidden = true; au.currentTime = 0; au.play(); };
-    (function loop() { render(au.currentTime || 0); requestAnimationFrame(loop); })();
+    (function loop() { renderOut(au.currentTime || 0); requestAnimationFrame(loop); })();
   });
 }
 </script>

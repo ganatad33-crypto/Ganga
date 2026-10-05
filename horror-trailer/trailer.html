@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>יום שני חוזר</title>
+<style>
+  @font-face { font-family: "Wet"; src: url("fonts/RubikWetPaint.ttf"); }
+  @font-face { font-family: "Glitch"; src: url("fonts/RubikGlitch.ttf"); }
+  @font-face { font-family: "Frank"; src: url("fonts/FrankRuhlLibre.ttf"); font-weight: 900; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { width: 100vw; height: 56.25vw; max-height: 100vh; max-width: 177.78vh; display: block; }
+  #play { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.85); color: #c3000f; font: 48px "Wet", sans-serif; cursor: pointer; border: 0; }
+</style>
+</head>
+<body>
+<canvas id="cv" width="1920" height="1080"></canvas>
+<button id="play" hidden>▶ לחצו אם אתם מעזים</button>
+<audio id="au" src="audio.mp3" preload="auto"></audio>
+<script src="env.js"></script>
+<script>
+const W = 1920, H = 1080, FPS = 30, DURATION = 92.4;
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const tl = document.createElement('canvas'); tl.width = W; tl.height = H; const tx = tl.getContext('2d');
+const tint = document.createElement('canvas'); tint.width = W; tint.height = H; const tix = tint.getContext('2d');
+
+// ---------- helpers ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const easeOut = p => 1 - Math.pow(1 - p, 3);
+const easeOutBack = p => { const c = 1.9; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+function hash(n) { n = Math.sin(n * 127.1 + 311.7) * 43758.5453; return n - Math.floor(n); }
+const ENV = window.ENV || { env: [], low: [] };
+const env = t => ENV.env[Math.floor(t * FPS)] || 0;
+const low = t => ENV.low[Math.floor(t * FPS)] || 0;
+
+const BONE = '#e9e1d3', BLOOD = '#c3000f', BLOOD_HI = '#ff1a2b';
+const FONT = { n: '900 {s}px Frank', r: '{s}px Wet', g: '{s}px Glitch' };
+
+// ---------- script (word timings from the narration) ----------
+// each word: [text, start, style]  style: n = bone serif, r = blood paint, g = glitch
+const SCENES = [
+  { t0: 3.6, t1: 11.4, y: 540, size: 120, lines: [
+      [['בעולם...', 3.86, 'n']],
+      [['שבו', 7.38], ['סוף', 7.72], ['השבוע', 8.04], ['נגמר.', 8.66, 'r']] ] },
+  { t0: 12.2, t1: 19.4, y: 540, size: 110, lines: [
+      [['משפחה', 12.44], ['אחת', 12.96], ['חשבה...', 13.34]],
+      [['שהגרוע', 15.16, 'r'], ['מכל', 15.72], ['כבר', 16.14], ['מאחוריה.', 16.42]] ] },
+  { t0: 20.3, t1: 23.4, y: 540, size: 130, strike: { word: [0, 3], t: 22.2, t2: 22.6 }, lines: [
+      [['הם', 20.48], ['שרדו', 20.7], ['את', 21.04], ['יום ראשון.', 21.18, 'r']] ] },
+  { t0: 23.6, t1: 29.8, y: 540, size: 130, lines: [
+      [['אבל', 23.78], ['משהו...', 24.06, 'r']],
+      [['חיכה', 26.32], ['להם', 26.68], ['בבוקר.', 26.9, 'r']] ] },
+  { t0: 30.45, t1: 33.0, y: 800, size: 100, motif: 'clock', lines: [
+      [['השעון', 30.62], ['מצלצל.', 31.06, 'r']],
+      [['הקפה', 31.6], ['נגמר.', 32.04, 'r']] ] },
+  { t0: 32.4, t1: 38.9, y: 810, size: 92, motif: 'phone', lines: [
+      [['ובטלפון...', 32.5]],
+      [['ארבעים', 34.2, 'r'], ['ושבע', 35.68, 'r'], ['הודעות', 36.1], ['שלא', 36.54], ['נקראו.', 36.8]] ] },
+  { t0: 39.6, t1: 41.3, y: 540, size: 150, run: true, lines: [
+      [['הם', 39.72], ['ניסו', 39.86], ['לברוח.', 40.2, 'r']] ] },
+  { t0: 41.35, t1: 45.9, y: 540, size: 110, motif: 'call', lines: [
+      [['הם', 41.4], ['ניסו', 41.52], ['להתקשר', 41.9], ['לבוס', 42.48, 'r']],
+      [['ולהגיד', 43.54], ['שהם', 44.04], ['חולים.', 44.32]] ] },
+  { t0: 46.1, t1: 52.6, y: 820, size: 96, motif: 'calendar', lines: [
+      [['אבל', 46.24], ['אי', 46.42], ['אפשר', 46.54], ['לברוח...', 46.88, 'r']],
+      [['ממה', 48.98], ['שמופיע', 49.4], ['בלוח', 50.1], ['השנה.', 50.56, 'r']] ] },
+  { t0: 52.9, t1: 60.6, y: 540, size: 120, lines: [
+      [['הקיץ', 53.04], ['הזה...', 53.58]],
+      [['הוא', 55.38], ['חוזר.', 55.52, 'r']],
+      [['כל', 57.46], ['שבוע', 57.72], ['מחדש.', 58.14, 'r']] ] },
+  { t0: 63.0, t1: 66.4, title: true },
+  { t0: 66.5, t1: 70.6, y: 540, size: 120, lines: [
+      [['עכשיו', 66.62]],
+      [['בכל', 67.06], ['המשרדים.', 67.42, 'r']] ] },
+  { t0: 71.0, t1: 77.6, y: 540, size: 130, lines: [
+      [['ואם', 71.2], ['חשבתם', 71.48]],
+      [['שזה', 74.84], ['נגמר...', 74.98, 'r']] ] },
+  { t0: 77.9, t1: 83.0, y: 540, size: 190, glitch: true, lines: [
+      [['מחר,', 78.04, 'g']],
+      [['יום שלישי.', 79.86, 'g']] ] },
+  { t0: 83.2, t1: 92.4, final: true },
+];
+
+// impacts: camera shake + lightning
+const HITS = [[3.86, .4], [8.66, .5], [15.16, .4], [21.18, .4], [22.2, .6], [24.06, .7], [26.9, .5], [30.62, .8],
+  [34.2, .5], [40.2, .6], [46.88, .6], [50.1, .5], [55.52, .6], [58.14, .5], [63.14, 1.4], [67.42, .5],
+  [74.98, .6], [78.04, 1.0], [79.86, 1.3], [83.3, 1.1]];
+const FLASHES = [[24.06, .55], [30.62, .4], [46.88, .35], [63.14, 1], [63.32, .6], [78.04, .7], [79.86, .9], [83.3, .8]];
+
+function impact(t) {
+  let s = 0;
+  for (const [h, a] of HITS) if (t >= h) s += a * Math.exp(-(t - h) * 7);
+  return s;
+}
+function flash(t) {
+  let s = 0;
+  for (const [h, a] of FLASHES) if (t >= h && t < h + 1) s = Math.max(s, a * Math.exp(-(t - h) * 9) * (0.6 + 0.4 * hash(Math.floor(t * 60))));
+  return s;
+}
+
+// ---------- pre-baked textures ----------
+const grains = [];
+for (let i = 0; i < 6; i++) {
+  const c = document.createElement('canvas'); c.width = 480; c.height = 270;
+  const g = c.getContext('2d'), d = g.createImageData(480, 270);
+  for (let p = 0; p < d.data.length; p += 4) { const v = Math.random() * 255; d.data[p] = d.data[p + 1] = d.data[p + 2] = v; d.data[p + 3] = 255; }
+  g.putImageData(d, 0, 0); grains.push(c);
+}
+const DRIPS = Array.from({ length: 26 }, (_, i) => ({ x: hash(i + 3) , d: 0.2 + hash(i + 40) * 1.6, len: 60 + hash(i + 90) * 260, w: 5 + hash(i + 7) * 11 }));
+
+// ---------- background ----------
+function background(t) {
+  const e = env(t), lo = low(t);
+  ctx.fillStyle = '#030202'; ctx.fillRect(0, 0, W, H);
+  // breathing red core
+  const r = 700 + 120 * Math.sin(t * 0.7) + 160 * lo;
+  const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, r);
+  g.addColorStop(0, `rgba(${70 + 60 * e | 0},4,6,0.9)`); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // drifting fog
+  ctx.globalCompositeOperation = 'screen';
+  for (let i = 0; i < 7; i++) {
+    const fx = ((hash(i) * W + t * (20 + 30 * hash(i + 9))) % (W + 800)) - 400;
+    const fy = H * (0.25 + 0.6 * hash(i + 5)) + 40 * Math.sin(t * 0.3 + i);
+    const fr = 380 + 260 * hash(i + 2);
+    const fg = ctx.createRadialGradient(fx, fy, 0, fx, fy, fr);
+    fg.addColorStop(0, 'rgba(120,110,115,0.07)'); fg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = fg; ctx.fillRect(fx - fr, fy - fr, fr * 2, fr * 2);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---------- text layout ----------
+function setFont(c, style, size) { c.font = FONT[style || 'n'].replace('{s}', size); }
+
+function layoutScene(sc) {
+  if (sc._layout) return sc._layout;
+  const lines = [];
+  let size = sc.size;
+  const lh = size * 1.35;
+  const total = sc.lines.length * lh;
+  sc.lines.forEach((ln, li) => {
+    let s = size;
+    const measure = () => ln.map(w => { setFont(tx, w[2], s); return tx.measureText(w[0]).width; });
+    let widths = measure(), gap = s * 0.32;
+    let lw = widths.reduce((a, b) => a + b, 0) + gap * (ln.length - 1);
+    if (lw > 1640) { s = s * 1640 / lw; widths = measure(); gap = s * 0.32; lw = widths.reduce((a, b) => a + b, 0) + gap * (ln.length - 1); }
+    let x = W / 2 + lw / 2; // RTL: first word on the right
+    const y = sc.y - total / 2 + lh * (li + 0.5);
+    const words = ln.map((w, i) => { const cx = x - widths[i] / 2; x -= widths[i] + gap; return { text: w[0], t: w[1], style: w[2] || 'n', cx, y, w: widths[i], size: s }; });
+    lines.push(words);
+  });
+  return (sc._layout = lines);
+}
+
+function drawWord(c, wd, t, sc) {
+  const p = clamp((t - wd.t) / 0.42);
+  if (p <= 0) return;
+  const e = easeOut(p);
+  c.save();
+  let jx = 0, jy = 0;
+  if (wd.style !== 'n') { const k = Math.floor(t * 24); jx = (hash(k + wd.cx) - .5) * 4; jy = (hash(k * 3 + wd.cx) - .5) * 4; }
+  let dx = 0;
+  if (sc.run) dx = -Math.pow(clamp((t - 40.6) / 0.7), 2) * 2200; // the words run away
+  c.translate(wd.cx + jx + dx, wd.y + jy + (1 - e) * 30);
+  const sc_ = wd.style === 'r' ? 1 + 0.9 * (1 - easeOutBack(p)) : 1 + 0.5 * (1 - e);
+  c.scale(sc_, sc_);
+  c.globalAlpha = e;
+  if (p < 1) c.filter = `blur(${(1 - p) * 14}px)`;
+  setFont(c, wd.style, wd.size);
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.direction = 'rtl';
+  if (wd.style === 'r') {
+    const fl = hash(Math.floor(t * 18) + wd.t) > 0.93 ? 0.45 : 1; // neon flicker
+    c.shadowColor = 'rgba(255,0,20,0.7)'; c.shadowBlur = 16 * fl;
+    c.lineWidth = wd.size * 0.06; c.strokeStyle = 'rgba(0,0,0,0.85)'; c.lineJoin = 'round'; c.strokeText(wd.text, 0, 0);
+    c.fillStyle = fl < 1 ? '#5a0006' : BLOOD_HI;
+  } else if (wd.style === 'g') {
+    c.shadowColor = 'rgba(255,0,20,0.9)'; c.shadowBlur = 18; c.fillStyle = BLOOD_HI;
+  } else {
+    c.shadowColor = 'rgba(0,0,0,0.9)'; c.shadowBlur = 20; c.fillStyle = BONE;
+  }
+  c.fillText(wd.text, 0, 0);
+  c.restore();
+}
+
+// ---------- motifs ----------
+function motifClock(c, t, sc) {
+  const a = clamp((t - sc.t0) / 0.3) * clamp((sc.t1 - t) / 0.4);
+  const ring = t > 30.62 ? 1 : 0;
+  const sh = ring * 10;
+  const cx = W / 2 + (hash(Math.floor(t * 40)) - .5) * sh, cy = 420 + (hash(Math.floor(t * 40) + 5) - .5) * sh;
+  c.save(); c.globalAlpha = a; c.translate(cx, cy); c.rotate((hash(Math.floor(t * 30)) - .5) * 0.12 * ring);
+  c.strokeStyle = BONE; c.lineWidth = 10; c.shadowColor = 'rgba(255,0,20,.7)'; c.shadowBlur = 30;
+  // bells
+  c.fillStyle = BLOOD;
+  for (const s of [-1, 1]) { c.beginPath(); c.arc(s * 105, -150, 62, Math.PI, 0); c.closePath(); c.fill(); }
+  c.beginPath(); c.arc(0, 0, 170, 0, Math.PI * 2); c.fillStyle = '#0b0606'; c.fill(); c.stroke();
+  for (let i = 0; i < 12; i++) { const an = i / 12 * Math.PI * 2; c.beginPath(); c.moveTo(Math.cos(an) * 140, Math.sin(an) * 140); c.lineTo(Math.cos(an) * 158, Math.sin(an) * 158); c.stroke(); }
+  // legs
+  c.beginPath(); c.moveTo(-110, 130); c.lineTo(-150, 200); c.moveTo(110, 130); c.lineTo(150, 200); c.stroke();
+  // hands: frozen at 07:00 then spinning wildly
+  const spin = Math.max(0, t - 30.62) * 14;
+  c.lineCap = 'round';
+  c.rotate(Math.PI + spin * 0.15); c.beginPath(); c.moveTo(0, 0); c.lineTo(0, 80); c.stroke(); c.rotate(-(Math.PI + spin * 0.15));
+  c.strokeStyle = BLOOD; c.lineWidth = 6; c.rotate(spin); c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -125); c.stroke();
+  c.restore();
+  // ring waves
+  if (ring) {
+    c.save(); c.globalAlpha = a * 0.7; c.strokeStyle = BLOOD_HI; c.lineWidth = 6;
+    for (let k = 0; k < 3; k++) {
+      const ph = ((t * 3 + k / 3) % 1);
+      c.globalAlpha = a * (1 - ph) * 0.8;
+      for (const s of [-1, 1]) { c.beginPath(); c.arc(W / 2, 420, 220 + ph * 160, s < 0 ? Math.PI * 0.8 : -Math.PI * 0.2, s < 0 ? Math.PI * 1.2 : Math.PI * 0.2); c.stroke(); }
+    }
+    c.restore();
+  }
+}
+
+function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+
+function motifPhone(c, t, sc) {
+  const a = clamp((t - sc.t0) / 0.4) * clamp((sc.t1 - t) / 0.5);
+  const n = Math.floor(47 * clamp((t - 33.6) / (36.1 - 33.6)));
+  const cx = W / 2, cy = 470;
+  const buzz = n > 0 && n < 47 ? (hash(Math.floor(t * 50)) - .5) * 8 : 0;
+  c.save(); c.globalAlpha = a; c.translate(cx + buzz, cy);
+  c.shadowColor = 'rgba(255,0,20,.5)'; c.shadowBlur = 40;
+  roundRect(c, -125, -230, 250, 460, 34); c.fillStyle = '#0d0909'; c.fill(); c.strokeStyle = BONE; c.lineWidth = 8; c.stroke();
+  c.shadowBlur = 0;
+  // stacking notifications
+  const shown = Math.min(n, 6);
+  for (let i = 0; i < shown; i++) {
+    roundRect(c, -100, 170 - i * 62 - 48, 200, 48, 10); c.fillStyle = i === shown - 1 ? 'rgba(195,0,15,.9)' : 'rgba(233,225,211,.18)'; c.fill();
+    c.fillStyle = 'rgba(0,0,0,.5)'; c.fillRect(-82, 170 - i * 62 - 34, 120, 8); c.fillRect(-82, 170 - i * 62 - 20, 80, 6);
+  }
+  // badge
+  if (n > 0) {
+    const lastStep = 33.6 + (n / 47) * (36.1 - 33.6);
+    const pop = 1 + 0.35 * Math.exp(-(t - lastStep) * 18) + (n === 47 ? 0.25 * Math.exp(-(t - 36.1) * 4) : 0);
+    c.translate(125, -230); c.scale(pop, pop);
+    c.beginPath(); c.arc(0, 0, 78, 0, Math.PI * 2); c.fillStyle = BLOOD; c.shadowColor = 'rgba(255,0,20,1)'; c.shadowBlur = 50; c.fill();
+    c.shadowBlur = 0; c.fillStyle = '#fff'; c.font = '900 84px Frank'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.direction = 'ltr';
+    c.fillText(String(n), 0, 6);
+  }
+  c.restore();
+}
+
+function motifCall(c, t, sc) {
+  // a faint ringing handset behind the text, call that never connects
+  const a = clamp((t - sc.t0) / 0.4) * clamp((sc.t1 - t) / 0.5) * 0.22;
+  c.save(); c.globalAlpha = a; c.translate(W / 2, 540); c.rotate(-0.5 + Math.sin(t * 40) * 0.05 * (Math.sin(t * 3) > 0 ? 1 : 0));
+  c.fillStyle = BLOOD; c.font = '520px Frank'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText('☎', 0, 0);
+  c.restore();
+  const txt = 'מחייג... אין מענה';
+  c.save(); c.globalAlpha = clamp((t - 42.9) / 0.3) * clamp((sc.t1 - t) / 0.4) * (0.5 + 0.5 * Math.sin(t * 9));
+  c.font = '900 40px Frank'; c.fillStyle = BLOOD_HI; c.textAlign = 'center'; c.direction = 'rtl'; c.fillText(txt, W / 2, 230);
+  c.restore();
+}
+
+function motifCalendar(c, t, sc) {
+  const a = clamp((t - sc.t0) / 0.5) * clamp((sc.t1 - t) / 0.5);
+  const days = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
+  const cw = 118, ch = 74, gx = W / 2 + 3.5 * cw, gy = 200;
+  const mon = clamp((t - 47.0) / 2.5);
+  c.save(); c.globalAlpha = a;
+  c.font = '900 40px Frank'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.direction = 'rtl';
+  for (let col = 0; col < 7; col++) {
+    const x = gx - (col + 0.5) * cw;
+    const isMon = col === 1;
+    if (isMon) {
+      c.fillStyle = `rgba(195,0,15,${0.15 + 0.5 * mon + 0.15 * Math.sin(t * 6) * mon})`;
+      c.shadowColor = 'rgba(255,0,20,.9)'; c.shadowBlur = 50 * mon;
+      c.fillRect(x - cw / 2 + 4, gy - 4, cw - 8, ch * 6 + 8); c.shadowBlur = 0;
+    }
+    c.fillStyle = isMon ? '#fff' : 'rgba(233,225,211,.75)';
+    c.fillText(days[col], x, gy + ch / 2);
+    for (let row = 1; row < 6; row++) {
+      const d = (row - 1) * 7 + col + 1 - 3;
+      const y = gy + row * ch;
+      c.strokeStyle = 'rgba(233,225,211,.18)'; c.lineWidth = 2; c.strokeRect(x - cw / 2, y, cw, ch);
+      if (d > 0 && d <= 31) { c.fillStyle = 'rgba(233,225,211,.55)'; c.font = '900 30px Frank'; c.fillText(String(d), x, y + ch / 2); c.font = '900 40px Frank'; }
+      if (isMon && d > 0) {
+        const xt = 50.1 + (row - 1) * 0.22; // red X lands on every Monday
+        const xp = clamp((t - xt) / 0.15);
+        if (xp > 0) {
+          c.strokeStyle = BLOOD_HI; c.lineWidth = 9; c.lineCap = 'round'; c.shadowColor = 'rgba(255,0,20,1)'; c.shadowBlur = 20;
+          c.beginPath(); c.moveTo(x - 30, y + 14); c.lineTo(x - 30 + 60 * xp, y + 14 + 46 * xp); c.stroke();
+          if (xp >= 1) { const xp2 = clamp((t - xt - 0.08) / 0.12); c.beginPath(); c.moveTo(x + 30, y + 14); c.lineTo(x + 30 - 60 * xp2, y + 14 + 46 * xp2); c.stroke(); }
+          c.shadowBlur = 0;
+        }
+      }
+    }
+  }
+  c.restore();
+}
+
+// ---------- special scenes ----------
+function drawTitle(c, t, sc, big = 300, cy = 500) {
+  const p = clamp((t - 63.14) / 0.25);
+  const a = (sc.final ? clamp((t - sc.t0) / 0.15) : p) * clamp((sc.t1 - t) / 0.5);
+  if (a <= 0) return;
+  c.save(); c.globalAlpha = a;
+  c.font = `${big}px Wet`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.direction = 'rtl';
+  const tw = c.measureText('יום שני').width;
+  const s = sc.final ? 1 + 0.04 * (t - sc.t0) / 8 : 1 + 0.35 * (1 - easeOut(p)) + 0.03 * (t - 63.14) / 3;
+  c.translate(W / 2, cy); c.scale(s, s);
+  c.shadowColor = 'rgba(255,0,20,1)'; c.shadowBlur = 70 + 40 * env(t);
+  c.fillStyle = BLOOD; c.fillText('יום שני', 0, 0);
+  c.shadowBlur = 0;
+  // drips
+  const base = sc.final ? sc.t0 : 63.14;
+  for (const d of DRIPS) {
+    const k = clamp((t - base - d.d * 0.6) / 2.6);
+    if (k <= 0) continue;
+    const x = (d.x - 0.5) * tw * 0.92, y0 = big * 0.18, L = Math.min(d.len * (big / 300), big * 0.42) * easeOut(k);
+    c.fillStyle = BLOOD; c.beginPath();
+    c.moveTo(x - d.w / 2, y0); c.lineTo(x + d.w / 2, y0); c.lineTo(x + d.w / 3, y0 + L); c.arc(x, y0 + L, d.w * 0.62, 0, Math.PI); c.closePath(); c.fill();
+  }
+  c.restore();
+  // subtitle "חוזר"
+  const sp = clamp((t - (sc.final ? sc.t0 + 0.6 : 64.3)) / 0.6) * clamp((sc.t1 - t) / 0.5);
+  if (sp > 0) {
+    c.save(); c.globalAlpha = sp; c.direction = 'rtl'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = `900 ${big * 0.3}px Frank`; c.fillStyle = BONE; c.letterSpacing = `${30 * (1 - easeOut(sp)) + 18}px`;
+    c.shadowColor = 'rgba(0,0,0,1)'; c.shadowBlur = 20;
+    c.fillText('ח ו ז ר', W / 2, cy + big * 0.86);
+    c.restore();
+  }
+}
+
+function drawFinal(c, t, sc) {
+  drawTitle(c, t, sc, 250, 400);
+  const lines = [['בקרוב', 85.2], ['כל שבוע', 85.9], ['בכל המשרדים', 86.6]];
+  c.save(); c.direction = 'rtl'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '900 48px Frank';
+  const full = 'בקרוב   ✦   כל שבוע   ✦   בכל המשרדים';
+  const a = clamp((t - 85.2) / 0.8) * clamp((sc.t1 - 0.8 - t) / 0.8);
+  c.globalAlpha = a; c.fillStyle = 'rgba(233,225,211,.85)'; c.fillText(full, W / 2, 760);
+  const b = clamp((t - 87.6) / 0.6) * clamp((sc.t1 - 0.8 - t) / 0.8);
+  c.globalAlpha = b * (hash(Math.floor(t * 14)) > 0.12 ? 1 : 0.2); c.font = '46px Glitch'; c.fillStyle = BLOOD_HI;
+  c.fillText('ובשבוע הבא: יום שלישי', W / 2, 850);
+  c.restore();
+}
+
+function drawWarning(c, t) {
+  // fake "rated" card before the narration
+  const a = clamp((t - 0.4) / 0.6) * clamp((3.45 - t) / 0.4);
+  if (a <= 0) return;
+  c.save(); c.globalAlpha = a; c.direction = 'rtl'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.strokeStyle = BLOOD; c.lineWidth = 4; c.strokeRect(W / 2 - 560, 380, 1120, 320);
+  c.fillStyle = BLOOD; c.font = '900 44px Frank'; c.fillText('אזהרה', W / 2, 440);
+  c.fillStyle = BONE; c.font = '900 38px Frank';
+  c.fillText('הטריילר הבא אושר לצפייה', W / 2, 520);
+  c.fillText('רק למי שעדיין לא חזר לעבודה', W / 2, 575);
+  c.fillStyle = 'rgba(233,225,211,.5)'; c.font = '900 26px Frank'; c.fillText('מכיל: שעון מעורר · מיילים · ישיבת צוות', W / 2, 645);
+  c.restore();
+}
+
+// ---------- composite with chromatic aberration + glitch slicing ----------
+function composite(t, alpha, glitch, ca) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+  if (ca > 0.5) {
+    for (const [col, ox] of [['rgba(255,0,40,1)', -ca], ['rgba(0,220,255,1)', ca]]) {
+      tix.clearRect(0, 0, W, H); tix.globalCompositeOperation = 'source-over'; tix.drawImage(tl, 0, 0);
+      tix.globalCompositeOperation = 'source-in'; tix.fillStyle = col; tix.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = alpha * 0.55; ctx.drawImage(tint, ox, ox * 0.3);
+    }
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = alpha;
+  }
+  if (glitch > 0.02) {
+    const seed = Math.floor(t * 20);
+    let y = 0, i = 0;
+    while (y < H) {
+      const h = 8 + hash(seed + i * 7.3) * 90;
+      const on = hash(seed + i * 3.1) < glitch;
+      const dx = on ? (hash(seed + i * 1.7) - 0.5) * 260 * glitch : 0;
+      ctx.drawImage(tl, 0, y, W, h, dx, y, W, h);
+      y += h; i++;
+    }
+  } else ctx.drawImage(tl, 0, 0);
+  ctx.restore();
+}
+
+// ---------- frame ----------
+function render(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.filter = 'none';
+  const imp = impact(t);
+  const shake = imp * 14;
+  background(t);
+  ctx.save();
+  ctx.translate((hash(t * 91) - .5) * shake, (hash(t * 37) - .5) * shake);
+
+  // heartbeat during the silence before the title
+  if (t > 60.4 && t < 63.1) {
+    const hb = Math.pow(Math.max(0, Math.sin((t - 60.4) * Math.PI * 1.7)), 12);
+    const g = ctx.createRadialGradient(W / 2, H / 2, 100, W / 2, H / 2, 900);
+    g.addColorStop(0, `rgba(160,0,10,${0.45 * hb})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+
+  for (const sc of SCENES) {
+    if (t < sc.t0 || t > sc.t1) continue;
+    tx.setTransform(1, 0, 0, 1, 0, 0); tx.clearRect(0, 0, W, H);
+    const dur = sc.t1 - sc.t0, k = (t - sc.t0) / dur;
+    // slow push-in
+    const z = 1 + 0.04 * k;
+    tx.setTransform(z, 0, 0, z, W / 2 * (1 - z), H / 2 * (1 - z));
+    if (sc.motif === 'clock') motifClock(tx, t, sc);
+    if (sc.motif === 'phone') motifPhone(tx, t, sc);
+    if (sc.motif === 'call') motifCall(tx, t, sc);
+    if (sc.motif === 'calendar') motifCalendar(tx, t, sc);
+    if (sc.title) drawTitle(tx, t, sc);
+    else if (sc.final) drawFinal(tx, t, sc);
+    else {
+      const lines = layoutScene(sc);
+      lines.forEach(ln => ln.forEach(wd => drawWord(tx, wd, t, sc)));
+      if (sc.strike) {
+        const wd = lines[sc.strike.word[0]][sc.strike.word[1]];
+        const sp = clamp((t - sc.strike.t) / (sc.strike.t2 - sc.strike.t));
+        if (sp > 0) {
+          tx.save(); tx.strokeStyle = BONE; tx.lineWidth = 14; tx.lineCap = 'round'; tx.shadowColor = 'rgba(255,0,20,1)'; tx.shadowBlur = 25;
+          const x1 = wd.cx + wd.w / 2 + 20, x0 = wd.cx - wd.w / 2 - 20;
+          tx.beginPath(); tx.moveTo(x1, wd.y + 10); tx.lineTo(x1 + (x0 - x1) * sp, wd.y + 10 - 30 * sp); tx.stroke(); tx.restore();
+        }
+      }
+    }
+    const fadeOut = clamp((sc.t1 - t) / 0.55);
+    let glitch = (1 - fadeOut) * 0.9 + Math.max(0, imp - 0.25) * 0.5;
+    if (sc.glitch) glitch += 0.15 + 0.35 * (hash(Math.floor(t * 12)) > 0.6 ? 1 : 0);
+    const ca = 2 + imp * 18 + (sc.glitch ? 10 : 0) + (1 - fadeOut) * 14;
+    composite(t, Math.pow(fadeOut, 0.7), clamp(glitch), ca);
+  }
+  ctx.restore();
+
+  drawWarning(ctx, t);
+
+  // lightning
+  const fl = flash(t);
+  if (fl > 0.01) { ctx.fillStyle = `rgba(255,240,235,${fl})`; ctx.fillRect(0, 0, W, H); }
+
+  // grain
+  ctx.globalAlpha = 0.09; ctx.globalCompositeOperation = 'overlay';
+  ctx.drawImage(grains[Math.floor(t * 24) % grains.length], 0, 0, W, H);
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  // scratches
+  const sk = Math.floor(t * 24);
+  if (hash(sk * 1.3) > 0.55) {
+    ctx.strokeStyle = `rgba(230,220,200,${0.08 + 0.12 * hash(sk)})`; ctx.lineWidth = 1 + 2 * hash(sk * 2);
+    const x = hash(sk * 5.1) * W; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + (hash(sk * 7) - .5) * 30, H); ctx.stroke();
+  }
+  // flicker
+  const fk = hash(Math.floor(t * 12) * 9.7);
+  if (fk > 0.9) { ctx.fillStyle = `rgba(0,0,0,${0.25 * (fk - 0.9) * 10})`; ctx.fillRect(0, 0, W, H); }
+  // vignette
+  const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 1.0);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.92)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  // letterbox
+  const lb = 130 * easeOut(clamp(t / 1.2));
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, lb); ctx.fillRect(0, H - lb, W, lb);
+  // fade in / out
+  const fade = clamp(t / 0.6) * clamp((DURATION - t) / 1.4);
+  if (fade < 1) { ctx.fillStyle = `rgba(0,0,0,${1 - fade})`; ctx.fillRect(0, 0, W, H); }
+}
+
+window.render = render;
+window.ready = document.fonts.load('100px Wet', 'יום').then(() => Promise.all([
+  document.fonts.load('900 100px Frank', 'יום'), document.fonts.load('100px Glitch', 'יום')]));
+
+// live playback mode (skipped when driven by the renderer)
+if (!location.search.includes('render')) {
+  const au = document.getElementById('au'), btn = document.getElementById('play');
+  window.ready.then(() => {
+    render(0);
+    btn.hidden = false;
+    btn.onclick = () => { btn.hidden = true; au.currentTime = 0; au.play(); };
+    (function loop() { render(au.currentTime || 0); requestAnimationFrame(loop); })();
+  });
+}
+</script>
+</body>
+</html>

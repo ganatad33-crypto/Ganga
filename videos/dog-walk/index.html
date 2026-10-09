@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="he">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>טיול עם הכלבה</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Rubik";
+        font-weight: 700;
+        src: url("fonts/rubik-hebrew-700-normal.woff2") format("woff2");
+        unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+      }
+      @font-face {
+        font-family: "Rubik";
+        font-weight: 700;
+        src: url("fonts/rubik-latin-700-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+2011-206F;
+      }
+      @font-face {
+        font-family: "Rubik";
+        font-weight: 500;
+        src: url("fonts/rubik-hebrew-500-normal.woff2") format("woff2");
+        unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+      }
+      @font-face {
+        font-family: "Rubik";
+        font-weight: 500;
+        src: url("fonts/rubik-latin-500-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+2011-206F;
+      }
+      @font-face {
+        font-family: "Heebo";
+        font-weight: 500;
+        src: url("fonts/heebo-hebrew-500-normal.woff2") format("woff2");
+        unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+      }
+      @font-face {
+        font-family: "Heebo";
+        font-weight: 500;
+        src: url("fonts/heebo-latin-500-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+2011-206F;
+      }
+
+      :root {
+        --fg: #fff8ef;
+        --muted: #f0dcc4;
+        --accent: #ffb547;
+        --ink: #1b130b;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #120c07;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #120c07;
+        color: var(--fg);
+        font-family: "Rubik", sans-serif;
+        font-weight: 700;
+      }
+
+      /* camera wrappers: untimed, animated; the media inside is the timed clip */
+      .cam {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .cam video,
+      .cam img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      #v-f {
+        transform: scaleX(-1);
+      }
+
+      #scrim-top {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(10, 6, 2, 0.78) 0%, rgba(10, 6, 2, 0.45) 30%, rgba(10, 6, 2, 0) 52%);
+      }
+      #scrim-bottom {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(0deg, rgba(10, 6, 2, 0.55) 0%, rgba(10, 6, 2, 0) 22%);
+      }
+      #dark-h {
+        background: rgba(10, 6, 2, 0.62);
+      }
+      #flash {
+        background: #fff8ef;
+      }
+
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+      .card,
+      .src,
+      #paw-row {
+        direction: rtl;
+      }
+      .card {
+        position: absolute;
+        top: 200px;
+        left: 70px;
+        right: 70px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+        text-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+      }
+      .kicker {
+        font-family: "Heebo", sans-serif;
+        font-weight: 500;
+        font-size: 50px;
+        color: var(--muted);
+      }
+      .title {
+        font-size: 104px;
+        line-height: 1.02;
+        letter-spacing: -0.01em;
+      }
+      .big {
+        font-size: 250px;
+        line-height: 0.9;
+        color: var(--accent);
+        letter-spacing: -0.03em;
+      }
+      .ltr {
+        direction: ltr;
+        unicode-bidi: isolate;
+        display: inline-block;
+      }
+      .line {
+        font-size: 74px;
+        line-height: 1.08;
+      }
+      .sub {
+        font-family: "Heebo", sans-serif;
+        font-weight: 500;
+        font-size: 44px;
+        color: var(--muted);
+      }
+      .src {
+        position: absolute;
+        left: 70px;
+        right: 70px;
+        bottom: 300px;
+        font-family: "Heebo", sans-serif;
+        font-weight: 500;
+        font-size: 32px;
+        color: var(--muted);
+        opacity: 0.9;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+      }
+      .accent {
+        color: var(--accent);
+      }
+      .pill {
+        display: inline-block;
+        padding: 14px 30px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: var(--ink);
+        font-size: 50px;
+        text-shadow: none;
+      }
+
+      /* walking-minutes bars */
+      #bars {
+        width: 940px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        margin-top: 16px;
+      }
+      .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        font-family: "Heebo", sans-serif;
+        font-weight: 500;
+        font-size: 38px;
+      }
+      .bar-label {
+        width: 230px;
+      }
+      .bar-track {
+        position: relative;
+        width: 620px;
+        height: 40px;
+      }
+      .bar-fill {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 40px;
+        border-radius: 20px;
+        transform-origin: 100% 50%;
+      }
+      #bar-rec {
+        width: 310px;
+        background: rgba(255, 248, 239, 0.75);
+      }
+      #bar-dog {
+        width: 620px;
+        background: var(--accent);
+      }
+
+      .honest-item {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        font-size: 70px;
+      }
+      .dot {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex: none;
+      }
+
+      #close {
+        top: auto;
+        bottom: 380px;
+      }
+      #paw-row {
+        position: absolute;
+        left: 70px;
+        right: 70px;
+        bottom: 150px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .paw {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: var(--accent);
+        opacity: 0.85;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="31" data-width="1080" data-height="1920">
+      <!-- ================= picture ================= -->
+      <div class="cam" id="cam-a"><video id="v-a" src="assets/bell-hi.mp4" data-start="0" data-duration="3" data-media-start="0" data-track-index="0" muted playsinline></video></div>
+      <div class="cam" id="cam-b"><video id="v-b" src="assets/bell-hi.mp4" data-start="3" data-duration="1.6" data-media-start="3" data-playback-rate="0.5" data-track-index="0" muted playsinline></video></div>
+      <div class="cam" id="cam-s1"><img id="still-1" class="clip" src="assets/smile.jpg" alt="" data-start="4.6" data-duration="3" data-track-index="0" /></div>
+      <div class="cam" id="cam-c"><video id="v-c" src="assets/bell-hi.mp4" data-start="7.6" data-duration="3.6" data-media-start="8.6" data-track-index="0" muted playsinline></video></div>
+      <div class="cam" id="cam-d"><video id="v-d" src="assets/bell-hi.mp4" data-start="11.2" data-duration="3.4" data-media-start="12.2" data-track-index="0" muted playsinline></video></div>
+      <div class="cam" id="cam-e"><video id="v-e" src="assets/bell-hi.mp4" data-start="14.6" data-duration="3.6" data-media-start="0.2" data-playback-rate="0.6" data-track-index="0" muted playsinline></video></div>
+      <div class="cam" id="cam-f"><video id="v-f" src="assets/bell-hi.mp4" data-start="18.2" data-duration="3.2" data-media-start="9" data-playback-rate="0.8" data-track-index="0" muted playsinline></video></div>
+      <div class="cam" id="cam-g"><video id="v-g" src="assets/bell-hi.mp4" data-start="21.4" data-duration="3" data-media-start="13" data-playback-rate="0.7" data-track-index="0" muted playsinline></video></div>
+      <div class="cam" id="cam-h"><video id="v-h" src="assets/bell-hi.mp4" data-start="24.4" data-duration="3.2" data-media-start="17.6" data-playback-rate="0.55" data-track-index="0" muted playsinline></video></div>
+      <div class="cam" id="cam-s2"><img id="still-2" class="clip" src="assets/smile.jpg" alt="" data-start="27.6" data-duration="3.4" data-track-index="0" /></div>
+
+      <div id="scrim-top"></div>
+      <div id="scrim-bottom"></div>
+      <div id="dark-h" class="clip" data-start="24.4" data-duration="3.2" data-track-index="1"></div>
+
+      <!-- ================= text ================= -->
+      <section id="t1" class="clip" data-start="0.2" data-duration="2.8" data-track-index="2">
+        <div class="card">
+          <div class="kicker" id="t1-k">טיול ערב קצר.</div>
+          <div class="title" id="t1-a">כמה הוא שווה</div>
+          <div class="title accent" id="t1-b">לבריאות שלך?</div>
+        </div>
+      </section>
+
+      <section id="t2" class="clip" data-start="4.7" data-duration="2.9" data-track-index="2">
+        <div class="card">
+          <div class="title" id="t2-a">מבט אחד בעיניים</div>
+          <div class="title accent" id="t2-b">= אוקסיטוצין עולה</div>
+          <div class="pill" id="t2-c">לך וגם לה</div>
+        </div>
+        <div class="src" id="t2-src">מחקר Science, 2015</div>
+      </section>
+
+      <section id="t3" class="clip" data-start="7.7" data-duration="3.5" data-track-index="2">
+        <div class="card">
+          <div class="kicker" id="t3-k">בעלי כלבים הולכים בערך</div>
+          <div class="big" id="t3-num"><span class="ltr" id="t3-val">0</span></div>
+          <div class="line" id="t3-l">דקות בשבוע</div>
+          <div id="bars">
+            <div class="bar-row" id="row-rec"><span class="bar-label">ההמלצה</span><span class="bar-track"><span class="bar-fill" id="bar-rec"></span></span><span class="ltr">150</span></div>
+            <div class="bar-row" id="row-dog"><span class="bar-label">עם כלב</span><span class="bar-track"><span class="bar-fill" id="bar-dog"></span></span><span class="ltr">300</span></div>
+          </div>
+        </div>
+        <div class="src" id="t3-src">אוניברסיטת ליברפול, 2019</div>
+      </section>
+
+      <section id="t4" class="clip" data-start="11.3" data-duration="3.3" data-track-index="2">
+        <div class="card">
+          <div class="big" id="t4-big">פי <span class="ltr">4</span></div>
+          <div class="line" id="t4-a">יותר סיכוי לעמוד</div>
+          <div class="line" id="t4-b">ביעד הפעילות השבועי</div>
+        </div>
+        <div class="src" id="t4-src">אוניברסיטת ליברפול, 2019</div>
+      </section>
+
+      <section id="t5" class="clip" data-start="14.7" data-duration="3.5" data-track-index="2">
+        <div class="card">
+          <div class="big" id="t5-num"><span class="ltr" id="t5-val">0%</span></div>
+          <div class="line" id="t5-a">פחות תמותה מכל סיבה</div>
+          <div class="sub" id="t5-b">אצל בעלי כלבים · 3.8 מיליון משתתפים</div>
+        </div>
+        <div class="src" id="t5-src">מטא-אנליזה, איגוד הלב האמריקאי 2019 · מתאם, לא הוכחה</div>
+      </section>
+
+      <section id="t6" class="clip" data-start="18.3" data-duration="3.1" data-track-index="2">
+        <div class="card">
+          <div class="title" id="t6-a">גרים לבד?</div>
+          <div class="big" id="t6-num"><span class="ltr" id="t6-val">0%</span></div>
+          <div class="line" id="t6-b">פחות סיכון למוות</div>
+        </div>
+        <div class="src" id="t6-src">שוודיה, 3.4 מיליון איש, 2017</div>
+      </section>
+
+      <section id="t7" class="clip" data-start="21.5" data-duration="2.9" data-track-index="2">
+        <div class="card">
+          <div class="title" id="t7-a">יותר שכנים.</div>
+          <div class="title accent" id="t7-b">יותר חברים.</div>
+          <div class="sub" id="t7-c">בעלי כלבים מכירים יותר אנשים בשכונה</div>
+        </div>
+        <div class="src" id="t7-src">PLOS ONE, 2015</div>
+      </section>
+
+      <section id="t8" class="clip" data-start="24.5" data-duration="3.1" data-track-index="2">
+        <div class="card">
+          <div class="title accent" id="t8-a">אבל בכנות:</div>
+          <div class="honest-item" id="t8-1"><span class="dot"></span><span><span class="ltr">4,000–15,000</span> ₪ בשנה</span></div>
+          <div class="honest-item" id="t8-2"><span class="dot"></span><span><span class="ltr">10–15</span> שנות מחויבות</span></div>
+          <div class="honest-item" id="t8-3"><span class="dot"></span><span>טיול גם בגשם</span></div>
+        </div>
+      </section>
+
+      <section id="t9" class="clip" data-start="27.7" data-duration="3.3" data-track-index="2">
+        <div class="card" id="close">
+          <div class="title" id="t9-a">היא לא צריכה</div>
+          <div class="title" id="t9-b">שתהיה מושלם.</div>
+          <div class="title accent" id="t9-c">רק שתצא איתה.</div>
+        </div>
+        <div id="paw-row">
+          <span class="paw"></span><span class="paw"></span><span class="paw"></span><span class="paw"></span><span class="paw"></span><span class="paw"></span><span class="paw"></span>
+        </div>
+      </section>
+
+      <div id="flash" class="clip" data-start="4.6" data-duration="0.35" data-track-index="3"></div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // ---------- camera moves (wrappers only) ----------
+      // A: whip-in punch, then slow drift
+      tl.fromTo("#cam-a", { scale: 1.3, rotation: -3 }, { scale: 1.05, rotation: 0, duration: 0.6, ease: "expo.out" }, 0);
+      tl.fromTo("#cam-a", { scale: 1.05 }, { scale: 1.12, duration: 2.4, ease: "none", immediateRender: false }, 0.6);
+      // B: slow-mo push toward her face as she looks back
+      tl.fromTo("#cam-b", { scale: 1.0, transformOrigin: "35% 32%" }, { scale: 1.35, duration: 1.6, ease: "power1.in" }, 3);
+      // freeze 1: continue the push, settle
+      tl.fromTo("#cam-s1", { scale: 1.35, transformOrigin: "35% 32%" }, { scale: 1.5, duration: 3, ease: "power2.out" }, 4.6);
+      // C: Ken Burns pan
+      tl.fromTo("#cam-c", { scale: 1.3, xPercent: 5 }, { scale: 1.15, xPercent: -5, duration: 3.6, ease: "power1.inOut" }, 7.6);
+      // D: dutch-angle settle
+      tl.fromTo("#cam-d", { scale: 1.35, rotation: -6 }, { scale: 1.12, rotation: 0, duration: 0.7, ease: "expo.out" }, 11.2);
+      tl.fromTo("#cam-d", { scale: 1.12 }, { scale: 1.2, duration: 2.7, ease: "none", immediateRender: false }, 11.9);
+      // E: tight low crop on paws, slow-mo
+      tl.fromTo("#cam-e", { scale: 1.6, transformOrigin: "50% 80%" }, { scale: 1.4, duration: 3.6, ease: "power1.out" }, 14.6);
+      // F: mirrored angle, tilt drift
+      tl.fromTo("#cam-f", { scale: 1.45, rotation: 4 }, { scale: 1.25, rotation: 0, duration: 3.2, ease: "power2.out" }, 18.2);
+      // G: low angle rise
+      tl.fromTo("#cam-g", { scale: 1.5, yPercent: 6, transformOrigin: "50% 100%" }, { scale: 1.3, yPercent: 0, duration: 3, ease: "power1.inOut" }, 21.4);
+      // H: slow pull-back under the honest card
+      tl.fromTo("#cam-h", { scale: 1.35 }, { scale: 1.05, duration: 3.2, ease: "power1.out" }, 24.4);
+      // freeze 2: slow push on the smile for the close
+      tl.fromTo("#cam-s2", { scale: 1.1, transformOrigin: "35% 32%" }, { scale: 1.32, duration: 3.4, ease: "power1.inOut" }, 27.6);
+
+      tl.fromTo("#flash", { opacity: 0.85 }, { opacity: 0, duration: 0.35, ease: "power2.out" }, 4.6);
+
+      // ---------- text ----------
+      const up = (sel, t, d = 0.45) => tl.fromTo(sel, { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: d, ease: "power3.out" }, t);
+      const outAll = (sels, t) => tl.to(sels, { opacity: 0, y: -30, duration: 0.2, ease: "power2.in" }, t);
+      const counter = (id, from, to, t, d, suffix) => {
+        const el = document.getElementById(id);
+        const o = { v: from };
+        tl.fromTo(o, { v: from }, { v: to, duration: d, ease: "power2.out", immediateRender: false, onUpdate: () => { el.textContent = Math.round(o.v) + suffix; } }, t);
+      };
+
+      // T1 hook
+      up("#t1-k", 0.25);
+      tl.fromTo("#t1-a", { x: 300, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 0.55);
+      tl.fromTo("#t1-b", { scale: 1.6, filter: "blur(12px)", opacity: 0 }, { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.5, ease: "power4.out", transformOrigin: "100% 50%" }, 0.95);
+      outAll(["#t1-k", "#t1-a", "#t1-b"], 2.8);
+
+      // T2 eye contact (on freeze)
+      up("#t2-a", 4.8);
+      tl.fromTo("#t2-b", { scale: 1.5, opacity: 0, transformOrigin: "100% 50%" }, { scale: 1, opacity: 1, duration: 0.45, ease: "power4.out" }, 5.4);
+      tl.fromTo("#t2-c", { scale: 0.3, opacity: 0, rotation: -8 }, { scale: 1, opacity: 1, rotation: -3, duration: 0.45, ease: "back.out(2.2)" }, 6.0);
+      up("#t2-src", 5.6, 0.4);
+      outAll(["#t2-a", "#t2-b", "#t2-c", "#t2-src"], 7.4);
+
+      // T3 walking minutes
+      up("#t3-k", 7.75);
+      tl.fromTo("#t3-num", { scale: 0.6, opacity: 0, transformOrigin: "100% 50%" }, { scale: 1, opacity: 1, duration: 0.4, ease: "power4.out" }, 7.95);
+      counter("t3-val", 0, 300, 7.95, 1.4, "");
+      up("#t3-l", 8.3);
+      up("#row-rec", 8.6, 0.35);
+      up("#row-dog", 8.75, 0.35);
+      tl.fromTo("#bar-rec", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, 8.75);
+      tl.fromTo("#bar-dog", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power3.out" }, 8.9);
+      up("#t3-src", 8.9, 0.4);
+      outAll(["#t3-k", "#t3-num", "#t3-l", "#bars", "#t3-src"], 11.0);
+
+      // T4 four times
+      tl.fromTo("#t4-big", { scale: 2.2, filter: "blur(14px)", opacity: 0, transformOrigin: "100% 50%" }, { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.5, ease: "power4.out" }, 11.35);
+      tl.fromTo("#t4-a", { x: 300, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 11.85);
+      tl.fromTo("#t4-b", { x: 300, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 12.0);
+      up("#t4-src", 12.2, 0.4);
+      outAll(["#t4-big", "#t4-a", "#t4-b", "#t4-src"], 14.4);
+
+      // T5 24%
+      tl.fromTo("#t5-num", { scale: 0.6, opacity: 0, transformOrigin: "100% 50%" }, { scale: 1, opacity: 1, duration: 0.4, ease: "power4.out" }, 14.75);
+      counter("t5-val", 0, 24, 14.75, 1.2, "%");
+      up("#t5-a", 15.2);
+      up("#t5-b", 15.5);
+      up("#t5-src", 15.7, 0.4);
+      outAll(["#t5-num", "#t5-a", "#t5-b", "#t5-src"], 18.0);
+
+      // T6 living alone 33%
+      tl.fromTo("#t6-a", { y: -60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "circ.out" }, 18.35);
+      tl.fromTo("#t6-num", { scale: 0.6, opacity: 0, transformOrigin: "100% 50%" }, { scale: 1, opacity: 1, duration: 0.4, ease: "power4.out" }, 18.75);
+      counter("t6-val", 0, 33, 18.75, 1.1, "%");
+      up("#t6-b", 19.2);
+      up("#t6-src", 19.4, 0.4);
+      outAll(["#t6-a", "#t6-num", "#t6-b", "#t6-src"], 21.2);
+
+      // T7 neighbours & friends
+      tl.fromTo("#t7-a", { x: 400, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 21.55);
+      tl.fromTo("#t7-b", { x: -400, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 21.95);
+      up("#t7-c", 22.4);
+      up("#t7-src", 22.5, 0.4);
+      outAll(["#t7-a", "#t7-b", "#t7-c", "#t7-src"], 24.2);
+
+      // T8 honest card
+      tl.fromTo("#t8-a", { scale: 1.4, opacity: 0, transformOrigin: "100% 50%" }, { scale: 1, opacity: 1, duration: 0.4, ease: "power4.out" }, 24.55);
+      ["#t8-1", "#t8-2", "#t8-3"].forEach((s, i) => {
+        tl.fromTo(s, { x: 260, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, 25.0 + i * 0.4);
+      });
+      tl.fromTo("#dark-h", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 24.4);
+      outAll(["#t8-a", "#t8-1", "#t8-2", "#t8-3"], 27.4);
+
+      // T9 close
+      up("#t9-a", 27.85, 0.5);
+      up("#t9-b", 28.15, 0.5);
+      tl.fromTo("#t9-c", { scale: 1.5, filter: "blur(10px)", opacity: 0, transformOrigin: "100% 50%" }, { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.6, ease: "power4.out" }, 28.7);
+      gsap.utils.toArray("#paw-row .paw").forEach((p, i) => {
+        tl.fromTo(p, { scale: 0, opacity: 0 }, { scale: 1, opacity: 0.85, duration: 0.25, ease: "back.out(3)" }, 29.2 + i * 0.07);
+      });
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>החופר</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Rubik";
+        font-weight: 700;
+        src: url("fonts/rubik-hebrew-700-normal.woff2") format("woff2");
+        unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+      }
+      @font-face {
+        font-family: "Rubik";
+        font-weight: 700;
+        src: url("fonts/rubik-latin-700-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF;
+      }
+      @font-face {
+        font-family: "Heebo";
+        font-weight: 500;
+        src: url("fonts/heebo-hebrew-500-normal.woff2") format("woff2");
+        unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+      }
+      @font-face {
+        font-family: "Heebo";
+        font-weight: 500;
+        src: url("fonts/heebo-latin-500-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF;
+      }
+      @font-face {
+        font-family: "Heebo";
+        font-weight: 700;
+        src: url("fonts/heebo-hebrew-700-normal.woff2") format("woff2");
+        unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+      }
+      @font-face {
+        font-family: "Heebo";
+        font-weight: 700;
+        src: url("fonts/heebo-latin-700-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF;
+      }
+
+      :root {
+        --bg: #140e0c;
+        --fg: #f7efe8;
+        --muted: #b9aaa1;
+        --accent: #ff3b2f;
+        --ink: #1a1210;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--bg);
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: "Heebo", sans-serif;
+        font-weight: 500;
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+      .display {
+        font-family: "Rubik", sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 0.95;
+      }
+      .red {
+        color: var(--accent);
+      }
+
+      /* ---------- persistent background ---------- */
+      #bg-glow {
+        position: absolute;
+        width: 1400px;
+        height: 1400px;
+        left: -160px;
+        top: 260px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 59, 47, 0.32) 0%, rgba(255, 59, 47, 0.08) 42%, rgba(255, 59, 47, 0) 70%);
+      }
+      #bg-rows {
+        position: absolute;
+        inset: -40px -600px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .bg-row {
+        white-space: nowrap;
+        font-family: "Rubik", sans-serif;
+        font-weight: 700;
+        font-size: 150px;
+        line-height: 1;
+        color: var(--fg);
+        opacity: 0.045;
+      }
+      #bg-vignette {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.6) 100%);
+      }
+      #bg-grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.07;
+        background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.5) 0 1px, transparent 1px 3px),
+          repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.6) 0 1px, transparent 1px 4px);
+      }
+
+      /* ---------- S1 warning ---------- */
+      .tape {
+        position: absolute;
+        width: 1700px;
+        height: 110px;
+        left: -310px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background: var(--accent);
+        color: var(--ink);
+        font-family: "Rubik", sans-serif;
+        font-weight: 700;
+        font-size: 58px;
+        white-space: nowrap;
+      }
+      #tape-a {
+        top: 330px;
+        rotate: -7deg;
+      }
+      #tape-b {
+        top: 1500px;
+        rotate: 6deg;
+      }
+      .tape-text {
+        display: block;
+        padding: 0 20px;
+      }
+      #s1-stack {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 34px;
+        text-align: center;
+      }
+      #s1-warn {
+        font-size: 250px;
+      }
+      #s1-l2 {
+        font-size: 76px;
+        color: var(--fg);
+      }
+      #s1-l3 {
+        font-size: 104px;
+      }
+
+      /* ---------- S2 hero ---------- */
+      #s2-title-wrap {
+        position: absolute;
+        top: 230px;
+        left: 0;
+        right: 0;
+        height: 330px;
+      }
+      #s2-kicker {
+        position: absolute;
+        top: 170px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 56px;
+        color: var(--muted);
+      }
+      .s2-title {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 300px;
+      }
+      #s2-title-r {
+        color: #ff2a2a;
+        mix-blend-mode: screen;
+      }
+      #s2-title-c {
+        color: #2ad8ff;
+        mix-blend-mode: screen;
+      }
+      #s2-title {
+        color: var(--fg);
+      }
+      #s2-photo {
+        position: absolute;
+        left: 40px;
+        bottom: 0;
+        width: 1000px;
+        height: 1333px;
+      }
+      #s2-shake {
+        position: absolute;
+        inset: 0;
+      }
+      #s2-photo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .bubble {
+        position: absolute;
+        padding: 22px 34px;
+        border-radius: 40px;
+        background: var(--fg);
+        color: var(--ink);
+        font-family: "Heebo", sans-serif;
+        font-weight: 700;
+        font-size: 46px;
+        white-space: nowrap;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      }
+      .bubble.hot {
+        background: var(--accent);
+        color: var(--ink);
+      }
+      #b1 { top: 660px; right: 40px; }
+      #b2 { top: 820px; left: 40px; }
+      #b3 { top: 1010px; right: 60px; }
+      #b4 { top: 1190px; left: 50px; }
+      #b5 { top: 1380px; right: 40px; }
+      #b6 { top: 1560px; left: 70px; }
+
+      /* ---------- S3 counter ---------- */
+      #s3-stack {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 30px;
+        text-align: center;
+      }
+      #s3-label {
+        font-size: 84px;
+      }
+      #s3-num-wrap {
+        width: 1000px;
+        display: flex;
+        justify-content: center;
+      }
+      #s3-num {
+        font-family: "Rubik", sans-serif;
+        font-weight: 700;
+        font-size: 270px;
+        line-height: 1;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+        direction: ltr;
+      }
+      #s3-sub {
+        font-size: 56px;
+        color: var(--muted);
+      }
+      #s3-meter {
+        position: relative;
+        width: 860px;
+        margin-top: 70px;
+      }
+      #s3-meter-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 44px;
+        margin-bottom: 18px;
+      }
+      #s3-track {
+        position: relative;
+        width: 860px;
+        height: 52px;
+        border-radius: 26px;
+        background: rgba(247, 239, 232, 0.12);
+        overflow: hidden;
+      }
+      #s3-fill {
+        position: absolute;
+        inset: 0;
+        background: var(--accent);
+        transform-origin: 100% 50%;
+      }
+      #s3-stamp {
+        position: absolute;
+        left: -40px;
+        top: -70px;
+        padding: 10px 28px;
+        border: 8px solid var(--accent);
+        border-radius: 18px;
+        color: var(--accent);
+        font-family: "Rubik", sans-serif;
+        font-weight: 700;
+        font-size: 84px;
+        direction: ltr;
+        background: var(--bg);
+      }
+
+      /* ---------- S4 clock joke ---------- */
+      #s4-stage {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 46px;
+        padding: 0 90px;
+      }
+      .s4-line {
+        font-size: 118px;
+      }
+      #s4-badge {
+        position: absolute;
+        left: 90px;
+        bottom: 420px;
+        padding: 24px 40px;
+        background: var(--accent);
+        color: var(--ink);
+        border-radius: 22px;
+        font-family: "Rubik", sans-serif;
+        font-weight: 700;
+        font-size: 70px;
+      }
+
+      /* ---------- S5 three words ---------- */
+      #s5-stack {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .s5-word {
+        font-size: 230px;
+      }
+      #s5-w3-wrap {
+        position: relative;
+      }
+      #s5-under {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -14px;
+        height: 26px;
+        background: var(--fg);
+        transform-origin: 100% 50%;
+      }
+
+      /* ---------- S6 finale ---------- */
+      #s6-stack {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        text-align: center;
+        padding-bottom: 120px;
+      }
+      #s6-avatar {
+        position: relative;
+        width: 560px;
+        height: 560px;
+      }
+      #s6-circle {
+        position: absolute;
+        inset: 30px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 40%, #ff5a45 0%, #c81f15 75%);
+      }
+      #s6-circle img {
+        position: absolute;
+        width: 1300px;
+        height: 1733px;
+        left: -360px;
+        top: -170px;
+      }
+      #s6-ring {
+        position: absolute;
+        inset: 0;
+      }
+      #s6-name {
+        font-size: 210px;
+      }
+      #s6-tag {
+        font-size: 66px;
+      }
+      #s6-cta {
+        margin-top: 20px;
+        padding: 26px 54px;
+        border-radius: 60px;
+        background: var(--fg);
+        color: var(--ink);
+        font-family: "Heebo", sans-serif;
+        font-weight: 700;
+        font-size: 50px;
+      }
+      #s6-flash {
+        position: absolute;
+        inset: 0;
+        background: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="22" data-width="1080" data-height="1920">
+      <!-- persistent background -->
+      <section id="bg" class="clip" data-start="0" data-duration="22" data-track-index="0">
+        <div id="bg-glow"></div>
+        <div id="bg-rows">
+          <div class="bg-row">בלה בלה בלה בלה בלה בלה בלה בלה בלה בלה</div>
+          <div class="bg-row">בקיצור בקיצור בקיצור בקיצור בקיצור בקיצור</div>
+          <div class="bg-row">בלה בלה בלה בלה בלה בלה בלה בלה בלה בלה</div>
+          <div class="bg-row">רגע רגע רגע רגע רגע רגע רגע רגע רגע רגע</div>
+          <div class="bg-row">בלה בלה בלה בלה בלה בלה בלה בלה בלה בלה</div>
+          <div class="bg-row">בקיצור בקיצור בקיצור בקיצור בקיצור בקיצור</div>
+          <div class="bg-row">בלה בלה בלה בלה בלה בלה בלה בלה בלה בלה</div>
+          <div class="bg-row">רגע רגע רגע רגע רגע רגע רגע רגע רגע רגע</div>
+          <div class="bg-row">בלה בלה בלה בלה בלה בלה בלה בלה בלה בלה</div>
+          <div class="bg-row">בקיצור בקיצור בקיצור בקיצור בקיצור בקיצור</div>
+          <div class="bg-row">בלה בלה בלה בלה בלה בלה בלה בלה בלה בלה</div>
+          <div class="bg-row">רגע רגע רגע רגע רגע רגע רגע רגע רגע רגע</div>
+        </div>
+        <div id="bg-vignette"></div>
+        <div id="bg-grain"></div>
+      </section>
+
+      <!-- S1: warning -->
+      <section id="s1" class="clip" data-start="0" data-duration="3.4" data-track-index="1">
+        <div class="tape" id="tape-a">
+          <span class="tape-text" id="tape-a-text">אזהרה · אזהרה · אזהרה · אזהרה · אזהרה · אזהרה · אזהרה · אזהרה · אזהרה</span>
+        </div>
+        <div class="tape" id="tape-b">
+          <span class="tape-text" id="tape-b-text">חפירה לפניך · חפירה לפניך · חפירה לפניך · חפירה לפניך · חפירה לפניך</span>
+        </div>
+        <div id="s1-stack">
+          <div id="s1-warn" class="display red">אזהרה</div>
+          <div id="s1-l2">התוכן הבא מכיל</div>
+          <div id="s1-l3" class="display"><span class="red">חפירות</span> ברמה גבוהה</div>
+        </div>
+      </section>
+
+      <!-- S2: hero -->
+      <section id="s2" class="clip" data-start="3.4" data-duration="4.6" data-track-index="1">
+        <div id="s2-photo">
+          <div id="s2-shake"><img src="assets/me-cut.png" alt="" /></div>
+        </div>
+        <div id="s2-kicker">תכירו את</div>
+        <div id="s2-title-wrap">
+          <div class="s2-title display" id="s2-title-r">החופר</div>
+          <div class="s2-title display" id="s2-title-c">החופר</div>
+          <div class="s2-title display" id="s2-title">החופר</div>
+        </div>
+        <div class="bubble" id="b1">בקיצור…</div>
+        <div class="bubble hot" id="b2">רגע, רק משהו קטן</div>
+        <div class="bubble" id="b3">איפה הייתי?</div>
+        <div class="bubble" id="b4">זה מזכיר לי סיפור</div>
+        <div class="bubble hot" id="b5">תקשיב, תקשיב</div>
+        <div class="bubble" id="b6">עוד שנייה ואני מסיים</div>
+      </section>
+
+      <!-- S3: counter -->
+      <section id="s3" class="clip" data-start="8" data-duration="3.6" data-track-index="1">
+        <div id="s3-stack">
+          <div id="s3-label" class="display">מילים לדקה</div>
+          <div id="s3-num-wrap"><div id="s3-num">0</div></div>
+          <div id="s3-sub">(וזה רק החימום)</div>
+          <div id="s3-meter">
+            <div id="s3-meter-label"><span>מד חפירה</span><span id="s3-pct">0%</span></div>
+            <div id="s3-track"><div id="s3-fill"></div></div>
+            <div id="s3-stamp">120%</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S4: clock joke -->
+      <section id="s4" class="clip" data-start="11.6" data-duration="4.2" data-track-index="1">
+        <div id="s4-stage">
+          <div class="s4-line display" id="s4-l1">שאלו אותי מה השעה.</div>
+          <div class="s4-line display" id="s4-l2">עניתי בהרצאה</div>
+          <div class="s4-line display" id="s4-l3">על <span class="red">תולדות השעון.</span></div>
+        </div>
+        <div id="s4-badge">משך: 45 דקות</div>
+      </section>
+
+      <!-- S5: three words -->
+      <section id="s5" class="clip" data-start="15.8" data-duration="2.8" data-track-index="1">
+        <div id="s5-stack">
+          <div class="s5-word display" id="s5-w1">הומור.</div>
+          <div class="s5-word display" id="s5-w2">שיווק.</div>
+          <div id="s5-w3-wrap">
+            <div class="s5-word display red" id="s5-w3">חפירות.</div>
+            <div id="s5-under"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S6: finale -->
+      <section id="s6" class="clip" data-start="18.6" data-duration="3.4" data-track-index="1">
+        <div id="s6-stack">
+          <div id="s6-avatar">
+            <div id="s6-circle"><img src="assets/me-cut.png" alt="" /></div>
+            <svg id="s6-ring" viewBox="0 0 560 560">
+              <circle id="s6-ring-path" cx="280" cy="280" r="268" fill="none" stroke="#ff3b2f" stroke-width="12" stroke-linecap="round" transform="rotate(-90 280 280)" />
+            </svg>
+          </div>
+          <div id="s6-name" class="display">החופר</div>
+          <div id="s6-tag">אני אסביר לך. <span class="red">באריכות.</span></div>
+          <div id="s6-cta">עקבו ← אם יש לכם זמן</div>
+        </div>
+        <div id="s6-flash"></div>
+      </section>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const D = 22;
+
+      // deterministic pseudo-random from an index
+      const hash = (i) => {
+        const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+        return x - Math.floor(x);
+      };
+
+      // camera shake: stepped offsets on a dedicated wrapper, settles to 0
+      function shake(sel, t0, steps, amp, seed) {
+        for (let i = 0; i < steps; i++) {
+          const k = 1 - i / steps;
+          tl.to(sel, { x: (hash(seed + i) - 0.5) * 2 * amp * k, y: (hash(seed + i + 50) - 0.5) * 2 * amp * k, duration: 0.04, ease: "none" }, t0 + i * 0.04);
+        }
+        tl.to(sel, { x: 0, y: 0, duration: 0.05, ease: "none" }, t0 + steps * 0.04);
+      }
+
+      // RGB-split glitch: colour copies jitter on a quantized grid, then lock
+      function glitch(rSel, cSel, t0, steps, amp, seed) {
+        for (let i = 0; i < steps; i++) {
+          const k = 1 - i / steps;
+          const t = t0 + i * 0.05;
+          tl.set(rSel, { x: (hash(seed + i) - 0.5) * 2 * amp * k, y: (hash(seed + i + 9) - 0.5) * amp * 0.4 * k }, t);
+          tl.set(cSel, { x: (hash(seed + i + 23) - 0.5) * 2 * amp * k, y: (hash(seed + i + 31) - 0.5) * amp * 0.4 * k }, t);
+        }
+        tl.set([rSel, cSel], { x: 0, y: 0 }, t0 + steps * 0.05);
+      }
+
+      /* ---------- background (whole film) ---------- */
+      tl.fromTo("#bg-glow", { scale: 0.9, opacity: 0.7 }, { scale: 1.08, opacity: 1, duration: 2.75, ease: "sine.inOut", yoyo: true, repeat: 7 }, 0);
+      gsap.utils.toArray(".bg-row").forEach((row, i) => {
+        const dir = i % 2 === 0 ? 1 : -1;
+        tl.fromTo(row, { x: -260 * dir }, { x: 260 * dir, duration: D, ease: "none" }, 0);
+      });
+
+      /* ---------- S1 warning 0 – 3.4 ---------- */
+      tl.fromTo("#tape-a", { xPercent: 60 }, { xPercent: 0, duration: 0.5, ease: "expo.out" }, 0.05);
+      tl.fromTo("#tape-b", { xPercent: -60 }, { xPercent: 0, duration: 0.5, ease: "expo.out" }, 0.15);
+      tl.fromTo("#tape-a-text", { x: 0 }, { x: -260, duration: 3.4, ease: "none" }, 0);
+      tl.fromTo("#tape-b-text", { x: 0 }, { x: 260, duration: 3.4, ease: "none" }, 0);
+      tl.fromTo("#s1-warn", { scale: 1.8, filter: "blur(18px)", opacity: 0 }, { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.5, ease: "power4.out" }, 0.3);
+      shake("#s1-stack", 0.62, 6, 18, 1);
+      tl.fromTo("#s1-l2", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "circ.out" }, 1.1);
+      tl.fromTo("#s1-l3", { x: 380, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 1.7);
+      tl.fromTo("#s1-warn", { scale: 1 }, { scale: 1.06, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 1 }, 2.3);
+      // exit: everything punches toward camera
+      tl.to("#s1-stack", { scale: 1.35, opacity: 0, filter: "blur(10px)", duration: 0.25, ease: "power2.in" }, 3.15);
+      tl.to(["#tape-a", "#tape-b"], { opacity: 0, duration: 0.2, ease: "power2.in" }, 3.18);
+
+      /* ---------- S2 hero 3.4 – 8.0 ---------- */
+      const S2 = 3.4;
+      tl.fromTo("#s2-photo", { y: 520, scale: 1.18, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.6, ease: "expo.out" }, S2);
+      shake("#s2-shake", S2 + 0.55, 7, 22, 40);
+      tl.fromTo("#s2-kicker", { y: -40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, S2 + 0.35);
+      tl.fromTo("#s2-title-wrap", { scale: 2.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "power4.out" }, S2 + 0.6);
+      glitch("#s2-title-r", "#s2-title-c", S2 + 0.6, 10, 46, 70);
+      glitch("#s2-title-r", "#s2-title-c", S2 + 3.0, 5, 30, 90);
+      // slow push on the photo while bubbles flood in
+      tl.fromTo("#s2-shake", { scale: 1 }, { scale: 1.06, duration: 3.2, ease: "none" }, S2 + 1.0);
+      const bubbles = ["#b1", "#b2", "#b3", "#b4", "#b5", "#b6"];
+      bubbles.forEach((b, i) => {
+        const fromRight = i % 2 === 0;
+        tl.fromTo(
+          b,
+          { scale: 0.2, opacity: 0, rotation: fromRight ? 12 : -12, x: fromRight ? 120 : -120 },
+          { scale: 1, opacity: 1, rotation: fromRight ? -3 : 3, x: 0, duration: 0.4, ease: "back.out(2.2)" },
+          S2 + 1.2 + i * 0.42
+        );
+      });
+      tl.to("#s2", { opacity: 1, duration: 0.01 }, S2);
+      tl.to(["#s2-photo", "#s2-title-wrap", "#s2-kicker"].concat(bubbles), { y: -160, opacity: 0, duration: 0.25, ease: "power2.in", stagger: 0.015 }, S2 + 4.3);
+
+      /* ---------- S3 counter 8.0 – 11.6 ---------- */
+      const S3 = 8.0;
+      const num = document.getElementById("s3-num");
+      const pct = document.getElementById("s3-pct");
+      const fmt = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      tl.fromTo("#s3-label", { y: -60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, S3 + 0.05);
+      const counter = { v: 0 };
+      tl.fromTo(
+        counter,
+        { v: 0 },
+        { v: 9999, duration: 1.7, ease: "power2.in", onUpdate: () => { num.textContent = fmt(counter.v); } },
+        S3 + 0.25
+      );
+      tl.fromTo("#s3-num", { scale: 0.55 }, { scale: 1.08, duration: 1.7, ease: "power2.in" }, S3 + 0.25);
+      tl.to("#s3-num", { scale: 1, duration: 0.25, ease: "back.out(3)" }, S3 + 1.95);
+      shake("#s3-num-wrap", S3 + 1.95, 6, 20, 120);
+      tl.fromTo("#s3-sub", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, S3 + 2.05);
+      tl.fromTo("#s3-meter", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, S3 + 0.4);
+      const meter = { p: 0 };
+      tl.fromTo("#s3-fill", { scaleX: 0 }, { scaleX: 1, duration: 1.6, ease: "power2.in" }, S3 + 0.5);
+      tl.fromTo(
+        meter,
+        { p: 0 },
+        { p: 100, duration: 1.6, ease: "power2.in", onUpdate: () => { pct.textContent = Math.round(meter.p) + "%"; } },
+        S3 + 0.5
+      );
+      tl.fromTo("#s3-stamp", { scale: 3, rotation: -30, opacity: 0 }, { scale: 1, rotation: -12, opacity: 1, duration: 0.3, ease: "power4.out" }, S3 + 2.15);
+      tl.to("#s3-stack", { scale: 0.8, opacity: 0, duration: 0.25, ease: "power2.in" }, S3 + 3.35);
+
+      /* ---------- S4 clock joke 11.6 – 15.8 ---------- */
+      const S4 = 11.6;
+      const PULSE = 0.5;
+      const BEATS = [S4 + PULSE * 0.4, S4 + PULSE * 2.6, S4 + PULSE * 4.6];
+      tl.fromTo("#s4-l1", { scale: 1.5, filter: "blur(16px)", opacity: 0 }, { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.5, ease: "power4.out" }, BEATS[0]);
+      tl.fromTo("#s4-l2", { x: 420, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, BEATS[1]);
+      tl.fromTo("#s4-l3", { y: 100, rotation: -5, opacity: 0 }, { y: 0, rotation: 0, opacity: 1, duration: 0.55, ease: "circ.out" }, BEATS[2]);
+      tl.fromTo("#s4-badge", { scale: 2.6, rotation: 18, opacity: 0 }, { scale: 1, rotation: 6, opacity: 1, duration: 0.32, ease: "power4.out" }, BEATS[2] + 0.9);
+      shake("#s4-stage", BEATS[2] + 0.95, 6, 14, 160);
+      tl.fromTo("#s4-stage", { scale: 1 }, { scale: 1.03, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, BEATS[2] + 1.3);
+      tl.to(["#s4-stage", "#s4-badge"], { x: -1100, duration: 0.3, ease: "power3.in" }, S4 + 3.9);
+
+      /* ---------- S5 three words 15.8 – 18.6 ---------- */
+      const S5 = 15.8;
+      tl.fromTo("#s5-w1", { x: 900, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, S5 + 0.1);
+      tl.fromTo("#s5-w2", { x: -900, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, S5 + 0.65);
+      tl.fromTo("#s5-w3", { scale: 2.4, filter: "blur(14px)", opacity: 0 }, { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.45, ease: "power4.out" }, S5 + 1.2);
+      shake("#s5-stack", S5 + 1.5, 7, 22, 200);
+      tl.fromTo("#s5-under", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, S5 + 1.75);
+      tl.to("#s5-stack", { scale: 1.6, opacity: 0, filter: "blur(12px)", duration: 0.25, ease: "power2.in" }, S5 + 2.55);
+
+      /* ---------- S6 finale 18.6 – 22 ---------- */
+      const S6 = 18.6;
+      tl.fromTo("#s6-flash", { opacity: 0.9 }, { opacity: 0, duration: 0.35, ease: "power2.out" }, S6);
+      tl.fromTo("#s6-circle", { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.8)" }, S6 + 0.05);
+      const ring = document.getElementById("s6-ring-path");
+      const len = 2 * Math.PI * 268;
+      ring.setAttribute("stroke-dasharray", String(len));
+      tl.fromTo(ring, { attr: { "stroke-dashoffset": len } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.8, ease: "power2.inOut" }, S6 + 0.25);
+      tl.fromTo("#s6-name", { y: 80, scale: 1.3, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.5, ease: "power4.out" }, S6 + 0.45);
+      tl.fromTo("#s6-tag", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, S6 + 0.8);
+      tl.fromTo("#s6-cta", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(2.4)" }, S6 + 1.15);
+      tl.fromTo("#s6-cta", { scale: 1 }, { scale: 1.05, duration: 0.45, ease: "sine.inOut", yoyo: true, repeat: 1 }, S6 + 1.9);
+      tl.fromTo("#s6-avatar", { rotation: 0 }, { rotation: 3, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: 1 }, S6 + 1.4);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

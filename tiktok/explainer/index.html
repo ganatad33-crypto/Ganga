@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>מה למדתי על טיקטוק</title>
+<style>
+@font-face{font-family:Rubik;font-weight:700;src:url(../../fonts/rubik-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:Rubik;font-weight:700;src:url(../../fonts/rubik-hebrew-700-normal.woff2) format('woff2');unicode-range:U+0590-05FF,U+FB1D-FB4F}
+@font-face{font-family:Rubik;font-weight:500;src:url(../../fonts/rubik-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:Rubik;font-weight:500;src:url(../../fonts/rubik-hebrew-500-normal.woff2) format('woff2');unicode-range:U+0590-05FF,U+FB1D-FB4F}
+@font-face{font-family:Heebo;font-weight:400;src:url(../../fonts/heebo-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:Heebo;font-weight:400;src:url(../../fonts/heebo-hebrew-400-normal.woff2) format('woff2');unicode-range:U+0590-05FF,U+FB1D-FB4F}
+@font-face{font-family:Heebo;font-weight:500;src:url(../../fonts/heebo-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:Heebo;font-weight:500;src:url(../../fonts/heebo-hebrew-500-normal.woff2) format('woff2');unicode-range:U+0590-05FF,U+FB1D-FB4F}
+@font-face{font-family:Heebo;font-weight:700;src:url(../../fonts/heebo-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:Heebo;font-weight:700;src:url(../../fonts/heebo-hebrew-700-normal.woff2) format('woff2');unicode-range:U+0590-05FF,U+FB1D-FB4F}
+
+:root{--bg:#07070d;--pink:#FE2C55;--cyan:#25F4EE;--yellow:#FFD60A;--white:#F5F5F7;--mut:#9C9CB4;--panel:rgba(255,255,255,.06);--line:rgba(255,255,255,.14)}
+html,body{margin:0;background:var(--bg)}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:var(--bg);color:var(--white);font-family:Heebo,'Noto Color Emoji',sans-serif}
+#bg{position:absolute;inset:0}
+#cam{position:absolute;inset:0;transform-origin:50% 45%}
+.scene{position:absolute;inset:0;visibility:hidden}
+.abs{position:absolute;left:90px;right:90px;text-align:center}
+[data-in]{opacity:0}
+.scene[data-in]{opacity:1}
+.hl{color:var(--pink)}
+.cy .hl,.hl.cy{color:var(--cyan)}
+.h1{font:700 150px/1.05 Rubik}
+.h2{font:700 108px/1.1 Rubik}
+.h3{font:700 80px/1.15 Rubik}
+.lead{font:500 60px/1.3 Heebo}
+.mut{color:var(--mut)}
+.small{font:400 40px/1.35 Heebo;color:var(--mut)}
+.w{display:inline-block}
+.glitch{text-shadow:-7px 0 var(--cyan),7px 0 var(--pink)}
+.chip{display:inline-block;padding:16px 34px;border-radius:999px;background:var(--panel);border:2px solid var(--line);font:500 42px Heebo;white-space:nowrap}
+.chip.pk{background:var(--pink);border-color:var(--pink);color:#fff}
+.chip.cy{background:var(--cyan);border-color:var(--cyan);color:#06121a}
+.row{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;row-gap:22px}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:44px;padding:44px 40px}
+.stamp{display:inline-block;padding:26px 56px;border:8px solid var(--pink);color:var(--pink);font:700 84px Rubik;border-radius:24px;background:rgba(254,44,85,.08)}
+.num{font:700 230px/1 Rubik;color:transparent;-webkit-text-stroke:5px var(--white);opacity:.9}
+.strike{position:relative}
+.strike i{position:absolute;right:-5%;top:50%;height:8px;width:0;background:var(--pink);border-radius:8px;transform:rotate(-4deg)}
+/* top HUD */
+#hud{position:absolute;top:0;left:0;right:0;height:200px;z-index:5}
+#prog{position:absolute;top:70px;right:90px;left:90px;height:10px;border-radius:10px;background:rgba(255,255,255,.12);overflow:hidden}
+#prog b{position:absolute;right:0;top:0;bottom:0;background:linear-gradient(270deg,var(--cyan),var(--pink));border-radius:10px}
+#chap{position:absolute;top:108px;right:90px;font:500 38px Heebo;color:var(--mut)}
+#chap b{color:var(--white)}
+#handle{position:absolute;top:108px;left:90px;font:500 38px Heebo;color:var(--mut);direction:ltr}
+#wipe{position:absolute;inset:-200px;z-index:8;pointer-events:none}
+#wipe div{position:absolute;top:0;bottom:0;width:1600px;transform:skewX(-14deg)}
+#fade{position:absolute;inset:0;background:#000;opacity:0;z-index:9}
+/* bars */
+.brow{margin-bottom:30px;text-align:right}
+.brow .lb{font:500 46px Heebo;margin-bottom:14px;display:flex;justify-content:space-between}
+.brow .lb span:last-child{font:700 46px Rubik;direction:ltr}
+.track{height:54px;border-radius:30px;background:rgba(255,255,255,.07);overflow:hidden;position:relative}
+.fill{position:absolute;right:0;top:0;bottom:0;border-radius:30px;width:0}
+.cell{position:absolute;border-radius:14px;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.08)}
+.cell.lit{background:var(--pink);border-color:var(--pink);box-shadow:0 0 34px rgba(254,44,85,.7)}
+.cell.go{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 30px rgba(37,244,238,.6);display:flex;align-items:center;justify-content:center;font-size:52px}
+.cell.off{opacity:.25}
+.pool{position:absolute;left:50%;height:130px;border-radius:70px;display:flex;align-items:center;justify-content:center;font:700 50px Rubik;border:3px solid var(--line);background:rgba(255,255,255,.06)}
+.gate{position:absolute;left:50%;font:500 38px Heebo;color:var(--cyan);white-space:nowrap}
+.vbar{position:absolute;bottom:0;width:190px;border-radius:26px 26px 0 0}
+.phone{position:absolute;left:50%;width:380px;height:640px;margin-left:-190px;border-radius:56px;border:6px solid #2b2b3a;background:linear-gradient(160deg,#2a1530,#0d2a33);overflow:hidden}
+.card{position:absolute;width:300px;height:400px;border-radius:36px;display:flex;align-items:center;justify-content:center;font:700 64px Rubik;border:3px solid var(--line)}
+</style>
+</head>
+<body>
+<div id="stage">
+<canvas id="bg" width="1080" height="1920"></canvas>
+<div id="cam">
+
+<!-- 1 · HOOK -->
+<section class="scene" data-in="0" data-out="4" data-chap="">
+  <div class="abs lead mut" style="top:470px" data-in="0.05" data-fx="up">השיא שלך עד היום:</div>
+  <div class="abs glitch" style="top:560px;font:700 480px/1 Rubik" data-in="0.15" data-fx="pop"><span data-count="61" data-cin="0.25" data-cdur="1.35">0</span></div>
+  <div class="abs h2" style="top:1080px" data-in="1.5" data-fx="up">צפיות.</div>
+  <div class="abs" style="top:1300px" data-in="2.3" data-fx="stamp"><span class="stamp">בוא נשנה את זה</span></div>
+</section>
+
+<!-- 2 · TITLE -->
+<section class="scene" data-in="4" data-out="8" data-chap="">
+  <div class="abs" style="top:520px" data-in="4.1" data-fx="up"><span class="chip">vidIQ · מחקר ברשת · 30 סרטונים חריגים</span></div>
+  <div class="abs h1 words" style="top:690px" data-in="4.3" data-stagger="0.13">מה *למדתי* על טיקטוק</div>
+  <div class="abs lead mut" style="top:1060px" data-in="5.2" data-fx="up">ומה זה אומר על החשבון שלך</div>
+  <div class="abs row" style="top:1250px">
+    <span class="chip" data-in="5.8" data-fx="pop">2 דקות</span>
+    <span class="chip pk" data-in="6.0" data-fx="pop">6 כללים</span>
+    <span class="chip cy" data-in="6.2" data-fx="pop">תוכנית אחת</span>
+  </div>
+</section>
+
+<!-- 3 · DIAGNOSIS: frequency -->
+<section class="scene" data-in="8" data-out="14" data-chap="<b>01</b> · המצב שלך">
+  <div class="abs h2 words" style="top:330px" data-in="8.15" data-stagger="0.1">*12* סרטונים ב-*15* חודשים</div>
+  <div id="weeks" style="position:absolute;left:104px;top:640px;width:872px;height:400px"></div>
+  <div class="abs small" style="top:1070px" data-in="9.0" data-fx="up">כל ריבוע = שבוע · ורוד = סרטון</div>
+  <div class="abs h3" style="top:1190px" data-in="10.8" data-fx="up">סרטון בערך כל <span class="hl">5 שבועות</span></div>
+  <div class="abs lead mut" style="top:1360px" data-in="11.8" data-fx="up">האלגוריתם לא מספיק להכיר אותך.</div>
+</section>
+
+<!-- 4 · DIAGNOSIS: length -->
+<section class="scene" data-in="14" data-out="20" data-chap="<b>01</b> · המצב שלך">
+  <div class="abs h2 words" style="top:330px" data-in="14.15" data-stagger="0.1">אורך טיפוסי: *60* שניות</div>
+  <div class="abs" style="top:640px">
+    <div class="brow" data-in="14.8" data-fx="up"><div class="lb"><span>החציון שלך</span><span>60s</span></div><div class="track"><div class="fill" data-bar="0.375" data-bin="15.0" style="background:var(--pink)"></div></div></div>
+    <div class="brow" data-in="15.4" data-fx="up"><div class="lb"><span>4 סרטונים שלך</span><span>150s+</span></div><div class="track"><div class="fill" data-bar="0.94" data-bin="15.6" style="background:var(--pink);opacity:.6"></div></div></div>
+    <div class="brow" data-in="16.2" data-fx="up"><div class="lb"><span>המובילים בנישה</span><span>14–34s</span></div><div class="track"><div class="fill" data-bar="0.21" data-bin="16.4" style="background:var(--cyan)"></div></div></div>
+  </div>
+  <div class="abs h3" style="top:1300px" data-in="17.5" data-fx="up">כל שנייה מיותרת = <span class="hl">עוד אנשים שגוללים</span></div>
+</section>
+
+<!-- 5 · DIAGNOSIS: topics -->
+<section class="scene" data-in="20" data-out="26" data-chap="<b>01</b> · המצב שלך">
+  <div class="abs h2 words" style="top:330px" data-in="20.15" data-stagger="0.1">וכל סרטון: *נושא אחר*</div>
+  <span class="chip float" style="position:absolute;top:620px;right:120px" data-in="20.6" data-fx="pop">⚽ כדורגל</span>
+  <span class="chip float" style="position:absolute;top:700px;left:110px" data-in="20.8" data-fx="pop">🚁 רחפן מעל ת״א</span>
+  <span class="chip float" style="position:absolute;top:830px;right:300px" data-in="21.0" data-fx="pop">🏛️ סאטירה</span>
+  <span class="chip float" style="position:absolute;top:950px;left:160px" data-in="21.2" data-fx="pop">🎨 אמנות AI</span>
+  <span class="chip float" style="position:absolute;top:1000px;right:130px" data-in="21.4" data-fx="pop">👨‍👩‍👧 משפחה</span>
+  <div class="abs panel" style="top:1170px" data-in="22.8" data-fx="pop">
+    <div class="h3">הבעיה היא <span class="hl">לא</span> האיכות.</div>
+    <div class="lead" style="color:var(--cyan);margin-top:14px">זה הקצב, העקביות והאורך.</div>
+  </div>
+</section>
+
+<!-- 6 · ALGORITHM: funnel -->
+<section class="scene" data-in="26" data-out="36" data-chap="<b>02</b> · איך זה עובד">
+  <div class="abs h2 words" style="top:300px" data-in="26.15" data-stagger="0.1">איך טיקטוק *מחליט*</div>
+  <div class="abs lead mut" style="top:440px" data-in="26.7" data-fx="up">כל סרטון מקבל מבחן קטן</div>
+  <div class="pool" style="top:600px;width:420px;margin-left:-210px" data-in="27.2" data-fx="pop">קבוצת ניסיון קטנה</div>
+  <div class="gate" style="top:760px;transform:translateX(-50%)" data-in="28.3" data-fx="up">↓ ✓ צפו עד הסוף?</div>
+  <div class="pool" style="top:830px;width:580px;margin-left:-290px" data-in="29.0" data-fx="pop">קהל גדול יותר</div>
+  <div class="gate" style="top:990px;transform:translateX(-50%)" data-in="30.1" data-fx="up">↓ ✓ שיתפו? שמרו?</div>
+  <div class="pool" style="top:1060px;width:740px;margin-left:-370px" data-in="30.8" data-fx="pop">עוד יותר גדול</div>
+  <div class="gate" style="top:1220px;transform:translateX(-50%)" data-in="31.9" data-fx="up">↓ ✓ עדיין צופים?</div>
+  <div class="pool" style="top:1290px;width:900px;margin-left:-450px;background:linear-gradient(90deg,var(--pink),#b5179e,var(--cyan));border:0" data-in="32.6" data-fx="pop">For You של כולם 🚀</div>
+  <div class="abs lead" style="top:1490px" data-in="33.8" data-fx="up">הצופים מחליטים אם הסרטון <span class="hl">ממשיך</span>.</div>
+</section>
+
+<!-- 7 · ALGORITHM: signals -->
+<section class="scene" data-in="36" data-out="48" data-chap="<b>02</b> · איך זה עובד">
+  <div class="abs h2 words" style="top:300px" data-in="36.15" data-stagger="0.1">מה הכי *חשוב* לאלגוריתם</div>
+  <div class="abs" style="top:560px">
+    <div class="brow" data-in="36.8" data-fx="up"><div class="lb"><span>צפייה עד הסוף</span><span>#1</span></div><div class="track"><div class="fill" data-bar="1" data-bin="37.0" style="background:var(--cyan)"></div></div></div>
+    <div class="brow" data-in="37.25" data-fx="up"><div class="lb"><span>זמן צפייה</span><span>#2</span></div><div class="track"><div class="fill" data-bar="0.86" data-bin="37.45" style="background:var(--cyan);opacity:.8"></div></div></div>
+    <div class="brow" data-in="37.7" data-fx="up"><div class="lb"><span>שיתופים ושמירות</span><span>#3</span></div><div class="track"><div class="fill" data-bar="0.62" data-bin="37.9" style="background:var(--pink)"></div></div></div>
+    <div class="brow" data-in="38.15" data-fx="up"><div class="lb"><span>תגובות</span><span>#4</span></div><div class="track"><div class="fill" data-bar="0.44" data-bin="38.35" style="background:var(--pink);opacity:.7"></div></div></div>
+    <div class="brow" data-in="38.6" data-fx="up"><div class="lb"><span>לייקים</span><span>#5</span></div><div class="track"><div class="fill" data-bar="0.28" data-bin="38.8" style="background:var(--mut)"></div></div></div>
+  </div>
+  <div class="abs small" style="top:1345px" data-in="39.6" data-fx="up">הערכה ממקורות שונים. טיקטוק לא מפרסם משקלות.</div>
+  <div class="abs" style="top:1450px" data-in="42.5" data-fx="stamp"><span class="stamp" style="font-size:52px;white-space:nowrap;padding:22px 40px">מספר העוקבים? לא נכנס לחשבון.</span></div>
+  <div class="abs small" style="top:1590px" data-in="43.4" data-fx="up">לפי טיקטוק עצמה</div>
+</section>
+
+<!-- 8 · PROOF -->
+<section class="scene" data-in="48" data-out="58" data-chap="<b>03</b> · ההוכחה">
+  <div class="abs" style="top:330px" data-in="48.15" data-fx="up"><span class="chip">מחקר vidIQ · סאטירה ו-AI קומי</span></div>
+  <div class="abs" style="top:500px" data-in="48.7" data-fx="pop">
+    <div style="width:220px;height:220px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,#2c2c40,#15151f);border:4px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:120px">👤</div>
+    <div class="lead" style="margin-top:20px">חשבון עם <b>2,000</b> עוקבים</div>
+  </div>
+  <div class="abs h1" style="top:880px;color:var(--cyan)" data-in="49.6" data-fx="down">↓</div>
+  <div class="abs glitch" style="top:1040px;font:700 190px/1 Rubik;direction:ltr" data-in="49.9" data-fx="pop"><span data-count="1100000" data-cin="50.0" data-cdur="2.2">0</span></div>
+  <div class="abs h3" style="top:1250px" data-in="50.2" data-fx="up">צפיות</div>
+  <div class="abs lead" style="top:1420px" data-in="53.2" data-fx="up">חשבון קטן <span class="hl">לא</span> מפריע.<br>הסרטון עושה את העבודה.</div>
+</section>
+
+<!-- 9–14 · SIX RULES -->
+<section class="scene" data-in="58" data-out="64" data-chap="<b>04</b> · 6 כללים">
+  <div class="abs num" style="top:260px" data-in="58.1" data-fx="pop">01</div>
+  <div class="abs h2 words" style="top:520px" data-in="58.35" data-stagger="0.1">חשבון קטן *לא מפריע*</div>
+  <div class="abs" style="top:820px;display:flex;align-items:center;justify-content:center;gap:40px">
+    <span class="chip" data-in="59.0" data-fx="pop" style="font-size:38px">2K–3K עוקבים</span>
+    <span class="h2" style="color:var(--cyan)" data-in="59.5" data-fx="left">←</span>
+    <span class="chip pk" data-in="59.9" data-fx="pop" style="font-size:46px;padding:22px 36px">270K–1.1M צפיות</span>
+  </div>
+  <div class="abs lead mut" style="top:1200px" data-in="60.8" data-fx="up">הצפיות באות מהסרטון, לא מהעוקבים</div>
+</section>
+
+<section class="scene" data-in="64" data-out="70" data-chap="<b>04</b> · 6 כללים">
+  <div class="abs num" style="top:260px" data-in="64.1" data-fx="pop">02</div>
+  <div class="abs h2 words" style="top:520px" data-in="64.35" data-stagger="0.1">בדיחה *אחת.* מצב *אחד.*</div>
+  <div class="abs row" style="top:800px">
+    <span class="chip strike" data-in="64.9" data-fx="pop">עלילה<i data-sin="66.2"></i></span>
+    <span class="chip strike" data-in="65.05" data-fx="pop">3 בדיחות<i data-sin="66.4"></i></span>
+    <span class="chip strike" data-in="65.2" data-fx="pop">פתיח<i data-sin="66.6"></i></span>
+    <span class="chip strike" data-in="65.35" data-fx="pop">טוויסט בסוף<i data-sin="66.8"></i></span>
+  </div>
+  <div class="abs" style="top:1060px" data-in="67.2" data-fx="stamp"><span class="chip cy" style="font:700 72px Rubik;padding:28px 60px">💡 בדיחה אחת</span></div>
+  <div class="abs lead mut" style="top:1290px" data-in="67.8" data-fx="up">דמות מוכרת, במצב יומיומי ואבסורדי</div>
+</section>
+
+<section class="scene" data-in="70" data-out="76" data-chap="<b>04</b> · 6 כללים">
+  <div class="abs num" style="top:260px" data-in="70.1" data-fx="pop">03</div>
+  <div class="abs h2 words" style="top:520px" data-in="70.35" data-stagger="0.1">*קצר.* 15–25 שניות</div>
+  <div class="abs" style="top:740px;height:440px" data-in="70.7" data-fx="pop">
+    <svg width="440" height="440" viewBox="0 0 440 440" style="display:block;margin:0 auto">
+      <circle cx="220" cy="220" r="190" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="30"/>
+      <circle id="ring" cx="220" cy="220" r="190" fill="none" stroke="url(#rg)" stroke-width="30" stroke-linecap="round" transform="rotate(-90 220 220)" stroke-dasharray="1193.8" stroke-dashoffset="1193.8"/>
+      <defs><linearGradient id="rg"><stop offset="0" stop-color="#25F4EE"/><stop offset="1" stop-color="#FE2C55"/></linearGradient></defs>
+    </svg>
+    <div style="position:absolute;top:120px;left:0;right:0;font:700 170px/1 Rubik"><span data-count="20" data-cin="70.9" data-cdur="2.6">0</span></div>
+    <div style="position:absolute;top:300px;left:0;right:0" class="small">שניות</div>
+  </div>
+  <div class="abs lead mut" style="top:1260px" data-in="73.0" data-fx="up">המובילים בישראל: 14 עד 34 שניות</div>
+</section>
+
+<section class="scene" data-in="76" data-out="82" data-chap="<b>04</b> · 6 כללים">
+  <div class="abs num" style="top:260px" data-in="76.1" data-fx="pop">04</div>
+  <div class="abs h2 words" style="top:500px" data-in="76.35" data-stagger="0.1">שנייה ראשונה = *אמצע האירוע*</div>
+  <div class="abs row" style="top:800px">
+    <span class="chip strike" data-in="77.0" data-fx="pop">לוגו<i data-sin="77.9"></i></span>
+    <span class="chip strike" data-in="77.15" data-fx="pop">פתיח<i data-sin="78.1"></i></span>
+    <span class="chip strike" data-in="77.3" data-fx="pop">כותרת<i data-sin="78.3"></i></span>
+    <span class="chip strike" data-in="77.45" data-fx="pop">״היי חברים״<i data-sin="78.5"></i></span>
+  </div>
+  <div class="abs" style="top:1050px;font:700 150px/1 Rubik" data-in="79.0" data-fx="stamp"><span class="glitch">💥 פעולה</span></div>
+  <div class="abs lead mut" style="top:1290px" data-in="79.6" data-fx="up">בלי חימום. נכנסים באמצע.</div>
+</section>
+
+<section class="scene" data-in="82" data-out="88" data-chap="<b>04</b> · 6 כללים">
+  <div class="abs num" style="top:220px" data-in="82.1" data-fx="pop">05</div>
+  <div class="abs h2 words" style="top:460px" data-in="82.35" data-stagger="0.1">שורת טקסט *אחת* על המסך</div>
+  <div class="phone" style="top:720px" data-in="82.9" data-fx="up">
+    <div style="position:absolute;top:36px;left:36px;font-size:58px" data-in="83.4" data-fx="pop">🔇</div>
+    <div style="position:absolute;top:150px;left:30px;right:30px;background:#fff;color:#111;border-radius:22px;padding:22px 24px;font:700 42px/1.25 Rubik;text-align:center" data-in="83.7" data-fx="pop"><span data-type="כשהניווט בטוח שהוא יודע יותר טוב ממך" data-tin="83.9" data-tdur="1.5"></span></div>
+    <div style="position:absolute;bottom:60px;left:0;right:0;text-align:center;font-size:150px">🗺️🤖</div>
+  </div>
+  <div class="abs lead mut" style="top:1420px" data-in="85.6" data-fx="up">צריך להבין את הבדיחה גם בלי קול</div>
+</section>
+
+<section class="scene" data-in="88" data-out="94" data-chap="<b>04</b> · 6 כללים">
+  <div class="abs num" style="top:260px" data-in="88.1" data-fx="pop">06</div>
+  <div class="abs h2 words" style="top:520px" data-in="88.35" data-stagger="0.1">דמות *קבועה.* סדרה.</div>
+  <div class="abs" style="top:740px;font-size:150px" data-in="89.0" data-fx="pop">🤖</div>
+  <div style="position:absolute;top:930px;left:0;right:0;height:420px">
+    <div class="card" style="left:150px;top:20px;background:#1b1b28;transform:rotate(-8deg)" data-in="89.6" data-fx="up" data-rot="-8">חלק 1</div>
+    <div class="card" style="left:390px;top:0;background:#24243a" data-in="89.9" data-fx="up">חלק 2</div>
+    <div class="card" style="left:630px;top:20px;background:var(--pink)" data-in="90.2" data-fx="up" data-rot="8">חלק 3</div>
+  </div>
+  <div class="abs lead mut" style="top:1420px" data-in="91.0" data-fx="up">מי שאהב חלק 1 מחפש את חלק 2</div>
+</section>
+
+<!-- 15 · FREQUENCY -->
+<section class="scene" data-in="94" data-out="104" data-chap="<b>05</b> · כמה לפרסם">
+  <div class="abs h2 words" style="top:300px" data-in="94.15" data-stagger="0.1">כמה *לפרסם*?</div>
+  <div class="abs small" style="top:450px" data-in="94.6" data-fx="up">מחקר Buffer · 11.4 מיליון פוסטים · צפיות לפוסט</div>
+  <div style="position:absolute;top:560px;left:130px;right:130px;height:600px">
+    <div class="vbar" style="right:0;background:rgba(255,255,255,.18)" data-vbar="380" data-bin="95.2"></div>
+    <div class="vbar" style="right:255px;background:var(--pink);box-shadow:0 0 40px rgba(254,44,85,.5)" data-vbar="445" data-bin="95.7"></div>
+    <div class="vbar" style="right:510px;background:var(--cyan);opacity:.85" data-vbar="490" data-bin="96.2"></div>
+    <div class="vlab" style="position:absolute;right:0;width:190px;text-align:center;font:700 54px Rubik" data-in="96.0" data-fx="up" data-vfor="380">בסיס</div>
+    <div class="vlab" style="position:absolute;right:255px;width:190px;text-align:center;font:700 64px Rubik;color:var(--pink);direction:ltr" data-in="96.5" data-fx="up" data-vfor="445">+17%</div>
+    <div class="vlab" style="position:absolute;right:510px;width:190px;text-align:center;font:700 64px Rubik;color:var(--cyan);direction:ltr" data-in="97.0" data-fx="up" data-vfor="490">+29%</div>
+  </div>
+  <div style="position:absolute;top:1180px;left:130px;right:130px;height:80px;font:500 40px Heebo">
+    <div style="position:absolute;right:-30px;width:250px;text-align:center" data-in="95.2" data-fx="up">פעם בשבוע</div>
+    <div style="position:absolute;right:225px;width:250px;text-align:center" data-in="95.7" data-fx="up">2–5 בשבוע</div>
+    <div style="position:absolute;right:480px;width:250px;text-align:center" data-in="96.2" data-fx="up">6–10 בשבוע</div>
+  </div>
+  <div class="abs" style="top:1270px" data-in="97.8" data-fx="pop"><span class="chip pk" style="font-size:40px;padding:12px 30px">⬆ אנחנו פה: 3 בשבוע</span></div>
+  <div class="abs lead" style="top:1400px" data-in="99.0" data-fx="up"><span class="hl cy">העקביות</span> חשובה יותר מהכמות.</div>
+  <div class="abs small" style="top:1500px" data-in="100.0" data-fx="up">מתאם, לא הוכחה. אבל הכיוון ברור.</div>
+</section>
+
+<!-- 16 · PLAN -->
+<section class="scene" data-in="104" data-out="114" data-chap="<b>06</b> · התוכנית">
+  <div class="abs h2 words" style="top:300px" data-in="104.15" data-stagger="0.1">התוכנית: *30 יום*</div>
+  <div id="days" style="position:absolute;left:134px;top:500px;width:812px;height:60px;font:500 40px Heebo;color:var(--mut)"></div>
+  <div id="cal" style="position:absolute;left:134px;top:570px;width:812px;height:600px"></div>
+  <div class="abs row" style="top:1210px">
+    <span class="chip pk" data-in="107.4" data-fx="pop">3 בשבוע</span>
+    <span class="chip" data-in="107.6" data-fx="pop">15–25 שניות</span>
+    <span class="chip cy" data-in="107.8" data-fx="pop">פורמט קבוע</span>
+  </div>
+  <div class="abs lead" style="top:1420px" data-in="109.3" data-fx="up">ובסוף החודש <span class="hl">הנתונים</span> מחליטים.</div>
+</section>
+
+<!-- 17 · OUTRO -->
+<section class="scene" data-in="114" data-out="120" data-chap="">
+  <div class="abs h3 words" style="top:560px" data-in="114.15" data-stagger="0.1">ואת כל זה אמרתי ב-*2 דקות.*</div>
+  <div class="abs" style="top:820px" data-in="115.5" data-fx="stamp"><span class="stamp">אל תעשה כמוני 😅</span></div>
+  <div class="abs h3" style="top:1080px" data-in="116.7" data-fx="up">הסרטון הבא: <span class="hl cy">20 שניות.</span></div>
+  <div class="abs glitch" style="top:1260px;font:700 100px Rubik;direction:ltr" data-in="117.6" data-fx="blur">@ganatad</div>
+</section>
+
+</div>
+<div id="hud"><div id="prog"><b></b></div><div id="chap"></div><div id="handle">@ganatad</div></div>
+<div id="wipe"><div style="background:var(--pink)"></div><div style="background:var(--cyan)"></div><div style="background:#0c0c16"></div></div>
+<div id="fade"></div>
+</div>
+
+<script>
+const DUR=120;
+const HITS=[1.6,2.3,22.8,27.2,29.0,30.8,32.6,42.5,52.2,67.2,79.0,97.8,115.5];
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const P=(t,a,d)=>cl((t-a)/d);
+const E={out:x=>1-Math.pow(1-x,3),in:x=>x*x*x,
+  io:x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2,
+  back:x=>{const c1=2.0,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}};
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+// --- generated grids ---------------------------------------------------
+(function(){
+  // 65 weeks, 12 videos, roughly evenly spread (illustrative of an average)
+  const W=$('#weeks'),cols=13,sz=56,g=12, lit=new Set([...Array(12)].map((_,k)=>Math.round(k*64/11)));
+  let k=0;
+  for(let i=0;i<65;i++){
+    const c=document.createElement('div'),col=i%cols,row=Math.floor(i/cols);
+    c.className='cell'+(lit.has(i)?' lit':'');
+    c.style.cssText=`width:${sz}px;height:${sz}px;right:${col*(sz+g)}px;top:${row*(sz+g)+40}px`;
+    c.dataset.in=lit.has(i)?(9.5+(k++)*0.09).toFixed(2):(8.5+i*0.012).toFixed(3);
+    c.dataset.fx='pop';W.appendChild(c);
+  }
+  const D=$('#days'),C=$('#cal'),s2=104,g2=14;
+  'אבגדהוש'.split('').forEach((d,i)=>{const e=document.createElement('div');e.textContent=d;
+    e.style.cssText=`position:absolute;right:${i*(s2+g2)}px;width:${s2}px;text-align:center`;e.dataset.in=(104.5+i*0.04).toFixed(2);e.dataset.fx='up';D.appendChild(e)});
+  let n=0;
+  for(let i=0;i<35;i++){
+    const c=document.createElement('div'),col=i%7,row=Math.floor(i/7),go=i<30&&[0,2,4].includes(col);
+    c.className='cell'+(go?' go':'')+(i>=30?' off':'');
+    c.style.cssText=`width:${s2}px;height:${s2}px;right:${col*(s2+g2)}px;top:${row*(s2+g2)}px`;
+    if(go)c.textContent='🎬';
+    c.dataset.in=go?(105.6+(n++)*0.11).toFixed(2):(104.6+i*0.015).toFixed(3);
+    c.dataset.fx='pop';C.appendChild(c);
+  }
+})();
+
+// --- text prep -----------------------------------------------------------
+$$('.words').forEach(el=>{
+  const a=+el.dataset.in,st=+(el.dataset.stagger||.1);
+  el.removeAttribute('data-in');el.style.opacity=1;
+  el.innerHTML=el.textContent.trim().split(/\s+/).map((w,i)=>{
+    const h=/^\*.*\*$/.test(w)||/^\*/.test(w)||/\*$/.test(w);
+    return `<span class="w${h?' hl':''}" data-in="${(a+i*st).toFixed(2)}" data-fx="word">${w.replace(/\*/g,'')}</span>`;
+  }).join(' ');
+});
+
+const scenes=$$('.scene').map(s=>({el:s,a:+s.dataset.in,b:+s.dataset.out,chap:s.dataset.chap}));
+const items=$$('[data-in]').filter(e=>!e.classList.contains('scene')).map(el=>{
+  const sc=scenes.find(s=>s.el.contains(el));
+  return {el,a:+el.dataset.in,b:sc.b,fx:el.dataset.fx||'up',rot:+(el.dataset.rot||0),float:el.classList.contains('float')};
+});
+const counters=$$('[data-count]').map(el=>({el,v:+el.dataset.count,a:+el.dataset.cin,d:+el.dataset.cdur}));
+const bars=$$('[data-bar]').map(el=>({el,v:+el.dataset.bar,a:+el.dataset.bin}));
+const vbars=$$('[data-vbar]').map(el=>({el,v:+el.dataset.vbar,a:+el.dataset.bin}));
+const vlabs=$$('[data-vfor]').map(el=>({el,v:+el.dataset.vfor}));
+const strikes=$$('[data-sin]').map(el=>({el,a:+el.dataset.sin}));
+const types=$$('[data-type]').map(el=>({el,s:el.dataset.type,a:+el.dataset.tin,d:+el.dataset.tdur}));
+const BOUNDS=scenes.map(s=>s.a).filter(a=>a>0);
+
+function applyFx(it,t){
+  const {el,a,b,fx}=it;
+  if(t<a||t>=b){el.style.opacity=0;return}
+  const d=fx==='word'?.45:fx==='stamp'?.35:.55;
+  const p=P(t,a,d), q=E.in(P(t,b-.32,.32));
+  let o=1,tr='',f='';
+  if(fx==='up'){const e=E.out(p);o=e;tr=`translateY(${(1-e)*70}px)`}
+  else if(fx==='down'){const e=E.out(p);o=e;tr=`translateY(${(e-1)*70}px)`}
+  else if(fx==='left'){const e=E.out(p);o=e;tr=`translateX(${(1-e)*-90}px)`}
+  else if(fx==='pop'){const e=E.back(p);o=cl(p*2.2);tr=`scale(${.35+.65*e})`}
+  else if(fx==='stamp'){const e=E.out(p);o=cl(p*3);tr=`scale(${2.3-1.3*e}) rotate(${-6*e}deg)`}
+  else if(fx==='blur'){const e=E.out(p);o=e;tr=`scale(${1.25-.25*e})`;f=`blur(${(1-e)*24}px)`}
+  else if(fx==='word'){const e=E.back(p);o=cl(p*2);tr=`translateY(${(1-e)*60}%) rotate(${(1-E.out(p))*8}deg)`}
+  if(it.rot)tr+=` rotate(${it.rot}deg)`;
+  if(it.float)tr+=` translate(${Math.sin(t*1.3+a*7)*14}px,${Math.cos(t*1.1+a*5)*12}px)`;
+  if(q>0){o*=1-q;tr+=` translateY(${-50*q}px) scale(${1-.06*q})`}
+  el.style.opacity=o;el.style.transform=tr;el.style.filter=f;
+}
+
+// --- background ----------------------------------------------------------
+const cv=$('#bg'),cx=cv.getContext('2d');
+function rnd(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+function drawBg(t){
+  cx.fillStyle='#07070d';cx.fillRect(0,0,1080,1920);
+  const blobs=[[.2,.25,'254,44,85'],[.85,.7,'37,244,238'],[.5,1.0,'123,47,247']];
+  blobs.forEach(([x,y,c],i)=>{
+    const bx=(x+.12*Math.sin(t*.23+i*2))*1080, by=(y+.08*Math.cos(t*.19+i))*1920, r=760+80*Math.sin(t*.4+i);
+    const g=cx.createRadialGradient(bx,by,0,bx,by,r);
+    g.addColorStop(0,`rgba(${c},.20)`);g.addColorStop(1,`rgba(${c},0)`);
+    cx.fillStyle=g;cx.fillRect(0,0,1080,1920);
+  });
+  // drifting dot grid
+  cx.fillStyle='rgba(255,255,255,.07)';
+  const off=(t*18)%60;
+  for(let y=-60;y<1980;y+=60)for(let x=30;x<1080;x+=60)cx.fillRect(x,y+off,3,3);
+  // particles
+  for(let i=0;i<60;i++){
+    const sp=20+rnd(i)*60, x=rnd(i+99)*1080+Math.sin(t*.5+i)*20, y=1920-((rnd(i+7)*1920+t*sp)%2000);
+    const s=2+rnd(i+3)*4;cx.fillStyle=i%3?'rgba(37,244,238,.35)':'rgba(254,44,85,.4)';
+    cx.beginPath();cx.arc(x,y,s,0,7);cx.fill();
+  }
+  // hit bursts
+  HITS.forEach((h,k)=>{const d=t-h;if(d<0||d>.7)return;const e=E.out(d/.7);
+    for(let i=0;i<24;i++){const an=i/24*6.283+k, r1=120+e*520, r2=r1-60*(1-e);
+      cx.strokeStyle=i%2?`rgba(37,244,238,${1-e})`:`rgba(254,44,85,${1-e})`;cx.lineWidth=6;
+      cx.beginPath();cx.moveTo(540+Math.cos(an)*r2,880+Math.sin(an)*r2);cx.lineTo(540+Math.cos(an)*r1,880+Math.sin(an)*r1);cx.stroke()}
+    cx.fillStyle=`rgba(255,255,255,${.12*(1-e)})`;cx.fillRect(0,0,1080,1920);
+  });
+}
+
+// --- main seek -------------------------------------------------------------
+function seek(t){
+  drawBg(t);
+  scenes.forEach(s=>s.el.style.visibility=(t>=s.a&&t<s.b)?'visible':'hidden');
+  items.forEach(it=>applyFx(it,t));
+  counters.forEach(c=>{const v=Math.round(c.v*E.out(P(t,c.a,c.d)));c.el.textContent=v.toLocaleString('en-US')});
+  bars.forEach(b=>b.el.style.width=(b.v*100*E.out(P(t,b.a,1.0)))+'%');
+  vbars.forEach(b=>b.el.style.height=(b.v*E.out(P(t,b.a,1.0)))+'px');
+  vlabs.forEach(l=>{l.el.style.bottom=(l.v+20)+'px'});
+  strikes.forEach(s=>s.el.style.width=(E.out(P(t,s.a,.3))*110)+'%');
+  types.forEach(y=>{y.el.textContent=y.s.slice(0,Math.round(y.s.length*P(t,y.a,y.d)))});
+  const ring=$('#ring');ring.setAttribute('stroke-dashoffset',1193.8*(1-.8*E.out(P(t,70.9,2.6))));
+  // camera: slow drift + shake on hits + punch-in at scene start
+  let sh=0;HITS.forEach(h=>{const d=t-h;if(d>=0&&d<.5)sh+=Math.exp(-d*9)*16});
+  const sc=scenes.find(s=>t>=s.a&&t<s.b)||scenes[scenes.length-1];
+  const punch=1+.035*(1-E.out(P(t,sc.a,.6)));
+  $('#cam').style.transform=`translate(${sh*Math.sin(t*93)}px,${sh*Math.cos(t*71)}px) scale(${punch*(1+.008*Math.sin(t*.6))})`;
+  // HUD
+  $('#prog b').style.width=(t/DUR*100)+'%';
+  const ch=$('#chap');ch.innerHTML=sc.chap;ch.style.opacity=sc.chap?E.out(P(t,sc.a,.4)):0;
+  // whip wipes at every scene cut
+  const wp=$$('#wipe div');let w=null;BOUNDS.forEach(c=>{if(t>=c-.4&&t<c+.32)w=c});
+  wp.forEach((d,i)=>{if(w===null){d.style.transform='translateX(3000px) skewX(-14deg)';return}
+    const p=E.io(P(t,w-.25+(i-2)*.06,.5));d.style.transform=`translateX(${1700-p*3600}px) skewX(-14deg)`});
+  $('#fade').style.opacity=P(t,DUR-.7,.7);
+}
+window.seek=seek;window.TIMELINE={dur:DUR,hits:HITS,bounds:BOUNDS};
+seek(+(new URLSearchParams(location.search).get('t')||3));
+</script>
+</body>
+</html>

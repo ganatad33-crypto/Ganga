@@ -123,5 +123,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Local multilingual voice cloning UI")
     parser.add_argument("--host", default="127.0.0.1", help="use 0.0.0.0 to open from other devices on your network")
     parser.add_argument("--port", type=int, default=7860)
+    parser.add_argument("--share", action="store_true", help="create a temporary public link (e.g. for Google Colab)")
     args = parser.parse_args()
-    build_ui().queue().launch(server_name=args.host, server_port=args.port)
+    if args.share:
+        get_model()  # טוען מראש, כדי שהקישור יופיע רק כשהכלי מוכן
+    build_ui().queue().launch(server_name=args.host, server_port=args.port, share=args.share)

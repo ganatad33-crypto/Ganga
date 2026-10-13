@@ -6,7 +6,19 @@
 
 מבוסס על המודל הפתוח [Chatterbox Multilingual](https://github.com/resemble-ai/chatterbox) של Resemble AI (רישיון MIT).
 
-## דרישות
+## 📱 בלי מחשב — מהטלפון דרך Google Colab
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ganatad33-crypto/Ganga/blob/ccr-f6d0d92b-oejvi4/voice-clone/colab.ipynb)
+
+1. פותחים את הקישור למעלה (צריך חשבון Google).
+2. **Runtime ← Change runtime type ← T4 GPU** ← שמירה.
+3. לוחצים ▶️ על שלושת התאים לפי הסדר, ומחכים לקישור שמסתיים ב־`gradio.live`.
+4. לוחצים על הקישור ומשתמשים בכלי. משאירים את לשונית ה־Colab פתוחה.
+
+המודל רץ חינם על כרטיס מסך של Google (הדגימות עוברות לשרתי Google). בגרסה החינמית יש מגבלת זמן יומית.
+אחרי שינוי ב־`app.py` מריצים `python build_colab.py` כדי לעדכן את המחברת.
+
+## הרצה על מחשב — דרישות
 
 - Python 3.10–3.12 (מומלץ 3.11)
 - כ־6GB פנויים בדיסק (ספריות + המודל, שיורד אוטומטית בהפעלה הראשונה)

@@ -87,6 +87,10 @@ def grade_filter(preset, letterbox=False):
 
 
 def cmd_grade(a):
+    info = probe(a.input)
+    if a.letterbox and info["h"] >= info["w"] / 2.39 * 1.05 and info["h"] > info["w"]:
+        print("letterbox skipped: the video is vertical, bars would cover most of it", file=sys.stderr)
+        a.letterbox = False
     run(["-i", a.input, "-vf", grade_filter(a.preset, a.letterbox), "-map", "0:v", "-map", "0:a?", *ENC, a.output])
 
 # ---------------------------------------------------------------- 2. Beat Synced Cuts
@@ -185,7 +189,7 @@ def cmd_beforeafter(a):
     info = probe(a.input)
     w, h = info["w"] - info["w"] % 2, info["h"] - info["h"] % 2
     f = font()
-    fs = max(18, w // 16)
+    fs = max(18, min(w, h) // 16)
     lab = (f"drawtext=fontfile={f}:text='{esc(a.before_label)}':fontsize={fs}:fontcolor=white"
            f":box=1:boxcolor=black@0.55:boxborderw=12:x=24:y=24")
     lab2 = (f"drawtext=fontfile={f}:text='{esc(a.after_label)}':fontsize={fs}:fontcolor=white"
@@ -200,11 +204,15 @@ def cmd_beforeafter(a):
                f"[g0]{grade_filter(a.preset)}[g];")
 
     if a.mode == "side":
-        stack = "hstack" if h >= w else "vstack"
-        half_w, half_h = (w // 2 - w // 2 % 2, h) if stack == "hstack" else (w, h // 2 - h // 2 % 2)
-        g = (pre + f"[b]scale={half_w}:-2,crop={half_w}:{min(half_h, h)}[b2];"
-             f"[g]scale={half_w}:-2,crop={half_w}:{min(half_h, h)}[g2];"
-             f"[b2][g2]{stack}=inputs=2,{lab},{lab2},format=yuv420p[v]")
+        # both full frames at half size, placed next to each other (portrait) or
+        # one above the other (landscape), padded back to the original size
+        if h >= w:
+            stack, size = "hstack", f"{w // 2 - w // 2 % 2}:-2"
+        else:
+            stack, size = "vstack", f"-2:{h // 2 - h // 2 % 2}"
+        g = (pre + f"[b]scale={size}[b2];[g]scale={size}[g2];"
+             f"[b2][g2]{stack}=inputs=2,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color=black,"
+             f"{lab},{lab2},format=yuv420p[v]")
     else:
         if a.mode == "wipe":  # divider sweeps back and forth
             pos = "(0.5+0.42*sin(2*PI*T/6))"

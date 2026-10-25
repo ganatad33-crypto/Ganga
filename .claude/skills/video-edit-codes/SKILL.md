@@ -16,7 +16,7 @@ python3 $V <code> ...      # run with -h on any code for all options
 
 | Code | Command | What it does |
 |---|---|---|
-| **Color Grade** | `grade IN OUT --preset cinematic` | Teal shadows / orange highlights, contrast curve, vignette. Presets: `cinematic` `warm` `cool` `noir`. `--letterbox` adds 2.39:1 bars. |
+| **Color Grade** | `grade IN OUT --preset cinematic` | Teal shadows / orange highlights, contrast curve, vignette. Presets: `cinematic` `warm` `cool` `noir`. `--letterbox` adds 2.39:1 bars (landscape only; skipped on vertical video). |
 | **Beat Synced Cuts** | `beatcuts OUT --clips A.mp4 B.mp4 --music song.mp3` | Finds the song's tempo and beats, then cuts the clips so every cut lands on a beat, over the song. `--every 2` = calmer, `--flash` = white flash on each cut, `--max-seconds 30`. Without `--music` it cuts to the first clip's own audio. |
 | **Before And After** | `beforeafter IN OUT --mode split` | Split screen with a white divider and labels. If no `--after FILE` is given, "after" is IN with the `--preset` grade. Modes: `split` (half/half), `side` (two full frames stacked), `wipe` (divider sweeps back and forth). Labels: `--before-label לפני --after-label אחרי`. |
 | **Hand Drawn** | `handdrawn IN OUT --color` | Ink lines on paper, 12 fps stop-motion "boil" (frame jitter + paper grain). `--color` adds flat marker colors; without it it's pencil only. `--fps 8` = choppier. |

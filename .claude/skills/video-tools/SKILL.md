@@ -1,16 +1,17 @@
 ---
 name: video-tools
-description: Local video and caption tools kept in this repo under tools/. Use when the user wants to cut a short reel from a longer video, add or translate captions (Hebrew word-highlight style), replace burned-in captions, transcribe a video's English speech, or swap a face in a video. Triggers - "רילס", "כתוביות", "תרגם את הסרטון", "החלף פנים", "reel", "subtitles", "captions", "face swap".
+description: Local video and caption tools kept in this repo under tools/. Use when the user wants to cut a short reel from a longer video, add or translate captions (Hebrew word-highlight style), replace burned-in captions, transcribe a video's English speech, add funny animations, emoji or stickers to a reel, or swap a face in a video. Triggers - "רילס", "כתוביות", "תרגם את הסרטון", "החלף פנים", "אנימציות", "מדבקות", "reel", "subtitles", "captions", "animations", "stickers", "face swap".
 ---
 
 # Video tools
 
-Three tools live in `tools/`. All run on CPU, with no external service and no credits.
+Four tools live in `tools/`. All run on CPU, with no external service and no credits.
 Reply to the user in their language (usually Hebrew).
 
 | Folder | Does | Setup | Speed |
 |---|---|---|---|
 | `tools/reel` | Transcribe English speech; cut a reel and burn in highlight captions | `tools/reel/setup.sh` (about 480 MB) | fast: about 1 min per reel |
+| `tools/fx` | Add emoji pops, stickers, zoom punches, shakes and floating laugh emojis to a finished reel | `pip install opencv-python-headless numpy` | fast: about 1 min per reel |
 | `tools/subtitles` | Replace captions already burned into a video | `pip install opencv-python-headless pillow numpy rapidocr onnxruntime` | fast |
 | `tools/faceswap` | Swap the largest face in a video | `tools/faceswap/setup.sh` (about 1.3 GB) | slow: about 2 s per frame |
 
@@ -66,6 +67,29 @@ footage are not supported.
 - Only use faces of people who agreed to it. If it is not clear the people in the photo and
   the video agreed, ask once before running. Do not use it to make sexual or revealing
   content of a real person, or to put someone into footage they would object to.
+
+## 4. Animations and stickers
+
+Run on a finished reel (after captions): `python3 tools/fx/add_fx.py reel.mp4 fx.json out.mp4`.
+The format of `fx.json` is at the top of `tools/fx/add_fx.py`.
+
+1. Set `area` to the picture inside the frame and `float_top` just below the captions, so
+   nothing covers the title or the captions.
+2. Place events from the transcript, in reel time (source time minus what was cut before it):
+   - `pop` on a punchline. Pick the emoji by meaning when one fits (broken heart, skull);
+     leave `emoji` out for a random one.
+   - `punch` on the one or two biggest lines, `shake` on shouted or repeated lines.
+   - `laugh` over audience laughter, with a bigger `count` for the final laugh.
+   - `sticker` when the speaker imitates or talks about a character. Alternate `left` and
+     `right`, and do not put a `pop` at the same moment.
+3. Keep it light: about one event every 4 to 6 seconds. Too many kills the joke.
+4. Check frames at the event times before sending.
+
+Stickers: `tools/fx/stickers/` has four "angry woman" cartoon stickers. For a new character,
+generate cartoon sticker art of a fictional character with an image connector (this spends
+the user's credits: say how much), then `python3 tools/fx/cutout.py generated.png sticker.png`.
+Stock-photo sites are blocked from cloud sessions, and photos of real people bring rights
+problems, so generated cartoon art is the default.
 
 ## Limits to state plainly
 
